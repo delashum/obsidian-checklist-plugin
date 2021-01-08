@@ -31,7 +31,9 @@ export default class TodoListView extends ItemView {
   async onOpen(): Promise<void> {
     this._app = new App({
       target: (this as any).contentEl,
-      props: {},
+      props: {
+        todoLinkId: this.settings.todoPageName,
+      },
     });
   }
 }

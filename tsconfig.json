@@ -5,6 +5,7 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "types": ["svelte","node"],
+    "lib": ["ESNext"],
   },
   "include": [
     "src/**/*"
