@@ -4,3 +4,9 @@ export type TodoItem = {
   file: string;
   line: number;
 };
+
+export type FileTodos = {
+  todos: TodoItem[];
+  name: string;
+  path: string;
+};
