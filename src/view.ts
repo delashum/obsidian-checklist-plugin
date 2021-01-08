@@ -1,10 +1,12 @@
 import {ItemView, WorkspaceLeaf} from 'obsidian'
 
 import {TODO_VIEW_TYPE} from './constants'
-import {TodoSettings} from './settings'
+import App from './svelte/App.svelte'
 
+import type { TodoSettings } from "./settings";
 export default class TodoListView extends ItemView {
   private settings: TodoSettings;
+  private _app: App;
 
   constructor(leaf: WorkspaceLeaf, settings: TodoSettings) {
     super(leaf);
@@ -21,12 +23,15 @@ export default class TodoListView extends ItemView {
   }
 
   getIcon(): string {
-    return "calendar-with-checkmark";
+    return "checkmark";
   }
 
   async onClose(): Promise<void> {}
 
   async onOpen(): Promise<void> {
-    this.containerEl.innerHTML = "nice try boys";
+    this._app = new App({
+      target: (this as any).contentEl,
+      props: {},
+    });
   }
 }

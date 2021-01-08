@@ -1,7 +1,7 @@
 {
   "id": "obsidian-todo-plugin",
-  "name": "Sample Plugin",
-  "version": "1.0.1",
+  "name": "Todo Plugin",
+  "version": "1.0.0",
   "minAppVersion": "0.9.12",
   "description": "This plugin pulls stuff",
   "author": "delashum",

@@ -1,6 +1,6 @@
 import {App, PluginSettingTab, Setting} from 'obsidian'
 
-import TodoPlugin from './main'
+import type TodoPlugin from "./main";
 
 export interface TodoSettings {
   todoPageName: string;
