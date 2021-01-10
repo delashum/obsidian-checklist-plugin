@@ -1,6 +1,6 @@
 import * as os from 'os'
 
-import type { App, LinkCache, MetadataCache, TFile } from "obsidian";
+import type { App, MetadataCache, TagCache, TFile } from "obsidian";
 import type { FileTodos, TodoItem } from "src/_types";
 /** public */
 
@@ -8,8 +8,8 @@ export const parseTodosFromFiles = (files: TFile[], pageLink: string, cache: Met
   return files
     .map((file) => {
       const fileCache = cache.getFileCache(file);
-      const linksOnPage = fileCache?.links?.filter((e) => e.link === pageLink) ?? [];
-      const allTodos = linksOnPage.flatMap((link) => findAllTodosFromLinkBlock(file, link));
+      const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? [];
+      const allTodos = tagsOnPage.flatMap((tag) => findAllTodosFromLinkBlock(file, tag));
       return {
         name: file.name,
         path: file.path,
@@ -33,12 +33,12 @@ export const getFileFromPath = (path: string, app: App) => app.vault.getFiles().
 
 /** private */
 
-const findAllTodosFromLinkBlock = (file: TFile, link: LinkCache) => {
+const findAllTodosFromLinkBlock = (file: TFile, tag: TagCache) => {
   const fileContents = (file as any).cachedData;
   if (!fileContents) return [];
   const fileLines = getAllLinesFromFile(fileContents);
   const todos: TodoItem[] = [];
-  for (let i = link.position.start.line; i < fileLines.length; i++) {
+  for (let i = tag.position.start.line; i < fileLines.length; i++) {
     const line = fileLines[i];
     if (line.length === 0) break;
     if (lineIsTodo(line)) {
@@ -47,6 +47,7 @@ const findAllTodosFromLinkBlock = (file: TFile, link: LinkCache) => {
         text: extractTextFromTodoLine(line),
         file: file.path,
         line: i,
+        subTag: getTagMeta(tag.tag)?.sub,
       });
     }
   }
@@ -60,6 +61,11 @@ const setTodoStatusAtLineTo = (file: TFile, line: number, setTo: boolean) => {
   const fileLines = getAllLinesFromFile(fileContents);
   fileLines[line] = setLineTo(fileLines[line], setTo);
   return combineFileLines(fileLines);
+};
+
+const getTagMeta = (tag: string): { main: string; sub: string } => {
+  const [full, main, sub] = /^\#([^\/]+)\/?(.*)?$/.exec(tag);
+  return { main, sub };
 };
 
 const setLineTo = (line: string, setTo: boolean) =>

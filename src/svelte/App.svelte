@@ -8,6 +8,7 @@
     } from "src/_utils";
     import type { FileTodos, TodoItem } from "src/_types";
     import { toggle_class } from "svelte/internal";
+    import CheckCircle from "./CheckCircle.svelte";
 
     export let todoLinkId: string;
     let files: FileTodos[] = [];
@@ -43,14 +44,26 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        border-bottom: 1px solid var(--text-faint);
+        background-color: var(--interactive-normal);
+        border-radius: 8px;
         padding: 8px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: background-color 250ms ease-in-out;
+    }
+
+    .todo-item:hover {
+        background-color: var(--interactive-hover);
+    }
+
+    .todo-text {
+        margin-left: 8px;
     }
 
     .file-link {
         margin-bottom: 4px;
         color: var(--color-accent);
-        transition: opacity 250ms ease-in-out;
+        transition: opacity 150ms ease-in-out;
     }
 
     .file-link:hover {
@@ -60,7 +73,6 @@
 </style>
 
 <div>
-    <div class="header"><button on:click={reload}>fetch todos</button></div>
     <div class="todo-list">
         {#each files as file}
             <div
@@ -69,13 +81,8 @@
                 {file.name}
             </div>
             {#each file.todos as todo}
-                <div class="todo-item">
-                    <div class="todo-check">
-                        <input
-                            type="checkbox"
-                            checked={todo.checked}
-                            on:change={() => toggleItem(todo)} />
-                    </div>
+                <div class="todo-item" on:click={() => toggleItem(todo)}>
+                    <CheckCircle checked={todo.checked} />
                     <div class="todo-text">{todo.text}</div>
                 </div>
             {/each}

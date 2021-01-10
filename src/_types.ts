@@ -2,6 +2,7 @@ export type TodoItem = {
   checked: boolean;
   text: string;
   file: string;
+  subTag?: string;
   line: number;
 };
 
@@ -10,3 +11,5 @@ export type FileTodos = {
   name: string;
   path: string;
 };
+
+export type GroupByOptions = "page" | "tag";
