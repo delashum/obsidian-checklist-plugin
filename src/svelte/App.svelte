@@ -7,7 +7,6 @@
         isMetaPressed,
     } from "src/_utils";
     import type { FileTodos, TodoItem } from "src/_types";
-    import { toggle_class } from "svelte/internal";
     import CheckCircle from "./CheckCircle.svelte";
 
     export let todoLinkId: string;
