@@ -38,7 +38,9 @@
 
   beforeUpdate(() => {
     rerenderKey
-    recalcItems()
+    setTimeout(() => {
+      recalcItems()
+    }, 50)
   })
   setTimeout(() => {
     recalcItems()
@@ -53,7 +55,11 @@
           {group.groupName}
         </div>
       {:else}
-        <div class="group-header">#{group.groupName}</div>
+        <div class="group-header">
+          <span class="tag-base">{`#${todoTag}${group.groupName != null ? "/" : ""}`}</span><span class="tag-sub"
+            >{group.groupName || ""}</span
+          >
+        </div>
       {/if}
 
       {#each group.todos as todo}
@@ -76,7 +82,7 @@
     padding: 8px;
     margin-bottom: 16px;
     cursor: pointer;
-    transition: background-color 250ms ease-in-out;
+    transition: background-color 150ms ease-in-out;
   }
 
   .todo-item:hover {
@@ -89,7 +95,7 @@
 
   .file-link {
     margin-bottom: 4px;
-    color: var(--color-accent);
+    color: var(--text-muted);
     transition: opacity 150ms ease-in-out;
   }
 
@@ -102,5 +108,12 @@
     font-weight: 600;
     font-size: 16px;
     margin-bottom: 8px;
+  }
+
+  .tag-base {
+    color: var(--text-faint);
+  }
+  .tag-sub {
+    color: var(--text-muted);
   }
 </style>

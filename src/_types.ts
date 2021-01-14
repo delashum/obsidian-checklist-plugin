@@ -3,6 +3,7 @@ export type TodoItem = {
   text: string
   filePath: string
   fileName: string
+  fileLabel: string
   fileCreatedTs: number
   mainTag: string
   subTag?: string

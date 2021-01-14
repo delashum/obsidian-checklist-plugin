@@ -24,7 +24,7 @@ export const groupTodos = (items: TodoItem[], groupBy: GroupByType): TodoGroup[]
     if (!group) {
       group = {
         groupId: itemKey,
-        groupName: groupBy === "page" ? item.fileName : item.subTag,
+        groupName: groupBy === "page" ? item.fileLabel : item.subTag,
         type: groupBy,
         todos: [],
       }
@@ -66,6 +66,7 @@ const findAllTodosFromTagBlock = (file: TFile, tag: TagCache) => {
         text: extractTextFromTodoLine(line),
         filePath: file.path,
         fileName: file.name,
+        fileLabel: getFileLabelFromName(file.name),
         fileCreatedTs: file.stat.ctime,
         line: i,
         subTag: meta?.sub,
@@ -96,7 +97,8 @@ const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 const combineFileLines = (lines: string[]) => lines.join("\n")
 const lineIsTodo = (line: string) => /^\s*\-\s\[(\s|x)\]/.test(line)
 const extractTextFromTodoLine = (line: string) => /^\s*\-\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
-const todoLineIsChecked = (line: string) => /^\s*\-\s\[(\s|x)\]/.exec(line)?.[1] === "x"
+const todoLineIsChecked = (line: string) => /^\s*\-\s\[x\]/.test(line)
+const getFileLabelFromName = (filename: string) => /^([^\.]+)\.md$/.exec(filename)?.[1]
 
 const isMacOS = () => {
   return os.platform() === "darwin"
