@@ -36,8 +36,23 @@ export default class TodoListView extends ItemView {
     this._app = new App({
       target: (this as any).contentEl,
       props: {
-        todoLinkId: this.settings.todoPageName,
+        todoTag: this.settings.todoPageName,
+        showChecked: this.settings.showChecked,
+        groupBy: this.settings.groupBy,
+        sortDirection: this.settings.sortDirection,
       },
+    })
+    this.registerEvent(this.app.vault.on("modify", this.rerender.bind(this)))
+    this.registerEvent(this.app.workspace.on("file-open", this.rerender.bind(this)))
+  }
+
+  rerender() {
+    this._app.$set({
+      todoTag: this.settings.todoPageName,
+      showChecked: this.settings.showChecked,
+      groupBy: this.settings.groupBy,
+      sortDirection: this.settings.sortDirection,
+      rerenderKey: Symbol("[rerender]"),
     })
   }
 }

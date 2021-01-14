@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-todo-plugin",
-  "name": "Todo Plugin",
+  "id": "obsidian-checklist",
+  "name": "Checklist",
   "version": "1.0.0",
   "minAppVersion": "0.9.12",
-  "description": "This plugin pulls stuff",
+  "description": "Combines checklists accross pages into users sidebar",
   "author": "delashum",
   "authorUrl": "https://www.hivewire.co/about/careers",
   "isDesktopOnly": false

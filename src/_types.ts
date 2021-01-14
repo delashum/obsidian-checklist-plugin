@@ -1,15 +1,20 @@
 export type TodoItem = {
   checked: boolean
   text: string
-  file: string
+  filePath: string
+  fileName: string
+  fileCreatedTs: number
+  mainTag: string
   subTag?: string
   line: number
 }
 
-export type FileTodos = {
+export type TodoGroup = {
+  type: GroupByType
   todos: TodoItem[]
-  name: string
-  path: string
+  groupName: string
+  groupId: string
 }
 
-export type GroupByOptions = "page" | "tag"
+export type GroupByType = "page" | "tag"
+export type SortDirection = "new->old" | "old->new"
