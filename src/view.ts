@@ -1,7 +1,7 @@
-import {ItemView, WorkspaceLeaf} from 'obsidian'
+import { ItemView, WorkspaceLeaf } from "obsidian"
 
-import {TODO_VIEW_TYPE} from './constants'
-import App from './svelte/App.svelte'
+import { TODO_VIEW_TYPE } from "./constants"
+import App from "./svelte/App.svelte"
 
 import type { TodoSettings } from "./settings"
 export default class TodoListView extends ItemView {
@@ -26,11 +26,9 @@ export default class TodoListView extends ItemView {
     return "checkmark"
   }
 
-  onDestroy() {
+  async onClose() {
     this._app.$destroy()
   }
-
-  async onClose(): Promise<void> {}
 
   async onOpen(): Promise<void> {
     this._app = new App({

@@ -9,3 +9,7 @@ node_modules
 dist
 main.js
 *.js.map
+
+
+# other
+.DS_Store
