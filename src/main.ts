@@ -31,7 +31,7 @@ export default class TodoPlugin extends Plugin {
   }
 
   onunload() {
-    this.view.onDestroy()
+    this.view.onClose()
   }
 
   async loadSettings() {
