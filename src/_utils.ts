@@ -98,7 +98,7 @@ const combineFileLines = (lines: string[]) => lines.join("\n")
 const lineIsTodo = (line: string) => /^\s*\-\s\[(\s|x)\]/.test(line)
 const extractTextFromTodoLine = (line: string) => /^\s*\-\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
 const todoLineIsChecked = (line: string) => /^\s*\-\s\[x\]/.test(line)
-const getFileLabelFromName = (filename: string) => /^([^\.]+)\.md$/.exec(filename)?.[1]
+const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 
 const isMacOS = () => {
   return os.platform() === "darwin"
