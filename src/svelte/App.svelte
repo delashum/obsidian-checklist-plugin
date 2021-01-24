@@ -3,7 +3,7 @@
   import { toggleTodoItem, parseTodos, groupTodos, navToFile, hoverFile } from "src/_utils"
   import type { GroupByType, SortDirection, TodoGroup, TodoItem } from "src/_types"
   import CheckCircle from "./CheckCircle.svelte"
-  import { beforeUpdate } from "svelte"
+  import TodoText from "./TodoText.svelte"
 
   export let todoTag: string
   export let showChecked: boolean
@@ -56,22 +56,7 @@
         <div class="todo-item" on:click={() => toggleItem(todo)}>
           <CheckCircle checked={todo.checked} />
           <div class="todo-text">
-            {#each todo.display as chunk}
-              {#if chunk.type === "text"}
-                <span>{chunk.content}</span>
-              {:else if chunk.type === "link"}
-                <span
-                  class="link-item"
-                  on:click={(ev) => {
-                    ev.stopPropagation()
-                    navToFile(chunk.filePath, ev)
-                  }}
-                  on:mouseenter={(ev) => {
-                    hoverFile(ev, app, chunk.filePath)
-                  }}>{chunk.label}</span
-                >
-              {/if}
-            {/each}
+            <TodoText chunks={todo.display} />
           </div>
         </div>
       {/each}
@@ -122,14 +107,5 @@
   }
   .tag-sub {
     color: var(--text-muted);
-  }
-  .link-item {
-    color: var(--text-accent);
-    text-decoration: underline;
-    cursor: pointer;
-    transition: color 150ms ease-in-out;
-  }
-  .link-item:hover {
-    color: var(--text-accent-hover);
   }
 </style>

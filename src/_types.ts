@@ -1,14 +1,27 @@
-export type TodoTextChunk = {
+export type TextChunk = {
   type: "text"
   content: string
 }
-export type TodoLinkChunk = {
+export type BoldChunk = {
+  type: "bold"
+  content: string
+}
+export type ItalicChunk = {
+  type: "italic"
+  content: string
+}
+export type LinkChunk = {
   type: "link"
   label: string
   filePath: string
 }
 
-export type TodoDisplayChunk = TodoTextChunk | TodoLinkChunk
+export type TodoDisplayChunk = TextChunk | LinkChunk | BoldChunk | ItalicChunk
+
+export type DisplayChunkType = TodoDisplayChunk["type"]
+export type TokenChunk =
+  | { content: string; type: "text" }
+  | { content: TokenChunk[]; type: Exclude<DisplayChunkType, "text"> }
 
 export type TodoItem = {
   checked: boolean

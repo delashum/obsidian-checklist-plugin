@@ -1,7 +1,17 @@
 import * as os from 'os'
 
 import type { App, LinkCache, MetadataCache, TagCache, TFile } from "obsidian"
-import type { TodoItem, TodoGroup, GroupByType, SortDirection, TagMeta, TodoDisplayChunk, LinkMeta } from "src/_types"
+import type {
+  TodoItem,
+  TodoGroup,
+  GroupByType,
+  SortDirection,
+  TagMeta,
+  TodoDisplayChunk,
+  LinkMeta,
+  DisplayChunkType,
+  TokenChunk,
+} from "src/_types"
 
 /** public */
 
@@ -115,21 +125,57 @@ const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[
 }
 
 const parseTextContent = (formula: string, linkMap: Map<string, LinkMeta>): TodoDisplayChunk[] => {
-  const pieces = formula.split(/\[\[[^\]]+\]\]/)
-  const nonTokens = getAllMatches(/\[\[([^\]]+)\]\]/g, formula, 1)
-  const allTokens: TodoDisplayChunk[] = pieces.flatMap((piece, i) => {
-    const textPiece = { type: "text" as const, content: piece }
-    const tokenPiece = {
-      type: "link" as const,
-      filePath: linkMap.get(nonTokens[i])?.filePath,
-      label: linkMap.get(nonTokens[i])?.linkName,
+  let tokens: TokenChunk[] = parseTokensFromText(
+    [{ content: formula, type: "text" }],
+    "bold",
+    /\*\*[^\*]+\*\*/,
+    /\*\*([^\*]+)\*\*/g
+  )
+  tokens = parseTokensFromText(tokens, "italic", /\*[^\*]+\*/, /\*([^\*]+)\*/g)
+  tokens = parseTokensFromText(tokens, "link", /\[\[[^\]]+\]\]/, /\[\[([^\]]+)\]\]/g)
+
+  return tokens.map<TodoDisplayChunk>((token: any) => {
+    if (token.type === "link") {
+      return {
+        type: "link",
+        filePath: linkMap.get(token.content)?.filePath,
+        label: linkMap.get(token.content)?.linkName,
+      }
     }
-    const finalPieces: TodoDisplayChunk[] = []
-    if (piece) finalPieces.push(textPiece)
-    if (nonTokens[i]) finalPieces.push(tokenPiece)
-    return finalPieces
+    return token
   })
-  return allTokens
+}
+
+const parseTokensFromText = <T extends DisplayChunkType>(
+  chunks: TokenChunk[],
+  type: T,
+  splitRegex: RegExp,
+  tokenRegex: RegExp
+): TokenChunk[] => {
+  return chunks.flatMap((chunk) => {
+    if (chunk.type === "text") {
+      const pieces = chunk.content.split(splitRegex)
+      const tokens = getAllMatches(tokenRegex, chunk.content, 1)
+      return pieces.flatMap((piece, i) => {
+        const token = tokens[i]
+        const finalPieces = []
+        if (piece) finalPieces.push({ type: "text", content: piece })
+        if (token)
+          finalPieces.push({
+            type,
+            content: [{ type: "text", content: token }],
+          })
+        return finalPieces
+      })
+    } else {
+      return [
+        {
+          type: chunk.type,
+          content: parseTokensFromText(chunk.content, type, splitRegex, tokenRegex),
+        },
+      ]
+    }
+  })
 }
 
 const getAllMatches = (r: RegExp, string: string, captureIndex = 0) => {
