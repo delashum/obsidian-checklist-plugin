@@ -1,15 +1,18 @@
 import * as os from 'os'
 
 import type { App, MetadataCache, TagCache, TFile } from "obsidian"
-import type { TodoItem, TodoGroup, GroupByType, SortDirection } from "src/_types"
+import type { TodoItem, TodoGroup, GroupByType, SortDirection, TagMeta } from "src/_types"
+
 /** public */
 
 export const parseTodos = (files: TFile[], pageLink: string, cache: MetadataCache, sort: SortDirection): TodoItem[] => {
-  const allTodos = files.flatMap((file) => {
-    const fileCache = cache.getFileCache(file)
-    const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
-    return tagsOnPage.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
-  })
+  const allTodos = files
+    .flatMap((file) => {
+      const fileCache = cache.getFileCache(file)
+      const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
+      return tagsOnPage.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
+    })
+    .filter((todo, i, a) => a.findIndex((_todo) => todo.line === _todo.line && todo.filePath === _todo.filePath) === i)
 
   allTodos.sort((a, b) => (sort === "new->old" ? b.fileCreatedTs - a.fileCreatedTs : a.fileCreatedTs - b.fileCreatedTs))
   return allTodos.filter((e) => e.text.length > 0 && /\S/.test(e.text))
@@ -42,39 +45,56 @@ export const toggleTodoItem = (item: TodoItem, app: App) => {
   app.vault.modify(file, newData)
 }
 
-export const isMetaPressed = (e: MouseEvent): boolean => {
-  return isMacOS() ? e.metaKey : e.ctrlKey
+export const navToFile = async (path: string, ev: MouseEvent) => {
+  const app: App = (window as any).app
+  const file = getFileFromPath(path, app)
+  const leaf = isMetaPressed(ev) ? app.workspace.splitActiveLeaf() : app.workspace.getUnpinnedLeaf()
+  await leaf.openFile(file)
 }
 
-export const getFileFromPath = (path: string, app: App) => app.vault.getFiles().find((f) => f.path === path)
-
 /** private */
+
+const getFileFromPath = (path: string, app: App) => app.vault.getFiles().find((f) => f.path === path)
+
+const isMetaPressed = (e: MouseEvent): boolean => {
+  return isMacOS() ? e.metaKey : e.ctrlKey
+}
 
 const findAllTodosFromTagBlock = (file: TFile, tag: TagCache) => {
   const fileContents = (file as any).cachedData
   if (!fileContents) return []
   const fileLines = getAllLinesFromFile(fileContents)
+  const meta = getTagMeta(tag.tag)
+  const tagLine = fileLines[tag.position.start.line]
+
+  if (lineIsTodo(tagLine)) {
+    return [formTodo(tagLine, file, meta, tag.position.start.line)]
+  }
+
   const todos: TodoItem[] = []
   for (let i = tag.position.start.line; i < fileLines.length; i++) {
     const line = fileLines[i]
     if (line.length === 0) break
     if (lineIsTodo(line)) {
-      const meta = getTagMeta(tag.tag)
-      todos.push({
-        mainTag: meta.main,
-        checked: todoLineIsChecked(line),
-        text: extractTextFromTodoLine(line),
-        filePath: file.path,
-        fileName: file.name,
-        fileLabel: getFileLabelFromName(file.name),
-        fileCreatedTs: file.stat.ctime,
-        line: i,
-        subTag: meta?.sub,
-      })
+      todos.push(formTodo(line, file, meta, i))
     }
   }
 
   return todos.filter((e) => /\S/.test(e.text))
+}
+
+const formTodo = (line: string, file: TFile, tagMeta: TagMeta, lineNum: number): TodoItem => {
+  return {
+    mainTag: tagMeta.main,
+    checked: todoLineIsChecked(line),
+    text: removeTagFromText(extractTextFromTodoLine(line), tagMeta.main),
+    filePath: file.path,
+    fileName: file.name,
+    fileLabel: getFileLabelFromName(file.name),
+    fileCreatedTs: file.stat.ctime,
+    line: lineNum,
+    subTag: tagMeta?.sub,
+  }
 }
 
 const setTodoStatusAtLineTo = (file: TFile, line: number, setTo: boolean) => {
@@ -85,7 +105,7 @@ const setTodoStatusAtLineTo = (file: TFile, line: number, setTo: boolean) => {
   return combineFileLines(fileLines)
 }
 
-const getTagMeta = (tag: string): { main: string; sub: string } => {
+const getTagMeta = (tag: string): TagMeta => {
   const [full, main, sub] = /^\#([^\/]+)\/?(.*)?$/.exec(tag)
   return { main, sub }
 }
@@ -99,6 +119,8 @@ const lineIsTodo = (line: string) => /^\s*\-\s\[(\s|x)\]/.test(line)
 const extractTextFromTodoLine = (line: string) => /^\s*\-\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
 const todoLineIsChecked = (line: string) => /^\s*\-\s\[x\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
+const removeTagFromText = (text: string, tag: string) =>
+  text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, "g"), "").trim()
 
 const isMacOS = () => {
   return os.platform() === "darwin"

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { App } from "obsidian"
-  import { toggleTodoItem, parseTodos, getFileFromPath, isMetaPressed, groupTodos } from "src/_utils"
+  import { toggleTodoItem, parseTodos, groupTodos, navToFile } from "src/_utils"
   import type { GroupByType, SortDirection, TodoGroup, TodoItem } from "src/_types"
   import CheckCircle from "./CheckCircle.svelte"
   import { beforeUpdate } from "svelte"
@@ -17,7 +17,6 @@
   function toggleItem(item: TodoItem) {
     toggleTodoItem(item, app)
     item.checked = !item.checked
-    todos = [...todos]
     todoGroups = formGroups(todos)
   }
 
@@ -25,33 +24,24 @@
     return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy)
   }
 
-  async function navToFile(path: string, split: boolean) {
-    const file = getFileFromPath(path, app)
-    const leaf = split ? app.workspace.splitActiveLeaf() : app.workspace.getUnpinnedLeaf()
-    await leaf.openFile(file)
-  }
-
   function recalcItems() {
     todos = parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, sortDirection)
     todoGroups = formGroups(todos)
   }
 
-  beforeUpdate(() => {
+  $: {
     rerenderKey
-    setTimeout(() => {
-      recalcItems()
-    }, 50)
-  })
-  setTimeout(() => {
-    recalcItems()
-  }, 200) // first run only; need timeout to make sure cache is populated
+    setTimeout(recalcItems, 50)
+  }
+
+  setTimeout(recalcItems, 200) // first run only; need timeout to make sure cache is populated
 </script>
 
 <div>
   <div class="todo-list">
     {#each todoGroups as group}
       {#if group.type === "page"}
-        <div class="file-link group-header" on:click={(e) => navToFile(group.groupId, isMetaPressed(e))}>
+        <div class="file-link group-header" on:click={(e) => navToFile(group.groupId, e)}>
           {group.groupName}
         </div>
       {:else}

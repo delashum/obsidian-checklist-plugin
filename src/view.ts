@@ -1,7 +1,7 @@
-import { ItemView, WorkspaceLeaf } from "obsidian"
+import {ItemView, WorkspaceLeaf} from 'obsidian'
 
-import { TODO_VIEW_TYPE } from "./constants"
-import App from "./svelte/App.svelte"
+import {TODO_VIEW_TYPE} from './constants'
+import App from './svelte/App.svelte'
 
 import type { TodoSettings } from "./settings"
 export default class TodoListView extends ItemView {
@@ -38,10 +38,10 @@ export default class TodoListView extends ItemView {
         showChecked: this.settings.showChecked,
         groupBy: this.settings.groupBy,
         sortDirection: this.settings.sortDirection,
+        rerenderKey: Symbol("[rerender]"),
       },
     })
-    this.registerEvent(this.app.vault.on("modify", this.rerender.bind(this)))
-    this.registerEvent(this.app.workspace.on("file-open", this.rerender.bind(this)))
+    this.registerEvent(this.app.vault.on("modify", () => this.rerender()))
   }
 
   rerender() {

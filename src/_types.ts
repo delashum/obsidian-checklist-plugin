@@ -17,5 +17,7 @@ export type TodoGroup = {
   groupId: string
 }
 
+export type TagMeta = { main: string; sub: string }
+
 export type GroupByType = "page" | "tag"
 export type SortDirection = "new->old" | "old->new"

@@ -18,7 +18,7 @@ export default class TodoPlugin extends Plugin {
     })
 
     if (this.app.workspace.layoutReady) this.initLeaf()
-    else this.registerEvent(this.app.workspace.on("layout-ready", this.initLeaf.bind(this)))
+    else this.registerEvent(this.app.workspace.on("layout-ready", () => this.initLeaf()))
   }
 
   initLeaf(): void {
