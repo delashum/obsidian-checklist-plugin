@@ -11,11 +11,11 @@
 
 {#each chunks as chunk}
   {#if chunk.type === "text"}
-    <span>{chunk.content}</span>
+    <span>{chunk.value}</span>
   {:else if chunk.type === "bold"}
-    <span class="bold-item"><TodoText chunks={chunk.content} /></span>
+    <span class="bold-item"><TodoText chunks={chunk.children} /></span>
   {:else if chunk.type === "italic"}
-    <span class="italic-item"><TodoText chunks={chunk.content} /></span>
+    <span class="italic-item"><TodoText chunks={chunk.children} /></span>
   {:else if chunk.type === "link"}
     <span
       class="link-item"
@@ -25,7 +25,7 @@
       }}
       on:mouseenter={(ev) => {
         hoverFile(ev, app, chunk.filePath)
-      }}><TodoText chunks={chunk.content} /></span
+      }}><TodoText chunks={chunk.children} /></span
     >
   {/if}
 {/each}

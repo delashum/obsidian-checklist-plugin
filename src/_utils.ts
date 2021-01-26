@@ -12,7 +12,6 @@ import type {
   DisplayChunkType,
   TokenChunk,
 } from "src/_types"
-
 /** public */
 
 export const parseTodos = (files: TFile[], pageLink: string, cache: MetadataCache, sort: SortDirection): TodoItem[] => {
@@ -110,7 +109,8 @@ const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[
   const linkMap = mapLinkMeta(relevantLinks)
   const rawText = extractTextFromTodoLine(line)
   const tagStripped = removeTagFromText(rawText, tagMeta.main)
-  const displayChunks = parseTextContent(tagStripped, linkMap)
+  const rawChunks = parseTextContent(tagStripped)
+  const displayChunks = decorateChunks(rawChunks, linkMap)
   return {
     mainTag: tagMeta.main,
     checked: todoLineIsChecked(line),
@@ -124,9 +124,31 @@ const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[
   }
 }
 
-const parseTextContent = (formula: string, linkMap: Map<string, LinkMeta>): TodoDisplayChunk[] => {
+const decorateChunks = (chunks: TokenChunk[], linkMap: Map<string, LinkMeta>): TodoDisplayChunk[] => {
+  return chunks.map((chunk) => {
+    if (chunk.type === "text")
+      return {
+        value: chunk.rawText,
+        type: "text",
+      }
+
+    const children = decorateChunks(chunk.children, linkMap)
+
+    if (chunk.type === "link")
+      return {
+        type: "link",
+        children,
+        filePath: linkMap.get(chunk.rawText).filePath,
+        label: linkMap.get(chunk.rawText).linkName,
+      }
+
+    return { type: chunk.type, children }
+  })
+}
+
+const parseTextContent = (formula: string): TokenChunk[] => {
   let tokens: TokenChunk[] = parseTokensFromText(
-    [{ content: formula, type: "text" }],
+    [{ rawText: formula, type: "text" }],
     "bold",
     /\*\*[^\*]+\*\*/,
     /\*\*([^\*]+)\*\*/g
@@ -134,16 +156,7 @@ const parseTextContent = (formula: string, linkMap: Map<string, LinkMeta>): Todo
   tokens = parseTokensFromText(tokens, "italic", /\*[^\*]+\*/, /\*([^\*]+)\*/g)
   tokens = parseTokensFromText(tokens, "link", /\[\[[^\]]+\]\]/, /\[\[([^\]]+)\]\]/g)
 
-  return tokens.map<TodoDisplayChunk>((token: any) => {
-    if (token.type === "link") {
-      return {
-        type: "link",
-        filePath: linkMap.get(token.content)?.filePath,
-        label: linkMap.get(token.content)?.linkName,
-      }
-    }
-    return token
-  })
+  return tokens
 }
 
 const parseTokensFromText = <T extends DisplayChunkType>(
@@ -154,16 +167,17 @@ const parseTokensFromText = <T extends DisplayChunkType>(
 ): TokenChunk[] => {
   return chunks.flatMap((chunk) => {
     if (chunk.type === "text") {
-      const pieces = chunk.content.split(splitRegex)
-      const tokens = getAllMatches(tokenRegex, chunk.content, 1)
+      const pieces = chunk.rawText.split(splitRegex)
+      const tokens = getAllMatches(tokenRegex, chunk.rawText, 1)
       return pieces.flatMap((piece, i) => {
         const token = tokens[i]
         const finalPieces = []
-        if (piece) finalPieces.push({ type: "text", content: piece })
+        if (piece) finalPieces.push({ type: "text", rawText: piece })
         if (token)
           finalPieces.push({
             type,
-            content: [{ type: "text", content: token }],
+            rawText: token,
+            children: [{ type: "text", rawText: token }],
           })
         return finalPieces
       })
@@ -171,7 +185,8 @@ const parseTokensFromText = <T extends DisplayChunkType>(
       return [
         {
           type: chunk.type,
-          content: parseTokensFromText(chunk.content, type, splitRegex, tokenRegex),
+          rawText: chunk.rawText,
+          children: parseTokensFromText(chunk.children, type, splitRegex, tokenRegex),
         },
       ]
     }
