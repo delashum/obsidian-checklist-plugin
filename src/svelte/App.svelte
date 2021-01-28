@@ -9,6 +9,7 @@
   export let showChecked: boolean
   export let groupBy: GroupByType
   export let sortDirection: SortDirection
+  export let ignoreFiles: string
   export let rerenderKey: symbol
   const app: App = (window as any).app
   let todos: TodoItem[] = []
@@ -25,7 +26,7 @@
   }
 
   function recalcItems() {
-    todos = parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, sortDirection)
+    todos = parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, sortDirection, ignoreFiles)
     todoGroups = formGroups(todos)
   }
 

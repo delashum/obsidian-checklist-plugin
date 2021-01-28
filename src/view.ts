@@ -38,6 +38,7 @@ export default class TodoListView extends ItemView {
         showChecked: this.settings.showChecked,
         groupBy: this.settings.groupBy,
         sortDirection: this.settings.sortDirection,
+        ignoreFiles: this.settings.ignoreFiles,
         rerenderKey: Symbol("[rerender]"),
       },
     })
@@ -50,6 +51,7 @@ export default class TodoListView extends ItemView {
       showChecked: this.settings.showChecked,
       groupBy: this.settings.groupBy,
       sortDirection: this.settings.sortDirection,
+      ignoreFiles: this.settings.ignoreFiles,
       rerenderKey: Symbol("[rerender]"),
     })
   }

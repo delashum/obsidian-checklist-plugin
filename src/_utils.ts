@@ -14,9 +14,16 @@ import type {
 } from "src/_types"
 /** public */
 
-export const parseTodos = (files: TFile[], pageLink: string, cache: MetadataCache, sort: SortDirection): TodoItem[] => {
+export const parseTodos = (
+  files: TFile[],
+  pageLink: string,
+  cache: MetadataCache,
+  sort: SortDirection,
+  ignoreFiles: string
+): TodoItem[] => {
   const allTodos = files
     .flatMap((file) => {
+      if (ignoreFiles && file.path.includes(ignoreFiles)) return []
       const fileCache = cache.getFileCache(file)
       const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
       return tagsOnPage.flatMap((tag) => findAllTodosFromTagBlock(file, tag, fileCache?.links ?? []))

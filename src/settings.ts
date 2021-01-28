@@ -8,6 +8,7 @@ export interface TodoSettings {
   showChecked: boolean
   groupBy: GroupByType
   sortDirection: SortDirection
+  ignoreFiles: string
 }
 
 export const DEFAULT_SETTINGS: TodoSettings = {
@@ -15,6 +16,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   showChecked: false,
   groupBy: "page",
   sortDirection: "old->new",
+  ignoreFiles: "",
 }
 
 export class TodoSettingTab extends PluginSettingTab {
@@ -74,5 +76,17 @@ export class TodoSettingTab extends PluginSettingTab {
         await this.plugin.saveSettings()
       })
     })
+
+    new Setting(containerEl)
+      .setName("Ignore Files")
+      .setDesc(
+        "Ignore files that contain this text anywhere in the filepath. (e.g. 'template' to ignore template.md and templates/file.md)"
+      )
+      .addText((text) =>
+        text.setValue(this.plugin.settings.ignoreFiles).onChange(async (value) => {
+          this.plugin.settings.ignoreFiles = value
+          await this.plugin.saveSettings()
+        })
+      )
   }
 }
