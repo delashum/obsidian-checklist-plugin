@@ -55,8 +55,10 @@ export const toggleTodoItem = (item: TodoItem, app: App) => {
 }
 
 export const navToFile = async (path: string, ev: MouseEvent) => {
+  path = ensureMdExtension(path)
   const app: App = (window as any).app
   const file = getFileFromPath(path, app)
+  if (!file) return
   const leaf = isMetaPressed(ev) ? app.workspace.splitActiveLeaf() : app.workspace.getUnpinnedLeaf()
   await leaf.openFile(file)
 }
@@ -73,7 +75,12 @@ export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
 
 /** private */
 
-const getFileFromPath = (path: string, app: App) => app.vault.getFiles().find((f) => f.path === path)
+const ensureMdExtension = (path: string) => {
+  if (!/\.md$/.test(path)) return `${path}.md`
+  return path
+}
+
+const getFileFromPath = (path: string, app: App) => app.vault.getFiles().find((f) => f.path.endsWith(path))
 
 const isMetaPressed = (e: MouseEvent): boolean => {
   return isMacOS() ? e.metaKey : e.ctrlKey
