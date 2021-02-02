@@ -42,7 +42,7 @@ export default class TodoListView extends ItemView {
         rerenderKey: Symbol("[rerender]"),
       },
     })
-    this.registerEvent(this.app.vault.on("modify", () => this.rerender()))
+    this.registerEvent(this.app.metadataCache.on("resolve", () => this.rerender()))
   }
 
   rerender() {

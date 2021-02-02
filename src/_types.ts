@@ -1,3 +1,5 @@
+import type { CachedMetadata, LinkCache, TagCache, TFile } from "obsidian"
+
 export type TextChunk = {
   type: "text"
   value: string
@@ -41,6 +43,12 @@ export type TodoGroup = {
   todos: TodoItem[]
   groupName: string
   groupId: string
+}
+
+export type FileInfo = {
+  content: string
+  cache: CachedMetadata
+  file: TFile
 }
 
 export type TagMeta = { main: string; sub: string }

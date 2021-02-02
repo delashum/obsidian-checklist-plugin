@@ -1,6 +1,6 @@
 import * as os from 'os'
 
-import type { App, LinkCache, MetadataCache, TagCache, TFile } from "obsidian"
+import type { App, LinkCache, MetadataCache, TagCache, TFile, Vault } from "obsidian"
 import type {
   TodoItem,
   TodoGroup,
@@ -11,22 +11,35 @@ import type {
   LinkMeta,
   DisplayChunkType,
   TokenChunk,
+  FileInfo,
 } from "src/_types"
 /** public */
 
-export const parseTodos = (
+export const parseTodos = async (
   files: TFile[],
   pageLink: string,
   cache: MetadataCache,
+  vault: Vault,
   sort: SortDirection,
   ignoreFiles: string
-): TodoItem[] => {
-  const allTodos = files
+): Promise<TodoItem[]> => {
+  const filesWithCache = await Promise.all(
+    files
+      .filter((file) => {
+        if (ignoreFiles && file.path.includes(ignoreFiles)) return false
+        const fileCache = cache.getFileCache(file)
+        const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
+        return !!tagsOnPage?.length
+      })
+      .map<Promise<FileInfo>>(async (file) => {
+        const fileCache = cache.getFileCache(file)
+        const content = await vault.cachedRead(file)
+        return { content, cache: fileCache, file }
+      })
+  )
+  const allTodos = filesWithCache
     .flatMap((file) => {
-      if (ignoreFiles && file.path.includes(ignoreFiles)) return []
-      const fileCache = cache.getFileCache(file)
-      const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
-      return tagsOnPage.flatMap((tag) => findAllTodosFromTagBlock(file, tag, fileCache?.links ?? []))
+      return file.cache.tags.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
     })
     .filter((todo, i, a) => a.findIndex((_todo) => todo.line === _todo.line && todo.filePath === _todo.filePath) === i)
 
@@ -93,15 +106,15 @@ const isMetaPressed = (e: MouseEvent): boolean => {
   return isMacOS() ? e.metaKey : e.ctrlKey
 }
 
-const findAllTodosFromTagBlock = (file: TFile, tag: TagCache, links: LinkCache[]) => {
-  const fileContents = (file as any).cachedData
+const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
+  const fileContents = file.content
+  const links = file.cache.links ?? []
   if (!fileContents) return []
   const fileLines = getAllLinesFromFile(fileContents)
   const tagMeta = getTagMeta(tag.tag)
   const tagLine = fileLines[tag.position.start.line]
-
   if (lineIsValidTodo(tagLine, tagMeta.main)) {
-    return [formTodo(tagLine, file, tagMeta, links, tag.position.start.line)]
+    return [formTodo(tagLine, file.file, tagMeta, links, tag.position.start.line)]
   }
 
   const todos: TodoItem[] = []
@@ -109,7 +122,7 @@ const findAllTodosFromTagBlock = (file: TFile, tag: TagCache, links: LinkCache[]
     const line = fileLines[i]
     if (line.length === 0) break
     if (lineIsValidTodo(line, tagMeta.main)) {
-      todos.push(formTodo(line, file, tagMeta, links, i))
+      todos.push(formTodo(line, file.file, tagMeta, links, i))
     }
   }
 

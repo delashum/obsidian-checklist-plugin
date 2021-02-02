@@ -4,6 +4,7 @@
   import type { GroupByType, SortDirection, TodoGroup, TodoItem } from "src/_types"
   import CheckCircle from "./CheckCircle.svelte"
   import TodoText from "./TodoText.svelte"
+  import Loading from "./Loading.svelte"
 
   export let todoTag: string
   export let showChecked: boolean
@@ -14,54 +15,61 @@
   const app: App = (window as any).app
   let todos: TodoItem[] = []
   let todoGroups: TodoGroup[] = []
+  let firstRun = true
 
-  function toggleItem(item: TodoItem) {
+  const formGroups = (_todos: TodoItem[]) => {
+    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy)
+  }
+
+  const toggleItem = async (item: TodoItem) => {
     toggleTodoItem(item, app)
     item.checked = !item.checked
     todoGroups = formGroups(todos)
   }
 
-  function formGroups(_todos: TodoItem[]) {
-    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy)
-  }
-
-  function recalcItems() {
-    todos = parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, sortDirection, ignoreFiles)
+  const recalcItems = async () => {
+    todos = await parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, app.vault, sortDirection, ignoreFiles)
     todoGroups = formGroups(todos)
+    firstRun = false
   }
 
   $: {
     rerenderKey
-    setTimeout(recalcItems, 50)
+    if (firstRun) setTimeout(recalcItems, 800)
+    else recalcItems()
   }
-
-  setTimeout(recalcItems, 200) // first run only; need timeout to make sure cache is populated
 </script>
 
 <div>
   <div class="todo-list">
-    {#each todoGroups as group}
-      {#if group.type === "page"}
-        <div class="file-link group-header" on:click={(e) => navToFile(group.groupId, e)}>
-          {group.groupName}
-        </div>
-      {:else}
-        <div class="group-header">
-          <span class="tag-base">{`#${todoTag}${group.groupName != null ? "/" : ""}`}</span><span class="tag-sub"
-            >{group.groupName ?? ""}</span
-          >
-        </div>
-      {/if}
-
-      {#each group.todos as todo}
-        <div class="todo-item" on:click={() => toggleItem(todo)}>
-          <CheckCircle checked={todo.checked} />
-          <div class="todo-text">
-            <TodoText chunks={todo.display} />
+    {#if firstRun}
+      <Loading />
+    {:else if todoGroups.length === 0}
+      <div>No checklist items found for tag: #{todoTag}</div>
+    {:else}
+      {#each todoGroups as group}
+        {#if group.type === "page"}
+          <div class="file-link group-header" on:click={(e) => navToFile(group.groupId, e)}>
+            {group.groupName}
           </div>
-        </div>
+        {:else}
+          <div class="group-header">
+            <span class="tag-base">{`#${todoTag}${group.groupName != null ? "/" : ""}`}</span><span class="tag-sub"
+              >{group.groupName ?? ""}</span
+            >
+          </div>
+        {/if}
+
+        {#each group.todos as todo}
+          <div class="todo-item" on:click={() => toggleItem(todo)}>
+            <CheckCircle checked={todo.checked} />
+            <div class="todo-text">
+              <TodoText chunks={todo.display} />
+            </div>
+          </div>
+        {/each}
       {/each}
-    {/each}
+    {/if}
   </div>
 </div>
 
