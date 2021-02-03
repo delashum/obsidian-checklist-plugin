@@ -168,8 +168,8 @@ const decorateChunks = (chunks: TokenChunk[], linkMap: Map<string, LinkMeta>): T
       return {
         type: "link",
         children,
-        filePath: linkMap.get(chunk.rawText).filePath,
-        label: linkMap.get(chunk.rawText).linkName,
+        filePath: linkMap.get(chunk.rawText)?.filePath,
+        label: linkMap.get(chunk.rawText)?.linkName,
       }
 
     return { type: chunk.type, children }

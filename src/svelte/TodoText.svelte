@@ -21,10 +21,10 @@
       class="link-item"
       on:click={(ev) => {
         ev.stopPropagation()
-        navToFile(chunk.filePath, ev)
+        if (chunk.filePath) navToFile(chunk.filePath, ev)
       }}
       on:mouseenter={(ev) => {
-        hoverFile(ev, app, chunk.filePath)
+        if (chunk.filePath) hoverFile(ev, app, chunk.filePath)
       }}><TodoText chunks={chunk.children} /></span
     >
   {/if}
