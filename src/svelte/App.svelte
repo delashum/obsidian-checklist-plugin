@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { App } from "obsidian"
   import { toggleTodoItem, parseTodos, groupTodos, navToFile, hoverFile } from "src/_utils"
-  import type { GroupByType, SortDirection, TodoGroup, TodoItem } from "src/_types"
+  import type { GroupByType, LookAndFeel, SortDirection, TodoGroup, TodoItem } from "src/_types"
   import CheckCircle from "./CheckCircle.svelte"
   import TodoText from "./TodoText.svelte"
   import Loading from "./Loading.svelte"
@@ -10,6 +10,7 @@
   export let showChecked: boolean
   export let groupBy: GroupByType
   export let sortDirection: SortDirection
+  export let lookAndFeel: LookAndFeel
   export let ignoreFiles: string
   export let rerenderKey: symbol
   const app: App = (window as any).app
@@ -40,7 +41,7 @@
   }
 </script>
 
-<div>
+<div class={lookAndFeel}>
   <div class="todo-list">
     {#if firstRun}
       <Loading />
@@ -80,10 +81,15 @@
     gap: 4px;
     background-color: var(--interactive-normal);
     border-radius: 8px;
-    padding: 8px;
+    padding: 8px 12px;
     margin-bottom: 16px;
     cursor: pointer;
     transition: background-color 150ms ease-in-out;
+  }
+
+  .compact .todo-item {
+    margin-bottom: 8px;
+    padding: 4px 8px;
   }
 
   .todo-item:hover {

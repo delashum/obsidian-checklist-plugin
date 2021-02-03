@@ -1,7 +1,7 @@
 import {App, PluginSettingTab, Setting} from 'obsidian'
 
 import type TodoPlugin from "./main"
-import type { GroupByType, SortDirection } from "./_types"
+import type { GroupByType, LookAndFeel, SortDirection } from "./_types"
 
 export interface TodoSettings {
   todoPageName: string
@@ -9,6 +9,7 @@ export interface TodoSettings {
   groupBy: GroupByType
   sortDirection: SortDirection
   ignoreFiles: string
+  lookAndFeel: LookAndFeel
 }
 
 export const DEFAULT_SETTINGS: TodoSettings = {
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   groupBy: "page",
   sortDirection: "old->new",
   ignoreFiles: "",
+  lookAndFeel: "classic",
 }
 
 export class TodoSettingTab extends PluginSettingTab {
@@ -88,5 +90,15 @@ export class TodoSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings()
         })
       )
+
+    new Setting(containerEl).setName("Look and Feel").addDropdown((dropdown) => {
+      dropdown.addOption("classic", "Classic")
+      dropdown.addOption("compact", "Compact")
+      dropdown.setValue(this.plugin.settings.lookAndFeel)
+      dropdown.onChange(async (value: LookAndFeel) => {
+        this.plugin.settings.lookAndFeel = value
+        await this.plugin.saveSettings()
+      })
+    })
   }
 }

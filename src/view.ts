@@ -30,29 +30,27 @@ export default class TodoListView extends ItemView {
     this._app.$destroy()
   }
 
-  async onOpen(): Promise<void> {
-    this._app = new App({
-      target: (this as any).contentEl,
-      props: {
-        todoTag: this.settings.todoPageName,
-        showChecked: this.settings.showChecked,
-        groupBy: this.settings.groupBy,
-        sortDirection: this.settings.sortDirection,
-        ignoreFiles: this.settings.ignoreFiles,
-        rerenderKey: Symbol("[rerender]"),
-      },
-    })
-    this.registerEvent(this.app.metadataCache.on("resolve", () => this.rerender()))
-  }
-
-  rerender() {
-    this._app.$set({
+  private getProps() {
+    return {
       todoTag: this.settings.todoPageName,
       showChecked: this.settings.showChecked,
       groupBy: this.settings.groupBy,
       sortDirection: this.settings.sortDirection,
       ignoreFiles: this.settings.ignoreFiles,
+      lookAndFeel: this.settings.lookAndFeel,
       rerenderKey: Symbol("[rerender]"),
+    }
+  }
+
+  async onOpen(): Promise<void> {
+    this._app = new App({
+      target: (this as any).contentEl,
+      props: this.getProps(),
     })
+    this.registerEvent(this.app.metadataCache.on("resolve", () => this.rerender()))
+  }
+
+  rerender() {
+    this._app.$set(this.getProps())
   }
 }
