@@ -84,7 +84,7 @@
     padding: 8px 12px;
     margin-bottom: 16px;
     cursor: pointer;
-    transition: background-color 150ms ease-in-out;
+    transition: background-color 100ms ease-in-out;
   }
 
   .compact .todo-item {
