@@ -36,6 +36,7 @@ export type TodoItem = {
   mainTag: string
   subTag?: string
   line: number
+  spacesIndented: number
 }
 
 export type TodoGroup = {
@@ -49,6 +50,7 @@ export type FileInfo = {
   content: string
   cache: CachedMetadata
   file: TFile
+  validTags: TagCache[]
 }
 
 export type TagMeta = { main: string; sub: string }

@@ -33,13 +33,14 @@ export const parseTodos = async (
       })
       .map<Promise<FileInfo>>(async (file) => {
         const fileCache = cache.getFileCache(file)
+        const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
         const content = await vault.cachedRead(file)
-        return { content, cache: fileCache, file }
+        return { content, cache: fileCache, validTags: tagsOnPage, file }
       })
   )
   const allTodos = filesWithCache
     .flatMap((file) => {
-      return file.cache.tags.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
+      return file.validTags.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
     })
     .filter((todo, i, a) => a.findIndex((_todo) => todo.line === _todo.line && todo.filePath === _todo.filePath) === i)
 
@@ -135,6 +136,7 @@ const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[
     .map((link) => ({ filePath: link.link, linkName: link.displayText }))
   const linkMap = mapLinkMeta(relevantLinks)
   const rawText = extractTextFromTodoLine(line)
+  const spacesIndented = getIndentationSpacesFromTodoLine(line)
   const tagStripped = removeTagFromText(rawText, tagMeta.main)
   const rawChunks = parseTextContent(tagStripped)
   const displayChunks = decorateChunks(rawChunks, linkMap)
@@ -148,6 +150,7 @@ const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[
     fileCreatedTs: file.stat.ctime,
     line: lineNum,
     subTag: tagMeta?.sub,
+    spacesIndented,
   }
 }
 
@@ -258,6 +261,7 @@ const lineIsValidTodo = (line: string, tag: string) => {
   return /^\s*\-\s\[(\s|x)\]\s*\S/.test(tagRemoved)
 }
 const extractTextFromTodoLine = (line: string) => /^\s*\-\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
+const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)\-\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
 const todoLineIsChecked = (line: string) => /^\s*\-\s\[x\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 const removeTagFromText = (text: string, tag: string) =>
