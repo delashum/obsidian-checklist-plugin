@@ -5,7 +5,7 @@ import {DEFAULT_SETTINGS, TodoSettings, TodoSettingTab} from './settings'
 import TodoListView from './view'
 
 export default class TodoPlugin extends Plugin {
-  settings: TodoSettings
+  private settings: TodoSettings
   view: TodoListView
 
   async onload() {
@@ -13,7 +13,7 @@ export default class TodoPlugin extends Plugin {
 
     this.addSettingTab(new TodoSettingTab(this.app, this))
     this.registerView(TODO_VIEW_TYPE, (leaf) => {
-      this.view = new TodoListView(leaf, this.settings)
+      this.view = new TodoListView(leaf, this)
       return this.view
     })
 
@@ -39,8 +39,13 @@ export default class TodoPlugin extends Plugin {
     this.settings = { ...DEFAULT_SETTINGS, ...loadedData }
   }
 
-  async saveSettings() {
+  async updateSettings(updates: Partial<TodoSettings>) {
+    Object.assign(this.settings, updates)
     await this.saveData(this.settings)
     this.view.rerender()
+  }
+
+  getSettingValue<K extends keyof TodoSettings>(setting: K): TodoSettings[K] {
+    return this.settings[setting]
   }
 }

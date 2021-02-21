@@ -4,14 +4,12 @@ import {TODO_VIEW_TYPE} from './constants'
 import App from './svelte/App.svelte'
 
 import type { TodoSettings } from "./settings"
+import type TodoPlugin from "./main"
 export default class TodoListView extends ItemView {
-  private settings: TodoSettings
   private _app: App
 
-  constructor(leaf: WorkspaceLeaf, settings: TodoSettings) {
+  constructor(leaf: WorkspaceLeaf, private plugin: TodoPlugin) {
     super(leaf)
-
-    this.settings = settings
   }
 
   getViewType(): string {
@@ -32,13 +30,15 @@ export default class TodoListView extends ItemView {
 
   private getProps() {
     return {
-      todoTag: this.settings.todoPageName,
-      showChecked: this.settings.showChecked,
-      groupBy: this.settings.groupBy,
-      sortDirection: this.settings.sortDirection,
-      ignoreFiles: this.settings.ignoreFiles,
-      lookAndFeel: this.settings.lookAndFeel,
+      todoTag: this.plugin.getSettingValue("todoPageName"),
+      showChecked: this.plugin.getSettingValue("showChecked"),
+      groupBy: this.plugin.getSettingValue("groupBy"),
+      sortDirection: this.plugin.getSettingValue("sortDirection"),
+      ignoreFiles: this.plugin.getSettingValue("ignoreFiles"),
+      lookAndFeel: this.plugin.getSettingValue("lookAndFeel"),
       rerenderKey: Symbol("[rerender]"),
+      _collapsedSections: this.plugin.getSettingValue("_collapsedSections"),
+      updateSetting: (updates: Partial<TodoSettings>) => this.plugin.updateSettings(updates),
     }
   }
 

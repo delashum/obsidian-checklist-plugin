@@ -59,3 +59,5 @@ export type LinkMeta = { filePath: string; linkName: string }
 export type GroupByType = "page" | "tag"
 export type SortDirection = "new->old" | "old->new"
 export type LookAndFeel = "compact" | "classic"
+
+export type Icon = "chevron"
