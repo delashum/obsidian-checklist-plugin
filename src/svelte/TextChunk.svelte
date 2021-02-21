@@ -2,7 +2,7 @@
   import { navToFile, hoverFile } from "src/_utils"
   import type { TodoDisplayChunk } from "src/_types"
   import type { App } from "obsidian"
-  import TodoText from "./TodoText.svelte"
+  import TodoText from "./TextChunk.svelte"
 
   export let chunks: TodoDisplayChunk[]
 

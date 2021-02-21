@@ -10,6 +10,7 @@ export interface TodoSettings {
   sortDirection: SortDirection
   ignoreFiles: string
   lookAndFeel: LookAndFeel
+  _collapsedSections: string[]
 }
 
 export const DEFAULT_SETTINGS: TodoSettings = {
@@ -19,14 +20,12 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   sortDirection: "old->new",
   ignoreFiles: "",
   lookAndFeel: "classic",
+  _collapsedSections: [],
 }
 
 export class TodoSettingTab extends PluginSettingTab {
-  plugin: TodoPlugin
-
-  constructor(app: App, plugin: TodoPlugin) {
+  constructor(app: App, private plugin: TodoPlugin) {
     super(app, plugin)
-    this.plugin = plugin
   }
 
   display(): void {
@@ -44,38 +43,34 @@ export class TodoSettingTab extends PluginSettingTab {
       .addText((text) =>
         text
           .setPlaceholder("todo")
-          .setValue(this.plugin.settings.todoPageName)
+          .setValue(this.plugin.getSettingValue("todoPageName"))
           .onChange(async (value) => {
-            this.plugin.settings.todoPageName = value
-            await this.plugin.saveSettings()
+            await this.plugin.updateSettings({ todoPageName: value })
           })
       )
 
     new Setting(containerEl).setName("Show Completed?").addToggle((toggle) => {
-      toggle.setValue(this.plugin.settings.showChecked)
+      toggle.setValue(this.plugin.getSettingValue("showChecked"))
       toggle.onChange(async (value) => {
-        this.plugin.settings.showChecked = value
-        await this.plugin.saveSettings()
+        await this.plugin.updateSettings({ showChecked: value })
       })
     })
 
     new Setting(containerEl).setName("Group By").addDropdown((dropdown) => {
       dropdown.addOption("page", "Page")
       dropdown.addOption("tag", "Tag")
-      dropdown.setValue(this.plugin.settings.groupBy)
+      dropdown.setValue(this.plugin.getSettingValue("groupBy"))
       dropdown.onChange(async (value: GroupByType) => {
-        this.plugin.settings.groupBy = value
-        await this.plugin.saveSettings()
+        await this.plugin.updateSettings({ groupBy: value })
       })
     })
 
     new Setting(containerEl).setName("Sort Direction").addDropdown((dropdown) => {
       dropdown.addOption("new->old", "New -> Old")
       dropdown.addOption("old->new", "Old -> New")
-      dropdown.setValue(this.plugin.settings.sortDirection)
+      dropdown.setValue(this.plugin.getSettingValue("sortDirection"))
       dropdown.onChange(async (value: SortDirection) => {
-        this.plugin.settings.sortDirection = value
-        await this.plugin.saveSettings()
+        await this.plugin.updateSettings({ sortDirection: value })
       })
     })
 
@@ -85,19 +80,17 @@ export class TodoSettingTab extends PluginSettingTab {
         "Ignore files that contain this text anywhere in the filepath. (e.g. 'template' to ignore template.md and templates/file.md)"
       )
       .addText((text) =>
-        text.setValue(this.plugin.settings.ignoreFiles).onChange(async (value) => {
-          this.plugin.settings.ignoreFiles = value
-          await this.plugin.saveSettings()
+        text.setValue(this.plugin.getSettingValue("ignoreFiles")).onChange(async (value) => {
+          await this.plugin.updateSettings({ ignoreFiles: value })
         })
       )
 
     new Setting(containerEl).setName("Look and Feel").addDropdown((dropdown) => {
       dropdown.addOption("classic", "Classic")
       dropdown.addOption("compact", "Compact")
-      dropdown.setValue(this.plugin.settings.lookAndFeel)
+      dropdown.setValue(this.plugin.getSettingValue("lookAndFeel"))
       dropdown.onChange(async (value: LookAndFeel) => {
-        this.plugin.settings.lookAndFeel = value
-        await this.plugin.saveSettings()
+        await this.plugin.updateSettings({ lookAndFeel: value })
       })
     })
   }
