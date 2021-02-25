@@ -34,7 +34,7 @@ export const parseTodos = async (
       .map<Promise<FileInfo>>(async (file) => {
         const fileCache = cache.getFileCache(file)
         const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
-        const content = await vault.cachedRead(file)
+        const content = await vault.read(file)
         return { content, cache: fileCache, validTags: tagsOnPage, file }
       })
   )
