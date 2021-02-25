@@ -37,6 +37,7 @@ export type TodoItem = {
   subTag?: string
   line: number
   spacesIndented: number
+  fileInfo: FileInfo
 }
 
 export type TodoGroup = {

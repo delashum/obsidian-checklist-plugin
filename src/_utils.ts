@@ -69,9 +69,9 @@ export const groupTodos = (items: TodoItem[], groupBy: GroupByType): TodoGroup[]
   return groups.filter((g) => g.todos.length > 0)
 }
 
-export const toggleTodoItem = (item: TodoItem, app: App) => {
+export const toggleTodoItem = async (item: TodoItem, app: App) => {
   const file = app.vault.getFiles().find((f) => f.path === item.filePath)
-  const newData = setTodoStatusAtLineTo(file, item.line, !item.checked)
+  const newData = setTodoStatusAtLineTo(item.fileInfo.content, item.line, !item.checked)
   app.vault.modify(file, newData)
 }
 
@@ -115,7 +115,7 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const tagMeta = getTagMeta(tag.tag)
   const tagLine = fileLines[tag.position.start.line]
   if (lineIsValidTodo(tagLine, tagMeta.main)) {
-    return [formTodo(tagLine, file.file, tagMeta, links, tag.position.start.line)]
+    return [formTodo(tagLine, file, tagMeta, links, tag.position.start.line)]
   }
 
   const todos: TodoItem[] = []
@@ -123,14 +123,14 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
     const line = fileLines[i]
     if (line.length === 0) break
     if (lineIsValidTodo(line, tagMeta.main)) {
-      todos.push(formTodo(line, file.file, tagMeta, links, i))
+      todos.push(formTodo(line, file, tagMeta, links, i))
     }
   }
 
   return todos
 }
 
-const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[], lineNum: number): TodoItem => {
+const formTodo = (line: string, file: FileInfo, tagMeta: TagMeta, links: LinkCache[], lineNum: number): TodoItem => {
   const relevantLinks = links
     .filter((link) => link.position.start.line === lineNum)
     .map((link) => ({ filePath: link.link, linkName: link.displayText }))
@@ -144,13 +144,14 @@ const formTodo = (line: string, file: TFile, tagMeta: TagMeta, links: LinkCache[
     mainTag: tagMeta.main,
     checked: todoLineIsChecked(line),
     display: displayChunks,
-    filePath: file.path,
-    fileName: file.name,
-    fileLabel: getFileLabelFromName(file.name),
-    fileCreatedTs: file.stat.ctime,
+    filePath: file.file.path,
+    fileName: file.file.name,
+    fileLabel: getFileLabelFromName(file.file.name),
+    fileCreatedTs: file.file.stat.ctime,
     line: lineNum,
     subTag: tagMeta?.sub,
     spacesIndented,
+    fileInfo: file,
   }
 }
 
@@ -232,8 +233,7 @@ const getAllMatches = (r: RegExp, string: string, captureIndex = 0) => {
   return matches
 }
 
-const setTodoStatusAtLineTo = (file: TFile, line: number, setTo: boolean) => {
-  const fileContents = (file as any).cachedData
+const setTodoStatusAtLineTo = (fileContents: string, line: number, setTo: boolean) => {
   if (!fileContents) return
   const fileLines = getAllLinesFromFile(fileContents)
   fileLines[line] = setLineTo(fileLines[line], setTo)
