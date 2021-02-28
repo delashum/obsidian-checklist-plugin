@@ -1,6 +1,5 @@
-import * as os from 'os'
+import {App, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
 
-import type { App, LinkCache, MetadataCache, TagCache, TFile, Vault } from "obsidian"
 import type {
   TodoItem,
   TodoGroup,
@@ -34,7 +33,7 @@ export const parseTodos = async (
       .map<Promise<FileInfo>>(async (file) => {
         const fileCache = cache.getFileCache(file)
         const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
-        const content = await vault.read(file)
+        const content = await vault.cachedRead(file)
         return { content, cache: fileCache, validTags: tagsOnPage, file }
       })
   )
@@ -70,15 +69,19 @@ export const groupTodos = (items: TodoItem[], groupBy: GroupByType): TodoGroup[]
 }
 
 export const toggleTodoItem = async (item: TodoItem, app: App) => {
-  const file = app.vault.getFiles().find((f) => f.path === item.filePath)
-  const newData = setTodoStatusAtLineTo(item.fileInfo.content, item.line, !item.checked)
+  const file = getFileFromPath(app.vault, item.filePath)
+  if (!file) return
+  const currentFileContents = await app.vault.read(file)
+  const currentFileLines = getAllLinesFromFile(currentFileContents)
+  if (!currentFileLines[item.line].includes(item.originalText)) return
+  const newData = setTodoStatusAtLineTo(currentFileLines, item.line, !item.checked)
   app.vault.modify(file, newData)
+  item.checked = !item.checked
 }
 
-export const navToFile = async (path: string, ev: MouseEvent) => {
+export const navToFile = async (app: App, path: string, ev: MouseEvent) => {
   path = ensureMdExtension(path)
-  const app: App = (window as any).app
-  const file = getFileFromPath(path, app)
+  const file = getFileFromPath(app.vault, path)
   if (!file) return
   const leaf = isMetaPressed(ev) ? app.workspace.splitActiveLeaf() : app.workspace.getUnpinnedLeaf()
   await leaf.openFile(file)
@@ -96,12 +99,15 @@ export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
 
 /** private */
 
+const getFileFromPath = (vault: Vault, path: string) => {
+  const file = vault.getAbstractFileByPath(path)
+  if (file instanceof TFile) return file
+}
+
 const ensureMdExtension = (path: string) => {
   if (!/\.md$/.test(path)) return `${path}.md`
   return path
 }
-
-const getFileFromPath = (path: string, app: App) => app.vault.getFiles().find((f) => f.path.endsWith(path))
 
 const isMetaPressed = (e: MouseEvent): boolean => {
   return isMacOS() ? e.metaKey : e.ctrlKey
@@ -152,6 +158,7 @@ const formTodo = (line: string, file: FileInfo, tagMeta: TagMeta, links: LinkCac
     subTag: tagMeta?.sub,
     spacesIndented,
     fileInfo: file,
+    originalText: rawText,
   }
 }
 
@@ -233,9 +240,7 @@ const getAllMatches = (r: RegExp, string: string, captureIndex = 0) => {
   return matches
 }
 
-const setTodoStatusAtLineTo = (fileContents: string, line: number, setTo: boolean) => {
-  if (!fileContents) return
-  const fileLines = getAllLinesFromFile(fileContents)
+const setTodoStatusAtLineTo = (fileLines: string[], line: number, setTo: boolean) => {
   fileLines[line] = setLineTo(fileLines[line], setTo)
   return combineFileLines(fileLines)
 }
@@ -267,6 +272,4 @@ const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.
 const removeTagFromText = (text: string, tag: string) =>
   text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, "g"), "").trim()
 
-const isMacOS = () => {
-  return os.platform() === "darwin"
-}
+const isMacOS = () => window.navigator.userAgent.includes("Macintosh")

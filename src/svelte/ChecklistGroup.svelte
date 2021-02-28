@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { App } from "obsidian"
+
   import type { LookAndFeel, TodoGroup } from "src/_types"
   import { navToFile } from "src/_utils"
   import ChecklistItem from "./ChecklistItem.svelte"
@@ -8,10 +10,11 @@
   export let mainTag: string
   export let isCollapsed: boolean
   export let lookAndFeel: LookAndFeel
+  export let app: App
   export let onToggle: (id: string, type: "page" | "tag") => void
 
   function clickTitle(ev: MouseEvent) {
-    if (group.type === "page") navToFile(group.groupId, ev)
+    if (group.type === "page") navToFile(app, group.groupId, ev)
   }
 </script>
 
@@ -34,7 +37,7 @@
   </div>
   {#if !isCollapsed}
     {#each group.todos as item}
-      <ChecklistItem {item} {lookAndFeel} />
+      <ChecklistItem {item} {lookAndFeel} {app} />
     {/each}
   {/if}
 </div>

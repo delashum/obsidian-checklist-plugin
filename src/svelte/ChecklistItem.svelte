@@ -8,16 +8,14 @@
 
   export let item: TodoItem
   export let lookAndFeel: LookAndFeel
-
-  const app: App = (window as any).app
+  export let app: App
 
   const toggleItem = async (item: TodoItem) => {
     toggleTodoItem(item, app)
-    item.checked = !item.checked
   }
 </script>
 
-<div class={`item ${lookAndFeel}`} on:click={(ev) => navToFile(item.filePath, ev)}>
+<div class={`item ${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
   <div
     class="toggle"
     on:click={(ev) => {
@@ -28,7 +26,7 @@
     <CheckCircle checked={item.checked} />
   </div>
   <div class="content">
-    <TextChunk chunks={item.display} />
+    <TextChunk chunks={item.display} {app} />
   </div>
 </div>
 

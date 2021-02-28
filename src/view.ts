@@ -38,6 +38,7 @@ export default class TodoListView extends ItemView {
       lookAndFeel: this.plugin.getSettingValue("lookAndFeel"),
       rerenderKey: Symbol("[rerender]"),
       _collapsedSections: this.plugin.getSettingValue("_collapsedSections"),
+      app: this.app,
       updateSetting: (updates: Partial<TodoSettings>) => this.plugin.updateSettings(updates),
     }
   }
@@ -47,7 +48,12 @@ export default class TodoListView extends ItemView {
       target: (this as any).contentEl,
       props: this.getProps(),
     })
-    this.registerEvent(this.app.metadataCache.on("resolve", () => this.rerender()))
+    this.registerEvent(
+      this.app.metadataCache.on("resolve", (...args) => {
+        // TODO: capture incremental updates here
+        this.rerender()
+      })
+    )
   }
 
   rerender() {

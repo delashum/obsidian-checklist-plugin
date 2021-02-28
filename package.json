@@ -1,6 +1,6 @@
 {
   "name": "obsidian-checklist-plugin",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A plugin for Obsidian.md which consoldiates todo items into a single view.",
   "main": "main.js",
   "scripts": {
@@ -17,15 +17,15 @@
     "@rollup/plugin-node-resolve": "^9.0.0",
     "@rollup/plugin-typescript": "^6.0.0",
     "@tsconfig/svelte": "^1.0.10",
-    "@types/node": "^14.14.2",
+    "@types/node": "^14.14.31",
     "obsidian": "https://github.com/obsidianmd/obsidian-api/tarball/master",
-    "rollup": "^2.32.1",
-    "rollup-plugin-svelte": "^7.0.0",
-    "svelte-preprocess": "^4.6.1",
+    "rollup": "^2.40.0",
+    "rollup-plugin-svelte": "^7.1.0",
+    "svelte-preprocess": "^4.6.9",
     "tslib": "^2.0.3",
-    "typescript": "^4.0.3"
+    "typescript": "^4.2.2"
   },
   "dependencies": {
-    "svelte": "^3.31.2"
+    "svelte": "^3.34.0"
   }
 }

@@ -5,8 +5,7 @@
   import TodoText from "./TextChunk.svelte"
 
   export let chunks: TodoDisplayChunk[]
-
-  const app: App = (window as any).app
+  export let app: App
 </script>
 
 {#each chunks as chunk}
@@ -21,7 +20,7 @@
       class="link-item"
       on:click={(ev) => {
         ev.stopPropagation()
-        if (chunk.filePath) navToFile(chunk.filePath, ev)
+        if (chunk.filePath) navToFile(app, chunk.filePath, ev)
       }}
       on:mouseenter={(ev) => {
         if (chunk.filePath) hoverFile(ev, app, chunk.filePath)
