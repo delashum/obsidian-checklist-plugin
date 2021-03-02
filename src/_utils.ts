@@ -1,5 +1,7 @@
 import {App, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
 
+import {LOCAL_SORT_OPT} from './constants'
+
 import type {
   TodoItem,
   TodoGroup,
@@ -19,8 +21,8 @@ export const parseTodos = async (
   pageLink: string,
   cache: MetadataCache,
   vault: Vault,
-  sort: SortDirection,
-  ignoreFiles: string
+  ignoreFiles: string,
+  sort: SortDirection
 ): Promise<TodoItem[]> => {
   const filesWithCache = await Promise.all(
     files
@@ -43,11 +45,13 @@ export const parseTodos = async (
     })
     .filter((todo, i, a) => a.findIndex((_todo) => todo.line === _todo.line && todo.filePath === _todo.filePath) === i)
 
-  allTodos.sort((a, b) => (sort === "new->old" ? b.fileCreatedTs - a.fileCreatedTs : a.fileCreatedTs - b.fileCreatedTs))
+  if (sort === "new->old") allTodos.sort((a, b) => b.fileCreatedTs - a.fileCreatedTs)
+  if (sort === "old->new") allTodos.sort((a, b) => a.fileCreatedTs - b.fileCreatedTs)
+
   return allTodos
 }
 
-export const groupTodos = (items: TodoItem[], groupBy: GroupByType): TodoGroup[] => {
+export const groupTodos = (items: TodoItem[], groupBy: GroupByType, sort: SortDirection): TodoGroup[] => {
   const groups: TodoGroup[] = []
   for (const item of items) {
     const itemKey =
@@ -65,7 +69,15 @@ export const groupTodos = (items: TodoItem[], groupBy: GroupByType): TodoGroup[]
 
     group.todos.push(item)
   }
-  return groups.filter((g) => g.todos.length > 0)
+
+  const nonEmptyGroups = groups.filter((g) => g.todos.length > 0)
+
+  if (sort === "a->z")
+    nonEmptyGroups.sort((a, b) => a.groupName.localeCompare(b.groupName, navigator.language, LOCAL_SORT_OPT))
+  if (sort === "z->a")
+    nonEmptyGroups.sort((a, b) => b.groupName.localeCompare(a.groupName, navigator.language, LOCAL_SORT_OPT))
+
+  return nonEmptyGroups
 }
 
 export const toggleTodoItem = async (item: TodoItem, app: App) => {

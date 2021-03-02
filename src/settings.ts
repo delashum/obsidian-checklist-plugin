@@ -65,9 +65,11 @@ export class TodoSettingTab extends PluginSettingTab {
       })
     })
 
-    new Setting(containerEl).setName("Sort Direction").addDropdown((dropdown) => {
+    new Setting(containerEl).setName("Group Sort").addDropdown((dropdown) => {
       dropdown.addOption("new->old", "New -> Old")
       dropdown.addOption("old->new", "Old -> New")
+      dropdown.addOption("a->z", "A -> Z")
+      dropdown.addOption("z->a", "Z -> A")
       dropdown.setValue(this.plugin.getSettingValue("sortDirection"))
       dropdown.onChange(async (value: SortDirection) => {
         await this.plugin.updateSettings({ sortDirection: value })

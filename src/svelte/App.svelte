@@ -21,7 +21,7 @@
   let firstRun = true
 
   const formGroups = (_todos: TodoItem[]) => {
-    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy)
+    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy, sortDirection)
   }
 
   const toggleItem = async (item: TodoItem) => {
@@ -31,7 +31,7 @@
   }
 
   const recalcItems = async () => {
-    todos = await parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, app.vault, sortDirection, ignoreFiles)
+    todos = await parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, app.vault, ignoreFiles, sortDirection)
     todoGroups = formGroups(todos)
     firstRun = false
   }
@@ -69,12 +69,3 @@
     {/each}
   {/if}
 </div>
-
-<style>
-  .tag-base {
-    color: var(--text-faint);
-  }
-  .tag-sub {
-    color: var(--text-muted);
-  }
-</style>
