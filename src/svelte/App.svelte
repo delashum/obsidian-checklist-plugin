@@ -56,7 +56,6 @@
   {:else if todoGroups.length === 0}
     <div>No checklist items found for tag: #{todoTag}</div>
   {:else}
-    <div class="header" />
     {#each todoGroups as group}
       <ChecklistGroup
         {group}

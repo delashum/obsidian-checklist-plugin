@@ -12,14 +12,26 @@
   export let lookAndFeel: LookAndFeel
   export let app: App
   export let onToggle: (id: string, type: "page" | "tag") => void
+  export let groupNameAsClass: string
+
+  $: {
+    const groupName = group.groupName || mainTag
+    const sanitzedGroupName = groupName.replace(/[^A-Za-z0-9]/g, "")
+    const dasherizedGroupName = sanitzedGroupName.replace(/^([A-Z])|[\s\._](\w)/g, function (_, p1, p2) {
+      if (p2) return "-" + p2.toLowerCase()
+      return p1.toLowerCase()
+    });
+
+    groupNameAsClass = `group-${dasherizedGroupName}`
+  }
 
   function clickTitle(ev: MouseEvent) {
     if (group.type === "page") navToFile(app, group.groupId, ev)
   }
 </script>
 
-<div class="group">
-  <div class={`group-header ${group.type}`}>
+<section class="group {groupNameAsClass}">
+  <header class={`group-header ${group.type}`}>
     <div class="title" on:click={clickTitle}>
       {#if group.type === "page"}
         {group.groupName}
@@ -31,16 +43,18 @@
     </div>
     <div class="space" />
     <div class="count">{group.todos.length}</div>
-    <div class="collapse" on:click={() => onToggle(group.groupId, "page")}>
+    <button class="collapse" on:click={() => onToggle(group.groupId, "page")} title="Toggle Group">
       <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
-    </div>
-  </div>
-  {#if !isCollapsed}
-    {#each group.todos as item}
-      <ChecklistItem {item} {lookAndFeel} {app} />
-    {/each}
-  {/if}
-</div>
+    </button>
+  </header>
+  <ul>
+    {#if !isCollapsed}
+      {#each group.todos as item}
+        <ChecklistItem {item} {lookAndFeel} {app} />
+      {/each}
+    {/if}
+  </ul>
+</section>
 
 <style>
   .page {
@@ -54,7 +68,7 @@
     opacity: 0.8;
   }
 
-  .group-header {
+  header {
     font-weight: 600;
     font-size: 14pt;
     margin-bottom: 8px;
@@ -67,7 +81,7 @@
     flex: 1;
   }
   .count,
-  .collapse,
+  button,
   .title {
     flex-shrink: 1;
   }
@@ -82,8 +96,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .collapse {
+  button {
     display: flex;
+    padding: 0 5px;
+    background: none;
   }
 
   .tag-base {
@@ -91,5 +107,10 @@
   }
   .tag-sub {
     color: var(--text-muted);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
   }
 </style>

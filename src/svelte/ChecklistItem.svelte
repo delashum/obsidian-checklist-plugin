@@ -15,8 +15,8 @@
   }
 </script>
 
-<div class={`item ${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
-  <div
+<li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
+  <button
     class="toggle"
     on:click={(ev) => {
       toggleItem(item)
@@ -24,14 +24,14 @@
     }}
   >
     <CheckCircle checked={item.checked} />
-  </div>
+  </button>
   <div class="content">
     <TextChunk chunks={item.display} {app} />
   </div>
-</div>
+</li>
 
 <style>
-  .item {
+  li {
     display: flex;
     align-items: center;
     background-color: var(--interactive-normal);
@@ -40,7 +40,7 @@
     cursor: pointer;
     transition: background-color 100ms ease-in-out;
   }
-  .item:hover {
+  li:hover {
     background-color: var(--interactive-hover);
   }
   .toggle {
