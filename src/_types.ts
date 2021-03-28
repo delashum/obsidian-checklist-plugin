@@ -33,7 +33,7 @@ export type TodoItem = {
   fileName: string
   fileLabel: string
   fileCreatedTs: number
-  mainTag: string
+  mainTag?: string
   subTag?: string
   line: number
   spacesIndented: number
@@ -51,6 +51,8 @@ export type TodoGroup = {
 export type FileInfo = {
   content: string
   cache: CachedMetadata
+  parseEntireFile: boolean
+  frontmatterTag: string
   file: TFile
   validTags: TagCache[]
 }

@@ -1,4 +1,4 @@
-import {App, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
+import {App, CachedMetadata, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
 
 import {LOCAL_SORT_OPT} from './constants'
 
@@ -18,31 +18,43 @@ import type {
 
 export const parseTodos = async (
   files: TFile[],
-  pageLink: string,
+  todoTag: string,
   cache: MetadataCache,
   vault: Vault,
   ignoreFiles: string,
+  includeFiles: string,
   sort: SortDirection
 ): Promise<TodoItem[]> => {
   const filesWithCache = await Promise.all(
     files
       .filter((file) => {
         if (ignoreFiles && file.path.includes(ignoreFiles)) return false
+        if (includeFiles && !file.path.startsWith(includeFiles)) return false
+        if (!todoTag) return true
         const fileCache = cache.getFileCache(file)
-        const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
-        return !!tagsOnPage?.length
+        const allTags = getAllTagsFromMetadata(fileCache)
+        const tagsOnPage = allTags.filter((tag) => getTagMeta(tag).main === todoTag)
+        return tagsOnPage.length > 0
       })
       .map<Promise<FileInfo>>(async (file) => {
         const fileCache = cache.getFileCache(file)
-        const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === pageLink) ?? []
+        const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === todoTag) ?? []
+        const frontMatterTags = getFrontmatterTags(fileCache, todoTag)
+        const hasFrontMatterTag = frontMatterTags.length > 0
+        const parseEntireFile = !todoTag || hasFrontMatterTag
         const content = await vault.cachedRead(file)
-        return { content, cache: fileCache, validTags: tagsOnPage, file }
+        return {
+          content,
+          cache: fileCache,
+          validTags: tagsOnPage,
+          file,
+          parseEntireFile,
+          frontmatterTag: todoTag ? frontMatterTags[0] : undefined,
+        }
       })
   )
   const allTodos = filesWithCache
-    .flatMap((file) => {
-      return file.validTags.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
-    })
+    .flatMap(findAllTodosInFile)
     .filter((todo, i, a) => a.findIndex((_todo) => todo.line === _todo.line && todo.filePath === _todo.filePath) === i)
 
   if (sort === "new->old") allTodos.sort((a, b) => b.fileCreatedTs - a.fileCreatedTs)
@@ -125,6 +137,39 @@ const isMetaPressed = (e: MouseEvent): boolean => {
   return isMacOS() ? e.metaKey : e.ctrlKey
 }
 
+const getFrontmatterTags = (cache: CachedMetadata, todoTag?: string) => {
+  const frontMatterTags: string[] = (cache?.frontmatter?.tags ?? []).map((tag: string) => `#${tag}`)
+  if (todoTag) return frontMatterTags.filter((tag: string) => getTagMeta(tag).main === todoTag)
+  return frontMatterTags
+}
+
+const getAllTagsFromMetadata = (cache: CachedMetadata): string[] => {
+  if (!cache) return []
+  const frontmatterTags = getFrontmatterTags(cache)
+  const blockTags = (cache.tags ?? []).map((e) => e.tag)
+  return [...frontmatterTags, ...blockTags]
+}
+
+const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
+  if (!file.parseEntireFile) return file.validTags.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
+
+  if (!file.content) return []
+  const fileLines = getAllLinesFromFile(file.content)
+  const links = file.cache?.links ?? []
+  const tagMeta = file.frontmatterTag ? getTagMeta(file.frontmatterTag) : undefined
+
+  const todos: TodoItem[] = []
+  for (let i = 0; i < fileLines.length; i++) {
+    const line = fileLines[i]
+    if (line.length === 0) continue
+    if (lineIsValidTodo(line, "")) {
+      todos.push(formTodo(line, file, links, i, tagMeta))
+    }
+  }
+
+  return todos
+}
+
 const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const fileContents = file.content
   const links = file.cache.links ?? []
@@ -133,7 +178,7 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const tagMeta = getTagMeta(tag.tag)
   const tagLine = fileLines[tag.position.start.line]
   if (lineIsValidTodo(tagLine, tagMeta.main)) {
-    return [formTodo(tagLine, file, tagMeta, links, tag.position.start.line)]
+    return [formTodo(tagLine, file, links, tag.position.start.line, tagMeta)]
   }
 
   const todos: TodoItem[] = []
@@ -141,25 +186,25 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
     const line = fileLines[i]
     if (line.length === 0) break
     if (lineIsValidTodo(line, tagMeta.main)) {
-      todos.push(formTodo(line, file, tagMeta, links, i))
+      todos.push(formTodo(line, file, links, i, tagMeta))
     }
   }
 
   return todos
 }
 
-const formTodo = (line: string, file: FileInfo, tagMeta: TagMeta, links: LinkCache[], lineNum: number): TodoItem => {
+const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: number, tagMeta?: TagMeta): TodoItem => {
   const relevantLinks = links
     .filter((link) => link.position.start.line === lineNum)
     .map((link) => ({ filePath: link.link, linkName: link.displayText }))
   const linkMap = mapLinkMeta(relevantLinks)
   const rawText = extractTextFromTodoLine(line)
   const spacesIndented = getIndentationSpacesFromTodoLine(line)
-  const tagStripped = removeTagFromText(rawText, tagMeta.main)
+  const tagStripped = removeTagFromText(rawText, tagMeta?.main)
   const rawChunks = parseTextContent(tagStripped)
   const displayChunks = decorateChunks(rawChunks, linkMap)
   return {
-    mainTag: tagMeta.main,
+    mainTag: tagMeta?.main,
     checked: todoLineIsChecked(line),
     display: displayChunks,
     filePath: file.file.path,
@@ -281,7 +326,9 @@ const extractTextFromTodoLine = (line: string) => /^\s*\-\s\[(\s|x)\]\s?(.*)$/.e
 const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)\-\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
 const todoLineIsChecked = (line: string) => /^\s*\-\s\[x\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
-const removeTagFromText = (text: string, tag: string) =>
-  text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, "g"), "").trim()
+const removeTagFromText = (text: string, tag: string) => {
+  if (!tag) return text.trim()
+  return text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, "g"), "").trim()
+}
 
 const isMacOS = () => window.navigator.userAgent.includes("Macintosh")

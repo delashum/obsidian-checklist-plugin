@@ -11,7 +11,7 @@
   export let isCollapsed: boolean
   export let lookAndFeel: LookAndFeel
   export let app: App
-  export let onToggle: (id: string, type: "page" | "tag") => void
+  export let onToggle: (id: string) => void
 
   function clickTitle(ev: MouseEvent) {
     if (group.type === "page") navToFile(app, group.groupId, ev)
@@ -19,22 +19,24 @@
 </script>
 
 <div class="group">
-  <div class={`group-header ${group.type}`}>
-    <div class="title" on:click={clickTitle}>
-      {#if group.type === "page"}
-        {group.groupName}
-      {:else}
-        <span class="tag-base">{`#${mainTag}${group.groupName != null ? "/" : ""}`}</span><span class="tag-sub"
-          >{group.groupName ?? ""}</span
-        >
-      {/if}
+  {#if mainTag}
+    <div class={`group-header ${group.type}`}>
+      <div class="title" on:click={clickTitle}>
+        {#if group.type === "page"}
+          {group.groupName}
+        {:else}
+          <span class="tag-base">{`#${mainTag}${group.groupName != null ? "/" : ""}`}</span><span class="tag-sub"
+            >{group.groupName ?? ""}</span
+          >
+        {/if}
+      </div>
+      <div class="space" />
+      <div class="count">{group.todos.length}</div>
+      <div class="collapse" on:click={() => onToggle(group.groupId)}>
+        <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
+      </div>
     </div>
-    <div class="space" />
-    <div class="count">{group.todos.length}</div>
-    <div class="collapse" on:click={() => onToggle(group.groupId, "page")}>
-      <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
-    </div>
-  </div>
+  {/if}
   {#if !isCollapsed}
     {#each group.todos as item}
       <ChecklistItem {item} {lookAndFeel} {app} />
