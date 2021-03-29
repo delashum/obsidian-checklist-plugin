@@ -65,7 +65,6 @@
       {/if}
     </div>
   {:else}
-    <div class="header" />
     {#each todoGroups as group}
       <ChecklistGroup
         {group}
