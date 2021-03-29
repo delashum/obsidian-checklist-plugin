@@ -9,6 +9,7 @@ export interface TodoSettings {
   groupBy: GroupByType
   sortDirection: SortDirection
   ignoreFiles: string
+  includeFiles: string
   lookAndFeel: LookAndFeel
   _collapsedSections: string[]
 }
@@ -19,6 +20,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   groupBy: "page",
   sortDirection: "old->new",
   ignoreFiles: "",
+  includeFiles: "",
   lookAndFeel: "classic",
   _collapsedSections: [],
 }
@@ -84,6 +86,17 @@ export class TodoSettingTab extends PluginSettingTab {
       .addText((text) =>
         text.setValue(this.plugin.getSettingValue("ignoreFiles")).onChange(async (value) => {
           await this.plugin.updateSettings({ ignoreFiles: value })
+        })
+      )
+
+    new Setting(containerEl)
+      .setName("Include Files")
+      .setDesc(
+        "Only search files whose path begins with this value (e.g. 'tasks' would search tasks/file.md and tasks_folder/file.md and not other_sub/file.md or file.md)"
+      )
+      .addText((text) =>
+        text.setValue(this.plugin.getSettingValue("includeFiles")).onChange(async (value) => {
+          await this.plugin.updateSettings({ includeFiles: value })
         })
       )
 

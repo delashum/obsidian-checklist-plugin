@@ -35,6 +35,7 @@ export default class TodoListView extends ItemView {
       groupBy: this.plugin.getSettingValue("groupBy"),
       sortDirection: this.plugin.getSettingValue("sortDirection"),
       ignoreFiles: this.plugin.getSettingValue("ignoreFiles"),
+      includeFiles: this.plugin.getSettingValue("includeFiles"),
       lookAndFeel: this.plugin.getSettingValue("lookAndFeel"),
       rerenderKey: Symbol("[rerender]"),
       _collapsedSections: this.plugin.getSettingValue("_collapsedSections"),
@@ -49,8 +50,7 @@ export default class TodoListView extends ItemView {
       props: this.getProps(),
     })
     this.registerEvent(
-      this.app.metadataCache.on("resolve", (...args) => {
-        // TODO: capture incremental updates here
+      this.app.metadataCache.on("resolved", (...args) => {
         this.rerender()
       })
     )
