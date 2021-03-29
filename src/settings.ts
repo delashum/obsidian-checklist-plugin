@@ -41,7 +41,7 @@ export class TodoSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Tag name")
-      .setDesc("e.g. #todo")
+      .setDesc("e.g. #todo. Leave empty to capture all")
       .addText((text) =>
         text
           .setPlaceholder("todo")
