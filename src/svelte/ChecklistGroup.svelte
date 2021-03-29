@@ -11,7 +11,7 @@
   export let isCollapsed: boolean
   export let lookAndFeel: LookAndFeel
   export let app: App
-  export let onToggle: (id: string, type: "page" | "tag") => void
+  export let onToggle: (id: string) => void
   export let groupNameAsClass: string
 
   $: {
@@ -24,6 +24,7 @@
 
     groupNameAsClass = `group-${dasherizedGroupName}`
   }
+
 
   function clickTitle(ev: MouseEvent) {
     if (group.type === "page") navToFile(app, group.groupId, ev)
@@ -55,6 +56,7 @@
     {/if}
   </ul>
 </section>
+
 
 <style>
   .page {

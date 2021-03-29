@@ -12,6 +12,7 @@
   export let sortDirection: SortDirection
   export let lookAndFeel: LookAndFeel
   export let ignoreFiles: string
+  export let includeFiles: string
   export let _collapsedSections: string[]
   export let updateSetting: (updates: Partial<TodoSettings>) => Promise<void>
   export let rerenderKey: symbol
@@ -24,19 +25,21 @@
     return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy, sortDirection)
   }
 
-  const toggleItem = async (item: TodoItem) => {
-    toggleTodoItem(item, app)
-    item.checked = !item.checked
-    todoGroups = formGroups(todos)
-  }
-
   const recalcItems = async () => {
-    todos = await parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, app.vault, ignoreFiles, sortDirection)
+    todos = await parseTodos(
+      app.vault.getFiles(),
+      todoTag,
+      app.metadataCache,
+      app.vault,
+      ignoreFiles,
+      includeFiles,
+      sortDirection
+    )
     todoGroups = formGroups(todos)
     firstRun = false
   }
 
-  const toggleGroup = (id: string, type: "page" | "tag") => {
+  const toggleGroup = (id: string) => {
     const newCollapsedSections = _collapsedSections.includes(id)
       ? _collapsedSections.filter((e) => e !== id)
       : [..._collapsedSections, id]
@@ -45,7 +48,7 @@
 
   $: {
     rerenderKey
-    if (firstRun) setTimeout(recalcItems, 800)
+    if (firstRun) setTimeout(recalcItems, 600)
     else recalcItems()
   }
 </script>
@@ -54,7 +57,13 @@
   {#if firstRun}
     <Loading />
   {:else if todoGroups.length === 0}
-    <div>No checklist items found for tag: #{todoTag}</div>
+    <div class="empty">
+      {#if todoTag}
+        No checklists found for tag: #{todoTag}
+      {:else}
+        No checklists found
+      {/if}
+    </div>
   {:else}
     {#each todoGroups as group}
       <ChecklistGroup
@@ -68,3 +77,10 @@
     {/each}
   {/if}
 </div>
+
+<style>
+  .empty {
+    color: var(--text-faint);
+    text-align: center;
+  }
+</style>
