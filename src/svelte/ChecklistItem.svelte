@@ -35,8 +35,8 @@
     display: flex;
     align-items: center;
     background-color: var(--interactive-normal);
-    border-radius: 8px;
-    margin-bottom: 12px;
+    border-radius: var(--todoList-listItemBorderRadius);
+    margin: var(--todoList-listItemMargin);
     cursor: pointer;
     transition: background-color 100ms ease-in-out;
   }
@@ -44,21 +44,19 @@
     background-color: var(--interactive-hover);
   }
   .toggle {
-    padding-right: 8px;
-    padding: 8px 12px;
+    padding: var(--todoList-togglePadding);
   }
   .content {
-    padding: 8px 12px;
-    padding-left: 0 !important;
+    padding: var(--todoList-contentPadding)
   }
   .compact {
-    margin-bottom: 8px;
+    bottom: var(--todoList-listItemMargin--compact);
   }
   .compact > .content {
-    padding: 4px 8px;
+    padding: var(--todoList-contentPadding--compact);
   }
   .compact > .toggle {
-    padding: 4px 8px;
+    padding: var(--todoList-togglePadding--compact);
   }
   .toggle:hover {
     opacity: 0.8;

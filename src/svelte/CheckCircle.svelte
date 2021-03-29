@@ -4,24 +4,24 @@
 
 <style>
     .checkbox {
-        width: 20px;
-        height: 20px;
+        width: var(--todoList-checkboxSize);
+        height: var(--todoList-checkboxSize);
+        min-width: var(--todoList-checkboxSize);
+        min-height: var(--todoList-checkboxSize);
         border-radius: 50%;
-        border: 2px solid var(--text-muted);
+        border: var(--todoList-checkboxBorder);
         padding: 2px;
         position: relative;
-        min-width: 20px;
-        min-height: 20px;
     }
 
     .checked {
         background-color: var(--text-muted);
-        width: 12px;
-        height: 12px;
+        width: var(--todoList-checkboxCheckedSize);
+        height: var(--todoList-checkboxCheckedSize);
         border-radius: 50%;
         position: absolute;
-        top: 2px;
-        left: 2px;
+        top: calc(calc(var(--todoList-checkboxSize) - var(--todoList-checkboxCheckedSize)) / 4);
+        left: calc(calc(var(--todoList-checkboxSize) - var(--todoList-checkboxCheckedSize)) / 4);
     }
 </style>
 

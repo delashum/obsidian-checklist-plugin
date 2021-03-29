@@ -58,8 +58,8 @@
 
 <style>
   .page {
-    margin-bottom: 4px;
-    color: var(--text-muted);
+    margin: var(--todoList-pageMargin);
+    color: var(--todoList-textColor);
     transition: opacity 150ms ease-in-out;
     cursor: pointer;
   }
@@ -69,27 +69,27 @@
   }
 
   header {
-    font-weight: 600;
-    font-size: 14pt;
-    margin-bottom: 8px;
+    font-weight: var(--todoList-headerFontWeight);
+    font-size: var(--todoList-headerFontSize);
+    margin-bottom: var(--todoList-headerMargin);
     display: flex;
-    gap: 8px;
+    gap: var(--todoList-headerGap);
     align-items: center;
   }
 
   .space {
     flex: 1;
   }
-  .count,
   button,
+  .count,
   .title {
     flex-shrink: 1;
   }
   .count {
-    padding: 0px 6px;
+    padding: var(--todoList-countPadding);
     background: var(--interactive-normal);
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: var(--todoList-countBorderRadius);
+    font-size: var(--todoList-countFontSize);
   }
   .title {
     min-width: 0;
@@ -98,15 +98,15 @@
   }
   button {
     display: flex;
-    padding: 0 5px;
+    padding: var(--todoList-buttonPadding);
     background: none;
   }
 
   .tag-base {
-    color: var(--text-faint);
+    color: var(--todoList-tagBaseColor);
   }
   .tag-sub {
-    color: var(--text-muted);
+    color: var(--todoList-tagSub);
   }
 
   ul {
