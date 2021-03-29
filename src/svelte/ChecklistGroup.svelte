@@ -87,7 +87,7 @@
   }
   .count {
     padding: var(--todoList-countPadding);
-    background: var(--interactive-normal);
+    background: var(--todoList--countBackground);
     border-radius: var(--todoList-countBorderRadius);
     font-size: var(--todoList-countFontSize);
   }
@@ -99,7 +99,7 @@
   button {
     display: flex;
     padding: var(--todoList-buttonPadding);
-    background: none;
+    background: transparent;
   }
 
   .tag-base {
@@ -112,5 +112,6 @@
   ul {
     list-style: none;
     padding: 0;
+    margin: 0;
   }
 </style>
