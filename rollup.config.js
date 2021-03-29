@@ -1,4 +1,5 @@
 import commonjs from '@rollup/plugin-commonjs'
+import json from '@rollup/plugin-json'
 import {nodeResolve} from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 import svelte from 'rollup-plugin-svelte'
@@ -17,5 +18,6 @@ export default {
     nodeResolve({ browser: true }),
     typescript(),
     commonjs(),
+    json(),
   ],
-};
+}

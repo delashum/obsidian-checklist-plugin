@@ -10,8 +10,13 @@
   export let lookAndFeel: LookAndFeel
   export let app: App
 
+  let contentDiv: HTMLDivElement
+
   const toggleItem = async (item: TodoItem) => {
     toggleTodoItem(item, app)
+  }
+  $: {
+    if (contentDiv) contentDiv.innerHTML = item.rawHTML
   }
 </script>
 
@@ -25,8 +30,8 @@
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <div class="content">
-    <TextChunk chunks={item.display} {app} />
+  <div bind:this={contentDiv} class="content">
+    <!-- <TextChunk chunks={item.display} {app} /> -->
   </div>
 </li>
 
@@ -47,7 +52,7 @@
     padding: var(--todoList-togglePadding);
   }
   .content {
-    padding: var(--todoList-contentPadding)
+    padding: var(--todoList-contentPadding);
   }
   .compact {
     bottom: var(--todoList-listItemMargin--compact);
