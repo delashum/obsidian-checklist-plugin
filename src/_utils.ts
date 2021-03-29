@@ -1,6 +1,9 @@
+import MD from 'markdown-it'
 import {App, CachedMetadata, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
 
 import {LOCAL_SORT_OPT} from './constants'
+
+const md = new MD()
 
 import type {
   TodoItem,
@@ -211,6 +214,7 @@ const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: num
     fileName: file.file.name,
     fileLabel: getFileLabelFromName(file.file.name),
     fileCreatedTs: file.file.stat.ctime,
+    rawHTML: md.render(rawText),
     line: lineNum,
     subTag: tagMeta?.sub,
     spacesIndented,

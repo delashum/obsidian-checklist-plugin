@@ -39,6 +39,7 @@ export type TodoItem = {
   spacesIndented: number
   fileInfo: FileInfo
   originalText: string
+  rawHTML: string
 }
 
 export type TodoGroup = {
