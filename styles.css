@@ -1,1 +1,27 @@
 /* no content */
+:root {
+  --todoList-checkboxSize: 20px;
+  --todoList-checkboxCheckedSize: 12px;
+  --todoList-checkboxBorder: 2px solid var(--text-muted);
+  --todoList-listItemBorderRadius: 8px;
+  --todoList-listItemMargin: 0 0 12px;
+  --todoList-listItemMargin--compact: 0 0 8px;
+  --todoList-headerMargin: 0 0 8px;
+  --todoList-headerGap: 8px;
+  --todoList-headerFontSize: 19px;
+  --todoList-headerFontWeight: 600;
+  --todoList-iconSize: 24px;
+  --todoList-textColor: var(--text-muted);
+  --todoList-pageMargin: 0 0 4px;
+  --todoList-loaderSize: 16px;
+  --todoList-buttonPadding: 0 5px;
+  --todoList-countPadding: 0 6px;
+  --todoList-countFontSize: 14px;
+  --todoList-togglePadding: 8px 8px 8px 12px;
+  --todoList-contentPadding: 8px 12px 8px 0;
+  --todoList-contentPadding--compact: 4px 8px;
+  --todoList-togglePadding--compact: 4px 8px;
+  --todoList-countBorderRadius: 4px;
+  --todoList-tagBaseColor: var(--text-faint);
+  --todoList-tagSubColor: var(--text-muted);
+}

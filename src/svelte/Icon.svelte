@@ -15,8 +15,8 @@
 
 <style>
   .svg {
-    width: 24px;
-    height: 24px;
+    width: var(--todoList-iconSize);
+    height: var(--todoList-iconSize);
     fill: var(--text-normal);
     transition: transform 150ms ease;
     cursor: pointer;

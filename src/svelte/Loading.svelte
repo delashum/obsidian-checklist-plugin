@@ -15,8 +15,8 @@
     border-color: var(--text-muted);
     border-bottom-color: var(--text-normal);
 
-    width: 16px;
-    height: 16px;
+    width: var(--todoList-loaderSize);
+    height: var(--todoList-loaderSize);
   }
 
   @keyframes niceSpinLoader {
