@@ -31,13 +31,13 @@
 
 <style>
   .link-item {
-    color: var(--text-accent);
+    color: var(--todoList-textChunkColor);
     text-decoration: underline;
     cursor: pointer;
     transition: color 150ms ease-in-out;
   }
   .link-item:hover {
-    color: var(--text-accent-hover);
+    color: var(--todoList-textChunkColor--hover);
   }
   .bold-item {
     font-weight: bold;
