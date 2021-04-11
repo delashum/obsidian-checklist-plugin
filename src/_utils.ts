@@ -98,6 +98,7 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
 }
 
 export const navToFile = async (app: App, path: string, ev: MouseEvent) => {
+  console.log(app, path)
   path = ensureMdExtension(path)
   const file = getFileFromPath(app.vault, path)
   if (!file) return
@@ -118,7 +119,8 @@ export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
 /** private */
 
 const getFileFromPath = (vault: Vault, path: string) => {
-  const file = vault.getAbstractFileByPath(path)
+  const files = vault.getFiles()
+  const file = files.find((e) => e.name === path)
   if (file instanceof TFile) return file
 }
 

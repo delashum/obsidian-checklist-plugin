@@ -10,7 +10,7 @@
   --todoList-listItemBackground--hover: var(--interactive-hover);
   --todoList-listItemMargin--compact: 0 0 8px;
   --todoList-headerMargin: 0 0 8px;
-  --todoList-headerGap: 8px;
+  --todoList-headerGap: 4px;
   --todoList-headerFontSize: 18px;
   --todoList-headerFontWeight: 600;
   --todoList-iconSize: 24px;
