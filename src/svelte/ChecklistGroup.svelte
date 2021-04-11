@@ -71,7 +71,7 @@
   header {
     font-weight: var(--todoList-headerFontWeight);
     font-size: var(--todoList-headerFontSize);
-    margin-bottom: var(--todoList-headerMargin);
+    margin: var(--todoList-headerMargin);
     display: flex;
     gap: var(--todoList-headerGap);
     align-items: center;
@@ -87,7 +87,7 @@
   }
   .count {
     padding: var(--todoList-countPadding);
-    background: var(--todoList--countBackground);
+    background: var(--todoList-countBackground);
     border-radius: var(--todoList-countBorderRadius);
     font-size: var(--todoList-countFontSize);
   }

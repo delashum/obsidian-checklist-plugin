@@ -1,41 +1,7 @@
-import type { CachedMetadata, LinkCache, TagCache, TFile } from "obsidian"
-
-export type TextChunk = {
-  type: "text"
-  value: string
-}
-export type BoldChunk = {
-  type: "bold"
-  children: TodoDisplayChunk[]
-}
-export type ItalicChunk = {
-  type: "italic"
-  children: TodoDisplayChunk[]
-}
-export type LinkChunk = {
-  type: "link"
-  children: TodoDisplayChunk[]
-  label: string
-  filePath: string
-}
-export type CommentChucnk = {
-  type: "comment"
-}
-export type CodeChucnk = {
-  type: "code"
-  value: string
-}
-
-export type TodoDisplayChunk = TextChunk | LinkChunk | BoldChunk | ItalicChunk | CommentChucnk | CodeChucnk
-
-export type DisplayChunkType = TodoDisplayChunk["type"]
-export type TokenChunk =
-  | { rawText: string; type: "text" }
-  | { children: TokenChunk[]; rawText: string; type: Exclude<DisplayChunkType, "text"> }
+import type { CachedMetadata, TagCache, TFile } from "obsidian"
 
 export type TodoItem = {
   checked: boolean
-  display: TodoDisplayChunk[]
   filePath: string
   fileName: string
   fileLabel: string

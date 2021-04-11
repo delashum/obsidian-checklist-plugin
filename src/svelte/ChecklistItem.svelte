@@ -4,20 +4,31 @@
   import type { LookAndFeel, TodoItem } from "src/_types"
   import { navToFile, toggleTodoItem } from "src/_utils"
   import CheckCircle from "./CheckCircle.svelte"
-  import TextChunk from "./TextChunk.svelte"
 
   export let item: TodoItem
   export let lookAndFeel: LookAndFeel
   export let app: App
 
-  // let contentDiv: HTMLDivElement
+  let contentDiv: HTMLDivElement
 
   const toggleItem = async (item: TodoItem) => {
     toggleTodoItem(item, app)
   }
-  // $: {
-  //   if (contentDiv) contentDiv.innerHTML = item.rawHTML
-  // }
+
+  const handleClick = (ev: MouseEvent) => {
+    const target: HTMLElement = ev.target as any
+    if (target.tagName === "A") {
+      ev.stopPropagation()
+      if (target.dataset.type === "link") {
+        navToFile(app, target.dataset.filepath, ev)
+      } else if (target.dataset.type === "tag") {
+        // goto tag
+      }
+    }
+  }
+  $: {
+    if (contentDiv) contentDiv.innerHTML = item.rawHTML
+  }
 </script>
 
 <li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
@@ -30,10 +41,7 @@
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <!-- <div bind:this={contentDiv} class="content"> -->
-  <div class="content">
-    <TextChunk chunks={item.display} {app} />
-  </div>
+  <div bind:this={contentDiv} on:click={handleClick} class="content" />
 </li>
 
 <style>
