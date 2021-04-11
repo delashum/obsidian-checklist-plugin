@@ -12,8 +12,7 @@
     animation-fill-mode: both;
     margin: 0 auto;
     animation: niceSpinLoader 0.75s 0s infinite linear;
-    border-color: var(--text-muted);
-    border-bottom-color: var(--text-normal);
+    border-color: var(--todoList-loaderBorderColor);
 
     width: var(--todoList-loaderSize);
     height: var(--todoList-loaderSize);

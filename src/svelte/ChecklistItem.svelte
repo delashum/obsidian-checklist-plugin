@@ -39,17 +39,18 @@
   li {
     display: flex;
     align-items: center;
-    background-color: var(--interactive-normal);
+    background-color: var(--todoList-listItemBackground);
     border-radius: var(--todoList-listItemBorderRadius);
     margin: var(--todoList-listItemMargin);
     cursor: pointer;
     transition: background-color 100ms ease-in-out;
   }
   li:hover {
-    background-color: var(--interactive-hover);
+    background-color: var(--todoList-listItemBackground--hover);
   }
   .toggle {
     padding: var(--todoList-togglePadding);
+    background: transparent;
   }
   .content {
     padding: var(--todoList-contentPadding);
