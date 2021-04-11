@@ -1,5 +1,5 @@
 import MD from 'markdown-it'
-import {App, CachedMetadata, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
+import {App, CachedMetadata, LinkCache, MetadataCache, parseFrontMatterTags, TagCache, TFile, Vault} from 'obsidian'
 
 import {LOCAL_SORT_OPT} from './constants'
 
@@ -141,7 +141,7 @@ const isMetaPressed = (e: MouseEvent): boolean => {
 }
 
 const getFrontmatterTags = (cache: CachedMetadata, todoTag?: string) => {
-  const frontMatterTags: string[] = (cache?.frontmatter?.tags ?? []).map((tag: string) => `#${tag}`)
+  const frontMatterTags: string[] = parseFrontMatterTags(cache?.frontmatter) ?? []
   if (todoTag) return frontMatterTags.filter((tag: string) => getTagMeta(tag).main === todoTag)
   return frontMatterTags
 }
@@ -231,6 +231,12 @@ const decorateChunks = (chunks: TokenChunk[], linkMap: Map<string, LinkMeta>): T
         type: "text",
       }
 
+    if (chunk.type === "code")
+      return {
+        value: chunk.rawText,
+        type: "code",
+      }
+
     const children = decorateChunks(chunk.children, linkMap)
 
     if (chunk.type === "link")
@@ -254,6 +260,7 @@ const parseTextContent = (formula: string): TokenChunk[] => {
   )
   tokens = parseTokensFromText(tokens, "italic", /\*[^\*]+\*/, /\*([^\*]+)\*/g)
   tokens = parseTokensFromText(tokens, "link", /\[\[[^\]]+\]\]/, /\[\[([^\]]+)\]\]/g)
+  tokens = parseTokensFromText(tokens, "comment", /\%\%[^\%]+\%\%/, /\%\%([^\%]+)\%\%/g)
 
   return tokens
 }

@@ -18,8 +18,15 @@ export type LinkChunk = {
   label: string
   filePath: string
 }
+export type CommentChucnk = {
+  type: "comment"
+}
+export type CodeChucnk = {
+  type: "code"
+  value: string
+}
 
-export type TodoDisplayChunk = TextChunk | LinkChunk | BoldChunk | ItalicChunk
+export type TodoDisplayChunk = TextChunk | LinkChunk | BoldChunk | ItalicChunk | CommentChucnk | CodeChucnk
 
 export type DisplayChunkType = TodoDisplayChunk["type"]
 export type TokenChunk =

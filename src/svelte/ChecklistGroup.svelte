@@ -20,11 +20,10 @@
     const dasherizedGroupName = sanitzedGroupName.replace(/^([A-Z])|[\s\._](\w)/g, function (_, p1, p2) {
       if (p2) return "-" + p2.toLowerCase()
       return p1.toLowerCase()
-    });
+    })
 
     groupNameAsClass = `group-${dasherizedGroupName}`
   }
-
 
   function clickTitle(ev: MouseEvent) {
     if (group.type === "page") navToFile(app, group.groupId, ev)
@@ -44,7 +43,7 @@
     </div>
     <div class="space" />
     <div class="count">{group.todos.length}</div>
-    <button class="collapse" on:click={() => onToggle(group.groupId, "page")} title="Toggle Group">
+    <button class="collapse" on:click={() => onToggle(group.groupId)} title="Toggle Group">
       <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
     </button>
   </header>
@@ -56,7 +55,6 @@
     {/if}
   </ul>
 </section>
-
 
 <style>
   .page {

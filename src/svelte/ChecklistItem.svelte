@@ -10,14 +10,14 @@
   export let lookAndFeel: LookAndFeel
   export let app: App
 
-  let contentDiv: HTMLDivElement
+  // let contentDiv: HTMLDivElement
 
   const toggleItem = async (item: TodoItem) => {
     toggleTodoItem(item, app)
   }
-  $: {
-    if (contentDiv) contentDiv.innerHTML = item.rawHTML
-  }
+  // $: {
+  //   if (contentDiv) contentDiv.innerHTML = item.rawHTML
+  // }
 </script>
 
 <li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
@@ -30,8 +30,9 @@
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <div bind:this={contentDiv} class="content">
-    <!-- <TextChunk chunks={item.display} {app} /> -->
+  <!-- <div bind:this={contentDiv} class="content"> -->
+  <div class="content">
+    <TextChunk chunks={item.display} {app} />
   </div>
 </li>
 
