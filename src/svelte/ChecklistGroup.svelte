@@ -114,4 +114,8 @@
     padding: 0;
     margin: 0;
   }
+
+  .group {
+    margin-bottom: var(--todoList-groupMargin);
+  }
 </style>

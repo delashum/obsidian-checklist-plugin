@@ -32,6 +32,7 @@
   --todoList-countBorderRadius: 4px;
   --todoList-tagBaseColor: var(--text-faint);
   --todoList-tagSubColor: var(--text-muted);
+  --todoList-groupMargin: 8px;
 }
 
 .checklist-plugin-main button {

@@ -98,7 +98,6 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
 }
 
 export const navToFile = async (app: App, path: string, ev: MouseEvent) => {
-  console.log(app, path)
   path = ensureMdExtension(path)
   const file = getFileFromPath(app.vault, path)
   if (!file) return
@@ -119,8 +118,10 @@ export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
 /** private */
 
 const getFileFromPath = (vault: Vault, path: string) => {
+  let file = vault.getAbstractFileByPath(path)
+  if (file instanceof TFile) return file
   const files = vault.getFiles()
-  const file = files.find((e) => e.name === path)
+  file = files.find((e) => e.name === path)
   if (file instanceof TFile) return file
 }
 
@@ -180,6 +181,7 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const todos: TodoItem[] = []
   for (let i = tag.position.start.line; i < fileLines.length; i++) {
     const line = fileLines[i]
+    if (i === tag.position.start.line + 1 && line.length === 0) continue
     if (line.length === 0) break
     if (lineIsValidTodo(line, tagMeta.main)) {
       todos.push(formTodo(line, file, links, i, tagMeta))
