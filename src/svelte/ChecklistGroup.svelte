@@ -20,11 +20,10 @@
     const dasherizedGroupName = sanitzedGroupName.replace(/^([A-Z])|[\s\._](\w)/g, function (_, p1, p2) {
       if (p2) return "-" + p2.toLowerCase()
       return p1.toLowerCase()
-    });
+    })
 
     groupNameAsClass = `group-${dasherizedGroupName}`
   }
-
 
   function clickTitle(ev: MouseEvent) {
     if (group.type === "page") navToFile(app, group.groupId, ev)
@@ -44,7 +43,7 @@
     </div>
     <div class="space" />
     <div class="count">{group.todos.length}</div>
-    <button class="collapse" on:click={() => onToggle(group.groupId, "page")} title="Toggle Group">
+    <button class="collapse" on:click={() => onToggle(group.groupId)} title="Toggle Group">
       <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
     </button>
   </header>
@@ -56,7 +55,6 @@
     {/if}
   </ul>
 </section>
-
 
 <style>
   .page {
@@ -73,7 +71,7 @@
   header {
     font-weight: var(--todoList-headerFontWeight);
     font-size: var(--todoList-headerFontSize);
-    margin-bottom: var(--todoList-headerMargin);
+    margin: var(--todoList-headerMargin);
     display: flex;
     gap: var(--todoList-headerGap);
     align-items: center;
@@ -89,7 +87,7 @@
   }
   .count {
     padding: var(--todoList-countPadding);
-    background: var(--todoList--countBackground);
+    background: var(--todoList-countBackground);
     border-radius: var(--todoList-countBorderRadius);
     font-size: var(--todoList-countFontSize);
   }
@@ -115,5 +113,9 @@
     list-style: none;
     padding: 0;
     margin: 0;
+  }
+
+  .group {
+    margin-bottom: var(--todoList-groupMargin);
   }
 </style>

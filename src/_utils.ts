@@ -1,19 +1,13 @@
-import {App, CachedMetadata, LinkCache, MetadataCache, TagCache, TFile, Vault} from 'obsidian'
+import MD from 'markdown-it'
+import {App, CachedMetadata, LinkCache, MetadataCache, parseFrontMatterTags, TagCache, TFile, Vault} from 'obsidian'
 
 import {LOCAL_SORT_OPT} from './constants'
+import {commentPlugin} from './plugins/comment'
+import {highlightPlugin} from './plugins/highlight'
+import {linkPlugin} from './plugins/link'
+import {tagPlugin} from './plugins/tag'
 
-import type {
-  TodoItem,
-  TodoGroup,
-  GroupByType,
-  SortDirection,
-  TagMeta,
-  TodoDisplayChunk,
-  LinkMeta,
-  DisplayChunkType,
-  TokenChunk,
-  FileInfo,
-} from "src/_types"
+import type { TodoItem, TodoGroup, GroupByType, SortDirection, TagMeta, LinkMeta, FileInfo } from "src/_types"
 /** public */
 
 export const parseTodos = async (
@@ -124,7 +118,10 @@ export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
 /** private */
 
 const getFileFromPath = (vault: Vault, path: string) => {
-  const file = vault.getAbstractFileByPath(path)
+  let file = vault.getAbstractFileByPath(path)
+  if (file instanceof TFile) return file
+  const files = vault.getFiles()
+  file = files.find((e) => e.name === path)
   if (file instanceof TFile) return file
 }
 
@@ -138,7 +135,7 @@ const isMetaPressed = (e: MouseEvent): boolean => {
 }
 
 const getFrontmatterTags = (cache: CachedMetadata, todoTag?: string) => {
-  const frontMatterTags: string[] = (cache?.frontmatter?.tags ?? []).map((tag: string) => `#${tag}`)
+  const frontMatterTags: string[] = parseFrontMatterTags(cache?.frontmatter) ?? []
   if (todoTag) return frontMatterTags.filter((tag: string) => getTagMeta(tag).main === todoTag)
   return frontMatterTags
 }
@@ -184,6 +181,7 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const todos: TodoItem[] = []
   for (let i = tag.position.start.line; i < fileLines.length; i++) {
     const line = fileLines[i]
+    if (i === tag.position.start.line + 1 && line.length === 0) continue
     if (line.length === 0) break
     if (lineIsValidTodo(line, tagMeta.main)) {
       todos.push(formTodo(line, file, links, i, tagMeta))
@@ -201,100 +199,21 @@ const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: num
   const rawText = extractTextFromTodoLine(line)
   const spacesIndented = getIndentationSpacesFromTodoLine(line)
   const tagStripped = removeTagFromText(rawText, tagMeta?.main)
-  const rawChunks = parseTextContent(tagStripped)
-  const displayChunks = decorateChunks(rawChunks, linkMap)
+  const md = new MD().use(commentPlugin).use(linkPlugin(linkMap)).use(tagPlugin).use(highlightPlugin)
   return {
     mainTag: tagMeta?.main,
     checked: todoLineIsChecked(line),
-    display: displayChunks,
     filePath: file.file.path,
     fileName: file.file.name,
     fileLabel: getFileLabelFromName(file.file.name),
     fileCreatedTs: file.file.stat.ctime,
+    rawHTML: md.render(tagStripped),
     line: lineNum,
     subTag: tagMeta?.sub,
     spacesIndented,
     fileInfo: file,
     originalText: rawText,
   }
-}
-
-const decorateChunks = (chunks: TokenChunk[], linkMap: Map<string, LinkMeta>): TodoDisplayChunk[] => {
-  return chunks.map((chunk) => {
-    if (chunk.type === "text")
-      return {
-        value: chunk.rawText,
-        type: "text",
-      }
-
-    const children = decorateChunks(chunk.children, linkMap)
-
-    if (chunk.type === "link")
-      return {
-        type: "link",
-        children,
-        filePath: linkMap.get(chunk.rawText)?.filePath,
-        label: linkMap.get(chunk.rawText)?.linkName,
-      }
-
-    return { type: chunk.type, children }
-  })
-}
-
-const parseTextContent = (formula: string): TokenChunk[] => {
-  let tokens: TokenChunk[] = parseTokensFromText(
-    [{ rawText: formula, type: "text" }],
-    "bold",
-    /\*\*[^\*]+\*\*/,
-    /\*\*([^\*]+)\*\*/g
-  )
-  tokens = parseTokensFromText(tokens, "italic", /\*[^\*]+\*/, /\*([^\*]+)\*/g)
-  tokens = parseTokensFromText(tokens, "link", /\[\[[^\]]+\]\]/, /\[\[([^\]]+)\]\]/g)
-
-  return tokens
-}
-
-const parseTokensFromText = <T extends DisplayChunkType>(
-  chunks: TokenChunk[],
-  type: T,
-  splitRegex: RegExp,
-  tokenRegex: RegExp
-): TokenChunk[] => {
-  return chunks.flatMap((chunk) => {
-    if (chunk.type === "text") {
-      const pieces = chunk.rawText.split(splitRegex)
-      const tokens = getAllMatches(tokenRegex, chunk.rawText, 1)
-      return pieces.flatMap((piece, i) => {
-        const token = tokens[i]
-        const finalPieces = []
-        if (piece) finalPieces.push({ type: "text", rawText: piece })
-        if (token)
-          finalPieces.push({
-            type,
-            rawText: token,
-            children: [{ type: "text", rawText: token }],
-          })
-        return finalPieces
-      })
-    } else {
-      return [
-        {
-          type: chunk.type,
-          rawText: chunk.rawText,
-          children: parseTokensFromText(chunk.children, type, splitRegex, tokenRegex),
-        },
-      ]
-    }
-  })
-}
-
-const getAllMatches = (r: RegExp, string: string, captureIndex = 0) => {
-  if (!r.global) throw new Error("getAllMatches(): cannot get matches for non-global regex.")
-  const matches: string[] = []
-  r.lastIndex = 0 // reset regexp to first match
-  let match: RegExpExecArray
-  while ((match = r.exec(string))) matches.push(match[captureIndex])
-  return matches
 }
 
 const setTodoStatusAtLineTo = (fileLines: string[], line: number, setTo: boolean) => {
@@ -314,17 +233,17 @@ const mapLinkMeta = (linkMeta: LinkMeta[]) => {
 }
 
 const setLineTo = (line: string, setTo: boolean) =>
-  line.replace(/^(\s*\-\s\[)([^\]]+)(\].*$)/, `$1${setTo ? "x" : " "}$3`)
+  line.replace(/^(\s*[\-\*]\s\[)([^\]]+)(\].*$)/, `$1${setTo ? "x" : " "}$3`)
 
 const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 const combineFileLines = (lines: string[]) => lines.join("\n")
 const lineIsValidTodo = (line: string, tag: string) => {
   const tagRemoved = removeTagFromText(line, tag)
-  return /^\s*\-\s\[(\s|x)\]\s*\S/.test(tagRemoved)
+  return /^\s*[\-\*]\s\[(\s|x)\]\s*\S/.test(tagRemoved)
 }
-const extractTextFromTodoLine = (line: string) => /^\s*\-\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
-const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)\-\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
-const todoLineIsChecked = (line: string) => /^\s*\-\s\[x\]/.test(line)
+const extractTextFromTodoLine = (line: string) => /^\s*[\-\*]\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
+const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)[\-\*]\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
+const todoLineIsChecked = (line: string) => /^\s*[\-\*]\s\[x\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 const removeTagFromText = (text: string, tag: string) => {
   if (!tag) return text.trim()

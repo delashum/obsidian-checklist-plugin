@@ -53,7 +53,7 @@
   }
 </script>
 
-<div class="todo-list">
+<div class="checklist-plugin-main markdown-preview-view">
   {#if firstRun}
     <Loading />
   {:else if todoGroups.length === 0}
@@ -82,5 +82,14 @@
   .empty {
     color: var(--text-faint);
     text-align: center;
+  }
+
+  .checklist-plugin-main {
+    padding: initial;
+    width: initial;
+    height: initial;
+    position: initial;
+    overflow-y: initial;
+    overflow-wrap: initial;
   }
 </style>
