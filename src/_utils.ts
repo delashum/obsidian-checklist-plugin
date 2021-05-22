@@ -222,7 +222,9 @@ const setTodoStatusAtLineTo = (fileLines: string[], line: number, setTo: boolean
 }
 
 const getTagMeta = (tag: string): TagMeta => {
-  const [full, main, sub] = /^\#([^\/]+)\/?(.*)?$/.exec(tag)
+  const tagMatch = /^\#([^\/]+)\/?(.*)?$/.exec(tag)
+  if (!tagMatch) return { main: null, sub: null }
+  const [full, main, sub] = tagMatch
   return { main, sub }
 }
 
@@ -239,13 +241,14 @@ const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 const combineFileLines = (lines: string[]) => lines.join("\n")
 const lineIsValidTodo = (line: string, tag: string) => {
   const tagRemoved = removeTagFromText(line, tag)
-  return /^\s*[\-\*]\s\[(\s|x)\]\s*\S/.test(tagRemoved)
+  return /^\s*[\-\*]\s\[(\s|x)\]\s*\S/.test(line)
 }
 const extractTextFromTodoLine = (line: string) => /^\s*[\-\*]\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
 const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)[\-\*]\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
 const todoLineIsChecked = (line: string) => /^\s*[\-\*]\s\[x\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 const removeTagFromText = (text: string, tag: string) => {
+  if (!text) return ""
   if (!tag) return text.trim()
   return text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, "g"), "").trim()
 }
