@@ -60,9 +60,11 @@
   .toggle {
     padding: var(--todoList-togglePadding);
     background: transparent;
+    flex-shrink: 1;
   }
   .content {
     padding: var(--todoList-contentPadding);
+    flex: 1;
   }
   .compact {
     bottom: var(--todoList-listItemMargin--compact);

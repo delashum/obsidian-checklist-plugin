@@ -12,7 +12,7 @@
   export let lookAndFeel: LookAndFeel
   export let app: App
   export let onToggle: (id: string) => void
-  export let groupNameAsClass: string
+  let groupNameAsClass: string
 
   $: {
     const groupName = group.groupName || mainTag

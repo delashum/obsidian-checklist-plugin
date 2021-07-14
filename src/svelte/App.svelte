@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { App } from "obsidian"
-  import { toggleTodoItem, parseTodos, groupTodos } from "src/_utils"
+  import { parseTodos, groupTodos } from "src/_utils"
   import type { GroupByType, LookAndFeel, SortDirection, TodoGroup, TodoItem } from "src/_types"
   import Loading from "./Loading.svelte"
   import type { TodoSettings } from "src/settings"

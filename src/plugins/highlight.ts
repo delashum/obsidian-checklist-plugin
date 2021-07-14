@@ -1,5 +1,5 @@
-import Plugin from 'markdown-it-regexp'
+import {regexPlugin} from './plugin-helper'
 
-export const highlightPlugin = Plugin(/\=\=([^\=]+)\=\=/, (match: string[], utils: any) => {
+export const highlightPlugin = regexPlugin(/\=\=([^\=]+)\=\=/, (match: string[], utils: any) => {
   return `<mark>${utils.escape(match[1])}</mark>`
 })

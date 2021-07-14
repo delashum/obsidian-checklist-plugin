@@ -1,5 +1,5 @@
-import Plugin from 'markdown-it-regexp'
+import {regexPlugin} from './plugin-helper'
 
-export const commentPlugin = Plugin(/\%\%([^\%]+)\%\%/, (match: string[], utils: any) => {
+export const commentPlugin = regexPlugin(/\%\%([^\%]+)\%\%/, (match: string[], utils: any) => {
   return `<!--${utils.escape(match[1])}}-->`
 })

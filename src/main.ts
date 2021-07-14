@@ -24,14 +24,15 @@ export default class TodoPlugin extends Plugin {
   initLeaf(): void {
     if (this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE).length) return
 
-    this.app.workspace.getRightLeaf(true).setViewState({
+    this.app.workspace.getRightLeaf(false).setViewState({
       type: TODO_VIEW_TYPE,
-      active: false,
+      active: true,
     })
   }
 
-  onunload() {
-    this.view.onClose()
+  async onunload() {
+    await this.view.onClose()
+    this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]?.detach()
   }
 
   async loadSettings() {
