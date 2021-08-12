@@ -1,8 +1,9 @@
 
 # Compilation (universal)
 1. Install npm by the documentation [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-2. Test that you have npm installed and updated by running `npm --version`. If you run into issues, run `npm install -g npm` to update to latest.
-3. From within project, run `npm i` to install all the packages (should generate a `package-lock.json` file at root)
+2. Test that you have npm installed and updated by running `npm --version`. 
+3. Run `sudo npm i` to install all the packages (this requires `sudo` due to our use of a `package-lock.json`)
+    a. If you run into errors, run `npm install -g npm` to update to latest version of npm(updating requires sudo)
 4. To compile the non-minified output script, run `npm run dev` to generate the `main.js` file from Svelte files (note: `npm run prod` will do the same thing, but create a minified version not ideal for development)
 
 ## Linux
@@ -18,3 +19,6 @@ ln -s ~/repos/obsidian-checklist-plugin/ ~/obsidian-dev-vault/.obsidian/plugins/
 
 ## Windows
 1. Manually copy the compiled `main.js` into your development vault's folder this plugin, i.e. `.obsidian\plugins\obsidian-checklist-plugin`, with a different folder name if you prefer.
+
+
+# Troubleshooting
