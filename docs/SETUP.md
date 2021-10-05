@@ -3,7 +3,8 @@
 1. Install npm by the documentation [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
 2. Test that you have npm installed and updated by running `npm --version`. 
 3. Run `sudo npm i` to install all the packages (this requires `sudo` due to our use of a `package-lock.json`)
-    a. If you run into errors, run `npm install -g npm` to update to latest version of npm(updating requires sudo)
+    - NOTE: If on windows, instead of sudo, make sure you run from an elevated powershell prompt. Run this command to do get elevated priveleges from your current console: `start-process PowerShell -verb runas` and accept the prompt)
+    - If you still run into errors, run `npm install -g npm` to update to latest version of npm (updating requires sudo/elevated prompt as mentioned above)
 4. To compile the non-minified output script, run `npm run dev` to generate the `main.js` file from Svelte files (note: `npm run prod` will do the same thing, but create a minified version not ideal for development)
 
 ## Linux
