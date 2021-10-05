@@ -1,5 +1,5 @@
 import MD from 'markdown-it'
-import {App, CachedMetadata, LinkCache, MetadataCache, parseFrontMatterTags, TagCache, TFile, Vault} from 'obsidian'
+import {App, CachedMetadata, LinkCache, MarkdownView, MetadataCache, parseFrontMatterTags, TagCache, TFile, Vault} from 'obsidian'
 
 import {LOCAL_SORT_OPT} from './constants'
 import {commentPlugin} from './plugins/comment'
@@ -97,12 +97,15 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
   item.checked = !item.checked
 }
 
-export const navToFile = async (app: App, path: string, ev: MouseEvent) => {
+export const navToFile = async (app: App, path: string, ev: MouseEvent, line?: number) => {
   path = ensureMdExtension(path)
   const file = getFileFromPath(app.vault, path)
   if (!file) return
   const leaf = isMetaPressed(ev) ? app.workspace.splitActiveLeaf() : app.workspace.getUnpinnedLeaf()
   await leaf.openFile(file)
+  if (line) {
+    app.workspace.getActiveViewOfType(MarkdownView)?.currentMode?.applyScroll(line);
+  }
 }
 
 export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {

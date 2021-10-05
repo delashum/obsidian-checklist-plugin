@@ -15,12 +15,12 @@
     toggleTodoItem(item, app)
   }
 
-  const handleClick = (ev: MouseEvent) => {
+  const handleClick = (ev: MouseEvent, item: TodoItem) => {
     const target: HTMLElement = ev.target as any
     if (target.tagName === "A") {
       ev.stopPropagation()
       if (target.dataset.type === "link") {
-        navToFile(app, target.dataset.filepath, ev)
+        navToFile(app, target.dataset.filepath, ev, item.line)
       } else if (target.dataset.type === "tag") {
         // goto tag
       }
@@ -41,7 +41,7 @@
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <div bind:this={contentDiv} on:click={handleClick} class="content" />
+  <div bind:this={contentDiv} on:click={(ev)=>handleClick(ev, item)} class="content" />
 </li>
 
 <style>
