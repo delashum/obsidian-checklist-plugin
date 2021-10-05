@@ -15,12 +15,12 @@
     toggleTodoItem(item, app)
   }
 
-  const handleClick = (ev: MouseEvent, item: TodoItem) => {
+  const handleClick = (ev: MouseEvent, item?: TodoItem) => {
     const target: HTMLElement = ev.target as any
     if (target.tagName === "A") {
       ev.stopPropagation()
       if (target.dataset.type === "link") {
-        navToFile(app, target.dataset.filepath, ev, item.line)
+        navToFile(app, target.dataset.filepath, ev, item?.line)
       } else if (target.dataset.type === "tag") {
         // goto tag
       }
