@@ -1,4 +1,5 @@
 import MD from 'markdown-it'
+import picomatch from 'picomatch'
 import {App, CachedMetadata, LinkCache, MarkdownView, MetadataCache, parseFrontMatterTags, TagCache, TFile, Vault} from 'obsidian'
 
 import {LOCAL_SORT_OPT} from './constants'
@@ -22,7 +23,7 @@ export const parseTodos = async (
   const filesWithCache = await Promise.all(
     files
       .filter((file) => {
-        if (ignoreFiles && file.path.includes(ignoreFiles)) return false
+        if (ignoreFiles && picomatch.isMatch(file.path, ignoreFiles)) return false
         if (includeFiles && !file.path.startsWith(includeFiles)) return false
         if (!todoTag) return true
         const fileCache = cache.getFileCache(file)

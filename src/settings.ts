@@ -81,7 +81,7 @@ export class TodoSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Ignore Files")
       .setDesc(
-        "Ignore files that contain this text anywhere in the filepath. (e.g. 'template' to ignore template.md and templates/file.md)"
+        "Ignore files that match this glob pattern in the filepath. (e.g. 'template*/*' to ignore template.md and templates/file.md)"
       )
       .addText((text) =>
         text.setValue(this.plugin.getSettingValue("ignoreFiles")).onChange(async (value) => {
