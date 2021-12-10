@@ -9,7 +9,8 @@
   export let todoTag: string
   export let showChecked: boolean
   export let groupBy: GroupByType
-  export let sortDirection: SortDirection
+  export let sortDirectionItems: SortDirection
+  export let sortDirectionGroups: SortDirection
   export let lookAndFeel: LookAndFeel
   export let ignoreFiles: string
   export let includeFiles: string
@@ -22,7 +23,7 @@
   let firstRun = true
 
   const formGroups = (_todos: TodoItem[]) => {
-    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy, sortDirection)
+    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy, sortDirectionGroups)
   }
 
   const recalcItems = async () => {
@@ -33,7 +34,7 @@
       app.vault,
       ignoreFiles,
       includeFiles,
-      sortDirection
+      sortDirectionItems
     )
     todoGroups = formGroups(todos)
     firstRun = false

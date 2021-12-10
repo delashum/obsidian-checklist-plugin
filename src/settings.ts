@@ -7,7 +7,8 @@ export interface TodoSettings {
   todoPageName: string
   showChecked: boolean
   groupBy: GroupByType
-  sortDirection: SortDirection
+  sortDirectionItems: SortDirection
+  sortDirectionGroups: SortDirection
   ignoreFiles: string
   includeFiles: string
   lookAndFeel: LookAndFeel
@@ -18,7 +19,8 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: "todo",
   showChecked: false,
   groupBy: "page",
-  sortDirection: "old->new",
+  sortDirectionItems: "old->new",
+  sortDirectionGroups: "a->z",
   ignoreFiles: "",
   includeFiles: "",
   lookAndFeel: "classic",
@@ -67,14 +69,23 @@ export class TodoSettingTab extends PluginSettingTab {
       })
     })
 
-    new Setting(containerEl).setName("Group Sort").addDropdown((dropdown) => {
+    new Setting(containerEl).setName("Item Sort").addDropdown((dropdown) => {
       dropdown.addOption("new->old", "New -> Old")
       dropdown.addOption("old->new", "Old -> New")
       dropdown.addOption("a->z", "A -> Z")
       dropdown.addOption("z->a", "Z -> A")
-      dropdown.setValue(this.plugin.getSettingValue("sortDirection"))
+      dropdown.setValue(this.plugin.getSettingValue("sortDirectionItems"))
       dropdown.onChange(async (value: SortDirection) => {
-        await this.plugin.updateSettings({ sortDirection: value })
+        await this.plugin.updateSettings({ sortDirectionItems: value })
+      })
+    })
+
+    new Setting(containerEl).setName("Group Sort").addDropdown((dropdown) => {
+      dropdown.addOption("a->z", "A -> Z")
+      dropdown.addOption("z->a", "Z -> A")
+      dropdown.setValue(this.plugin.getSettingValue("sortDirectionGroups"))
+      dropdown.onChange(async (value: SortDirection) => {
+        await this.plugin.updateSettings({ sortDirectionGroups: value })
       })
     })
 
