@@ -239,17 +239,17 @@ const mapLinkMeta = (linkMeta: LinkMeta[]) => {
 }
 
 const setLineTo = (line: string, setTo: boolean) =>
-  line.replace(/^(\s*[\-\*]\s\[)([^\]]+)(\].*$)/, `$1${setTo ? "x" : " "}$3`)
+  line.replace(/^(\s*([\-\*]|[0-9]+\.)\s\[)([^\]]+)(\].*$)/, `$1${setTo ? "x" : " "}$4`)
 
 const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 const combineFileLines = (lines: string[]) => lines.join("\n")
 const lineIsValidTodo = (line: string, tag: string) => {
   const tagRemoved = removeTagFromText(line, tag)
-  return /^\s*[\-\*]\s\[(\s|x)\]\s*\S/.test(line)
+  return /^\s*([\-\*]|[0-9]+\.)\s\[(\s|x)\]\s*\S/.test(line)
 }
-const extractTextFromTodoLine = (line: string) => /^\s*[\-\*]\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[2]
-const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)[\-\*]\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
-const todoLineIsChecked = (line: string) => /^\s*[\-\*]\s\[x\]/.test(line)
+const extractTextFromTodoLine = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[3]
+const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)([\-\*]|[0-9]+\.)\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
+const todoLineIsChecked = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[x\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 const removeTagFromText = (text: string, tag: string) => {
   if (!text) return ""
