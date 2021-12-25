@@ -1,6 +1,6 @@
 import MD from 'markdown-it'
-import picomatch from 'picomatch'
 import {App, CachedMetadata, LinkCache, MarkdownView, MetadataCache, parseFrontMatterTags, TagCache, TFile, Vault} from 'obsidian'
+import picomatch from 'picomatch'
 
 import {LOCAL_SORT_OPT} from './constants'
 import {commentPlugin} from './plugins/comment'
@@ -105,7 +105,7 @@ export const navToFile = async (app: App, path: string, ev: MouseEvent, line?: n
   const leaf = isMetaPressed(ev) ? app.workspace.splitActiveLeaf() : app.workspace.getUnpinnedLeaf()
   await leaf.openFile(file)
   if (line) {
-    app.workspace.getActiveViewOfType(MarkdownView)?.currentMode?.applyScroll(line);
+    app.workspace.getActiveViewOfType(MarkdownView)?.currentMode?.applyScroll(line)
   }
 }
 
@@ -163,7 +163,7 @@ const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
   for (let i = 0; i < fileLines.length; i++) {
     const line = fileLines[i]
     if (line.length === 0) continue
-    if (lineIsValidTodo(line, "")) {
+    if (lineIsValidTodo(line)) {
       todos.push(formTodo(line, file, links, i, tagMeta))
     }
   }
@@ -178,7 +178,7 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const fileLines = getAllLinesFromFile(fileContents)
   const tagMeta = getTagMeta(tag.tag)
   const tagLine = fileLines[tag.position.start.line]
-  if (lineIsValidTodo(tagLine, tagMeta.main)) {
+  if (lineIsValidTodo(tagLine)) {
     return [formTodo(tagLine, file, links, tag.position.start.line, tagMeta)]
   }
 
@@ -187,7 +187,7 @@ const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
     const line = fileLines[i]
     if (i === tag.position.start.line + 1 && line.length === 0) continue
     if (line.length === 0) break
-    if (lineIsValidTodo(line, tagMeta.main)) {
+    if (lineIsValidTodo(line)) {
       todos.push(formTodo(line, file, links, i, tagMeta))
     }
   }
@@ -243,13 +243,13 @@ const setLineTo = (line: string, setTo: boolean) =>
 
 const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 const combineFileLines = (lines: string[]) => lines.join("\n")
-const lineIsValidTodo = (line: string, tag: string) => {
-  const tagRemoved = removeTagFromText(line, tag)
-  return /^\s*([\-\*]|[0-9]+\.)\s\[(\s|x)\]\s*\S/.test(line)
+const lineIsValidTodo = (line: string) => {
+  return /^\s*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}\S+/.test(line)
 }
-const extractTextFromTodoLine = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[(\s|x)\]\s?(.*)$/.exec(line)?.[3]
-const getIndentationSpacesFromTodoLine = (line: string) => /^(\s*)([\-\*]|[0-9]+\.)\s\[(\s|x)\]\s?.*$/.exec(line)?.[1]?.length ?? 0
-const todoLineIsChecked = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[x\]/.test(line)
+const extractTextFromTodoLine = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S{1}.*)$/.exec(line)?.[3]
+const getIndentationSpacesFromTodoLine = (line: string) =>
+  /^(\s*)([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S+)/.exec(line)?.[1]?.length ?? 0
+const todoLineIsChecked = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[(\S{1})\]/.test(line)
 const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 const removeTagFromText = (text: string, tag: string) => {
   if (!text) return ""
