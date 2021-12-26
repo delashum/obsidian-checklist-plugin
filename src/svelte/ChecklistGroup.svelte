@@ -7,43 +7,34 @@
   import Icon from "./Icon.svelte"
 
   export let group: TodoGroup
-  export let mainTag: string
   export let isCollapsed: boolean
   export let lookAndFeel: LookAndFeel
   export let app: App
   export let onToggle: (id: string) => void
-  let groupNameAsClass: string
-
-  $: {
-    const groupName = group.groupName || mainTag
-    const sanitzedGroupName = groupName.replace(/[^A-Za-z0-9]/g, "")
-    const dasherizedGroupName = sanitzedGroupName.replace(/^([A-Z])|[\s\._](\w)/g, function (_, p1, p2) {
-      if (p2) return "-" + p2.toLowerCase()
-      return p1.toLowerCase()
-    })
-
-    groupNameAsClass = `group-${dasherizedGroupName}`
-  }
 
   function clickTitle(ev: MouseEvent) {
-    if (group.type === "page") navToFile(app, group.groupId, ev)
+    if (group.type === "page") navToFile(app, group.id, ev)
   }
 </script>
 
-<section class="group {groupNameAsClass}">
+<section class="group {group.className}">
   <header class={`group-header ${group.type}`}>
     <div class="title" on:click={clickTitle}>
       {#if group.type === "page"}
-        {group.groupName}
+        {group.pageName}
       {:else}
-        <span class="tag-base">{`#${mainTag}${group.groupName != null ? "/" : ""}`}</span><span class="tag-sub"
-          >{group.groupName ?? ""}</span
+        <span class="tag-base">#</span>
+        <span class={group.subTags == null ? "tag-sub" : "tag-base"}
+          >{`${group.mainTag}${group.subTags != null ? "/" : ""}`}</span
         >
+        {#if group.subTags != null}
+          <span class="tag-sub">{group.subTags}</span>
+        {/if}
       {/if}
     </div>
     <div class="space" />
     <div class="count">{group.todos.length}</div>
-    <button class="collapse" on:click={() => onToggle(group.groupId)} title="Toggle Group">
+    <button class="collapse" on:click={() => onToggle(group.id)} title="Toggle Group">
       <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
     </button>
   </header>
@@ -95,6 +86,7 @@
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
   }
   button {
     display: flex;
@@ -106,7 +98,7 @@
     color: var(--todoList-tagBaseColor);
   }
   .tag-sub {
-    color: var(--todoList-tagSub);
+    color: var(--todoList-tagSubColor);
   }
 
   ul {

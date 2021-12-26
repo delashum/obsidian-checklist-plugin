@@ -35,7 +35,6 @@ export default class TodoListView extends ItemView {
       groupBy: this.plugin.getSettingValue("groupBy"),
       sortDirectionItems: this.plugin.getSettingValue("sortDirectionItems"),
       sortDirectionGroups: this.plugin.getSettingValue("sortDirectionGroups"),
-      ignoreFiles: this.plugin.getSettingValue("ignoreFiles"),
       includeFiles: this.plugin.getSettingValue("includeFiles"),
       lookAndFeel: this.plugin.getSettingValue("lookAndFeel"),
       rerenderKey: Symbol("[rerender]"),

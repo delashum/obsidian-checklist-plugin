@@ -9,7 +9,6 @@ export interface TodoSettings {
   groupBy: GroupByType
   sortDirectionItems: SortDirection
   sortDirectionGroups: SortDirection
-  ignoreFiles: string
   includeFiles: string
   lookAndFeel: LookAndFeel
   _collapsedSections: string[]
@@ -21,7 +20,6 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   groupBy: "page",
   sortDirectionItems: "old->new",
   sortDirectionGroups: "a->z",
-  ignoreFiles: "",
   includeFiles: "",
   lookAndFeel: "classic",
   _collapsedSections: [],
@@ -43,8 +41,10 @@ export class TodoSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Tag name")
-      .setDesc("e.g. #todo. Leave empty to capture all")
-      .addText((text) =>
+      .setDesc(
+        'e.g. "todo" will match #todo. You may add mutliple tags separated by a newline. Leave empty to capture all'
+      )
+      .addTextArea((text) =>
         text
           .setPlaceholder("todo")
           .setValue(this.plugin.getSettingValue("todoPageName"))
@@ -69,42 +69,40 @@ export class TodoSettingTab extends PluginSettingTab {
       })
     })
 
-    new Setting(containerEl).setName("Item Sort").addDropdown((dropdown) => {
-      dropdown.addOption("new->old", "New -> Old")
-      dropdown.addOption("old->new", "Old -> New")
-      dropdown.addOption("a->z", "A -> Z")
-      dropdown.addOption("z->a", "Z -> A")
-      dropdown.setValue(this.plugin.getSettingValue("sortDirectionItems"))
-      dropdown.onChange(async (value: SortDirection) => {
-        await this.plugin.updateSettings({ sortDirectionItems: value })
+    new Setting(containerEl)
+      .setName("Item Sort")
+      .addDropdown((dropdown) => {
+        dropdown.addOption("a->z", "A -> Z")
+        dropdown.addOption("z->a", "Z -> A")
+        dropdown.addOption("new->old", "New -> Old")
+        dropdown.addOption("old->new", "Old -> New")
+        dropdown.setValue(this.plugin.getSettingValue("sortDirectionItems"))
+        dropdown.onChange(async (value: SortDirection) => {
+          await this.plugin.updateSettings({ sortDirectionItems: value })
+        })
       })
-    })
-
-    new Setting(containerEl).setName("Group Sort").addDropdown((dropdown) => {
-      dropdown.addOption("a->z", "A -> Z")
-      dropdown.addOption("z->a", "Z -> A")
-      dropdown.setValue(this.plugin.getSettingValue("sortDirectionGroups"))
-      dropdown.onChange(async (value: SortDirection) => {
-        await this.plugin.updateSettings({ sortDirectionGroups: value })
-      })
-    })
+      .setDesc("Time sorts are based on last time the file for a particular item was edited")
 
     new Setting(containerEl)
-      .setName("Ignore Files")
-      .setDesc(
-        "Ignore files that match this glob pattern in the filepath. (e.g. 'template*/*' to ignore template.md and templates/file.md)"
-      )
-      .addText((text) =>
-        text.setValue(this.plugin.getSettingValue("ignoreFiles")).onChange(async (value) => {
-          await this.plugin.updateSettings({ ignoreFiles: value })
+      .setName("Group Sort")
+      .addDropdown((dropdown) => {
+        dropdown.addOption("a->z", "A -> Z")
+        dropdown.addOption("z->a", "Z -> A")
+        dropdown.addOption("new->old", "New -> Old")
+        dropdown.addOption("old->new", "Old -> New")
+        dropdown.setValue(this.plugin.getSettingValue("sortDirectionGroups"))
+        dropdown.onChange(async (value: SortDirection) => {
+          await this.plugin.updateSettings({ sortDirectionGroups: value })
         })
-      )
+      })
+      .setDesc("Time sorts are based on last time the file for the newest or oldest item in a group was edited")
 
     new Setting(containerEl)
       .setName("Include Files")
       .setDesc(
-        "Only search files whose path begins with this value (e.g. 'tasks' would search tasks/file.md and tasks_folder/file.md and not other_sub/file.md or file.md)"
+        'Include all files that match this glob pattern (e.g. "{*,!(exclude)/**/*}" includes all files except those in the exclude directory). Leave empty to check all files'
       )
+      .setTooltip("**/*")
       .addText((text) =>
         text.setValue(this.plugin.getSettingValue("includeFiles")).onChange(async (value) => {
           await this.plugin.updateSettings({ includeFiles: value })

@@ -31,7 +31,7 @@
   --todoList-togglePadding--compact: 4px 8px;
   --todoList-countBorderRadius: 4px;
   --todoList-tagBaseColor: var(--text-faint);
-  --todoList-tagSubColor: var(--text-muted);
+  --todoList-tagSubColor: #bbb;
   --todoList-groupMargin: 8px;
 }
 

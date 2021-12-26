@@ -12,7 +12,6 @@
   export let sortDirectionItems: SortDirection
   export let sortDirectionGroups: SortDirection
   export let lookAndFeel: LookAndFeel
-  export let ignoreFiles: string
   export let includeFiles: string
   export let _collapsedSections: string[]
   export let updateSetting: (updates: Partial<TodoSettings>) => Promise<void>
@@ -23,19 +22,11 @@
   let firstRun = true
 
   const formGroups = (_todos: TodoItem[]) => {
-    return groupTodos(showChecked ? _todos : _todos.filter((e) => !e.checked), groupBy, sortDirectionGroups)
+    return groupTodos(_todos, groupBy, sortDirectionGroups, sortDirectionItems)
   }
 
   const recalcItems = async () => {
-    todos = await parseTodos(
-      app.vault.getFiles(),
-      todoTag,
-      app.metadataCache,
-      app.vault,
-      ignoreFiles,
-      includeFiles,
-      sortDirectionItems
-    )
+    todos = await parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, app.vault, includeFiles, showChecked)
     todoGroups = formGroups(todos)
     firstRun = false
   }
@@ -71,8 +62,7 @@
         {group}
         {app}
         {lookAndFeel}
-        mainTag={todoTag}
-        isCollapsed={_collapsedSections.includes(group.groupId)}
+        isCollapsed={_collapsedSections.includes(group.id)}
         onToggle={toggleGroup}
       />
     {/each}

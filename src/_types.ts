@@ -15,12 +15,27 @@ export type TodoItem = {
   rawHTML: string
 }
 
-export type TodoGroup = {
+type BaseGroup = {
   type: GroupByType
   todos: TodoItem[]
-  groupName: string
-  groupId: string
+  id: string
+  sortName: string
+  className: string
+  oldestItem: number
+  newestItem: number
 }
+
+export type PageGroup = BaseGroup & {
+  type: "page"
+  pageName?: string
+}
+export type TagGroup = BaseGroup & {
+  type: "tag"
+  mainTag?: string
+  subTags?: string
+}
+
+export type TodoGroup = PageGroup | TagGroup
 
 export type FileInfo = {
   content: string
@@ -39,3 +54,5 @@ export type SortDirection = "new->old" | "old->new" | "a->z" | "z->a"
 export type LookAndFeel = "compact" | "classic"
 
 export type Icon = "chevron"
+
+export type KeysOfType<T, V> = { [K in keyof T]: T[K] extends V ? K : never }[keyof T]

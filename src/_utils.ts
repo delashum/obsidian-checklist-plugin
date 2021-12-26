@@ -8,7 +8,16 @@ import {highlightPlugin} from './plugins/highlight'
 import {linkPlugin} from './plugins/link'
 import {tagPlugin} from './plugins/tag'
 
-import type { TodoItem, TodoGroup, GroupByType, SortDirection, TagMeta, LinkMeta, FileInfo } from "src/_types"
+import type {
+  TodoItem,
+  TodoGroup,
+  GroupByType,
+  SortDirection,
+  TagMeta,
+  LinkMeta,
+  FileInfo,
+  KeysOfType,
+} from "src/_types"
 /** public */
 
 export const parseTodos = async (
@@ -16,73 +25,98 @@ export const parseTodos = async (
   todoTag: string,
   cache: MetadataCache,
   vault: Vault,
-  ignoreFiles: string,
   includeFiles: string,
-  sort: SortDirection
+  showChecked: boolean
 ): Promise<TodoItem[]> => {
+  const includePattern = includeFiles.trim() ? includeFiles.trim().split("\n") : "**/*"
+  const validTags = todoTag
+    .trim()
+    .split("\n")
+    .map((e) => e.toLowerCase())
+
   const filesWithCache = await Promise.all(
     files
       .filter((file) => {
-        if (ignoreFiles && picomatch.isMatch(file.path, ignoreFiles)) return false
-        if (includeFiles && !file.path.startsWith(includeFiles)) return false
-        if (!todoTag) return true
+        if (!picomatch.isMatch(file.path, includePattern)) return false
+        if (validTags.length === 0) return true
         const fileCache = cache.getFileCache(file)
         const allTags = getAllTagsFromMetadata(fileCache)
-        const tagsOnPage = allTags.filter((tag) => getTagMeta(tag).main === todoTag)
+        const tagsOnPage = allTags.filter((tag) => validTags.includes(getTagMeta(tag).main))
         return tagsOnPage.length > 0
       })
       .map<Promise<FileInfo>>(async (file) => {
         const fileCache = cache.getFileCache(file)
-        const tagsOnPage = fileCache?.tags?.filter((e) => getTagMeta(e.tag).main === todoTag) ?? []
-        const frontMatterTags = getFrontmatterTags(fileCache, todoTag)
+        const tagsOnPage = fileCache?.tags?.filter((e) => validTags.includes(getTagMeta(e.tag).main)) ?? []
+        const frontMatterTags = getFrontmatterTags(fileCache, validTags)
         const hasFrontMatterTag = frontMatterTags.length > 0
-        const parseEntireFile = !todoTag || hasFrontMatterTag
+        const parseEntireFile = validTags.length === 0 || hasFrontMatterTag
         const content = await vault.cachedRead(file)
         return {
           content,
           cache: fileCache,
-          validTags: tagsOnPage,
+          validTags: tagsOnPage.map((e) => ({ ...e, tag: e.tag.toLowerCase() })),
           file,
           parseEntireFile,
           frontmatterTag: todoTag ? frontMatterTags[0] : undefined,
         }
       })
   )
-  const allTodos = filesWithCache
-    .flatMap(findAllTodosInFile)
-    .filter((todo, i, a) => a.findIndex((_todo) => todo.line === _todo.line && todo.filePath === _todo.filePath) === i)
+  let allTodos = filesWithCache.flatMap(findAllTodosInFile)
 
-  if (sort === "new->old") allTodos.sort((a, b) => b.fileCreatedTs - a.fileCreatedTs)
-  if (sort === "old->new") allTodos.sort((a, b) => a.fileCreatedTs - b.fileCreatedTs)
+  if (!showChecked) allTodos = allTodos.filter((f) => !f.checked)
 
   return allTodos
 }
 
-export const groupTodos = (items: TodoItem[], groupBy: GroupByType, sort: SortDirection): TodoGroup[] => {
+export const groupTodos = (
+  items: TodoItem[],
+  groupBy: GroupByType,
+  sortGroups: SortDirection,
+  sortItems: SortDirection
+): TodoGroup[] => {
   const groups: TodoGroup[] = []
   for (const item of items) {
     const itemKey =
       groupBy === "page" ? item.filePath : `#${[item.mainTag, item.subTag].filter((e) => e != null).join("/")}`
-    let group = groups.find((g) => g.groupId === itemKey)
+    let group = groups.find((g) => g.id === itemKey)
     if (!group) {
-      group = {
-        groupId: itemKey,
-        groupName: groupBy === "page" ? item.fileLabel : item.subTag,
+      const newGroup: TodoGroup = {
+        id: itemKey,
+        sortName: "",
+        className: "",
         type: groupBy,
         todos: [],
+        oldestItem: Infinity,
+        newestItem: 0,
       }
-      groups.push(group)
+      if (newGroup.type === "page") {
+        newGroup.pageName = item.fileLabel
+        newGroup.sortName = item.fileLabel
+        newGroup.className = classifyString(item.fileLabel)
+      } else if (newGroup.type === "tag") {
+        newGroup.mainTag = item.mainTag
+        newGroup.subTags = item.subTag
+        newGroup.sortName = item.mainTag + (item.subTag ?? "0")
+        newGroup.className = classifyString(newGroup.mainTag + newGroup.subTags)
+      }
+      groups.push(newGroup)
+      group = newGroup
     }
+    if (group.newestItem < item.fileCreatedTs) group.newestItem = item.fileCreatedTs
+    if (group.oldestItem > item.fileCreatedTs) group.oldestItem = item.fileCreatedTs
 
     group.todos.push(item)
   }
 
   const nonEmptyGroups = groups.filter((g) => g.todos.length > 0)
 
-  if (sort === "a->z")
-    nonEmptyGroups.sort((a, b) => a.groupName.localeCompare(b.groupName, navigator.language, LOCAL_SORT_OPT))
-  if (sort === "z->a")
-    nonEmptyGroups.sort((a, b) => b.groupName.localeCompare(a.groupName, navigator.language, LOCAL_SORT_OPT))
+  sortGenericItemsInplace(
+    nonEmptyGroups,
+    sortGroups,
+    "sortName",
+    sortGroups === "new->old" ? "newestItem" : "oldestItem"
+  )
+  for (const g of groups) sortGenericItemsInplace(g.todos, sortItems, "originalText", "fileCreatedTs")
 
   return nonEmptyGroups
 }
@@ -121,6 +155,20 @@ export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
 
 /** private */
 
+const sortGenericItemsInplace = <T, NK extends KeysOfType<T, string>, TK extends KeysOfType<T, number>>(
+  items: T[],
+  direction: SortDirection,
+  sortByNameKey: NK,
+  sortByTimeKey: TK
+) => {
+  if (direction === "a->z")
+    items.sort((a, b) => (a[sortByNameKey] as any).localeCompare(b[sortByNameKey], navigator.language, LOCAL_SORT_OPT))
+  if (direction === "z->a")
+    items.sort((a, b) => (b[sortByNameKey] as any).localeCompare(a[sortByNameKey], navigator.language, LOCAL_SORT_OPT))
+  if (direction === "new->old") items.sort((a, b) => (b[sortByTimeKey] as any) - (a[sortByTimeKey] as any))
+  if (direction === "old->new") items.sort((a, b) => (a[sortByTimeKey] as any) - (b[sortByTimeKey] as any))
+}
+
 const getFileFromPath = (vault: Vault, path: string) => {
   let file = vault.getAbstractFileByPath(path)
   if (file instanceof TFile) return file
@@ -138,9 +186,9 @@ const isMetaPressed = (e: MouseEvent): boolean => {
   return isMacOS() ? e.metaKey : e.ctrlKey
 }
 
-const getFrontmatterTags = (cache: CachedMetadata, todoTag?: string) => {
+const getFrontmatterTags = (cache: CachedMetadata, todoTags: string[] = []) => {
   const frontMatterTags: string[] = parseFrontMatterTags(cache?.frontmatter) ?? []
-  if (todoTag) return frontMatterTags.filter((tag: string) => getTagMeta(tag).main === todoTag)
+  if (todoTags.length > 0) return frontMatterTags.filter((tag: string) => todoTags.includes(getTagMeta(tag).main))
   return frontMatterTags
 }
 
@@ -206,6 +254,7 @@ const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: num
   const md = new MD().use(commentPlugin).use(linkPlugin(linkMap)).use(tagPlugin).use(highlightPlugin)
   return {
     mainTag: tagMeta?.main,
+    subTag: tagMeta?.sub,
     checked: todoLineIsChecked(line),
     filePath: file.file.path,
     fileName: file.file.name,
@@ -213,7 +262,6 @@ const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: num
     fileCreatedTs: file.file.stat.ctime,
     rawHTML: md.render(tagStripped),
     line: lineNum,
-    subTag: tagMeta?.sub,
     spacesIndented,
     fileInfo: file,
     originalText: rawText,
@@ -255,6 +303,14 @@ const removeTagFromText = (text: string, tag: string) => {
   if (!text) return ""
   if (!tag) return text.trim()
   return text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, "g"), "").trim()
+}
+const classifyString = (str: string) => {
+  const sanitzedGroupName = (str ?? "").replace(/[^A-Za-z0-9]/g, "")
+  const dasherizedGroupName = sanitzedGroupName.replace(/^([A-Z])|[\s\._](\w)/g, function (_, p1, p2) {
+    if (p2) return "-" + p2.toLowerCase()
+    return p1.toLowerCase()
+  })
+  return dasherizedGroupName
 }
 
 const isMacOS = () => window.navigator.userAgent.includes("Macintosh")
