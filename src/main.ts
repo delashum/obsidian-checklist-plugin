@@ -6,24 +6,35 @@ import TodoListView from './view'
 
 export default class TodoPlugin extends Plugin {
   private settings: TodoSettings
-  view: TodoListView
+
+  get view() {
+    return this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]?.view as TodoListView
+  }
 
   async onload() {
     await this.loadSettings()
 
     this.addSettingTab(new TodoSettingTab(this.app, this))
+    this.addCommand({
+      id: "show-checklist-view",
+      name: "Open View",
+      callback: () => {
+        const views = this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)
+        if (views.length === 0)
+          this.app.workspace.getRightLeaf(false).setViewState({
+            type: TODO_VIEW_TYPE,
+            active: true,
+          })
+        else views[0].setViewState({ active: true, type: TODO_VIEW_TYPE })
+      },
+    })
     this.registerView(TODO_VIEW_TYPE, (leaf) => {
-      this.view = new TodoListView(leaf, this)
-      return this.view
+      const newView = new TodoListView(leaf, this)
+      return newView
     })
 
     if (this.app.workspace.layoutReady) this.initLeaf()
-    else
-      this.registerEvent(
-        this.app.workspace.on("layout-change", () => {
-          if (this.app.workspace.layoutReady) this.initLeaf()
-        })
-      )
+    else this.app.workspace.onLayoutReady(() => this.initLeaf())
   }
 
   initLeaf(): void {
@@ -36,7 +47,6 @@ export default class TodoPlugin extends Plugin {
   }
 
   async onunload() {
-    await this.view.onClose()
     this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]?.detach()
   }
 
