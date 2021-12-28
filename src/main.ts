@@ -28,6 +28,13 @@ export default class TodoPlugin extends Plugin {
         else views[0].setViewState({ active: true, type: TODO_VIEW_TYPE })
       },
     })
+    this.addCommand({
+      id: "refresh-checklist-view",
+      name: "Refresh List",
+      callback: () => {
+        this.view.refresh()
+      },
+    })
     this.registerView(TODO_VIEW_TYPE, (leaf) => {
       const newView = new TodoListView(leaf, this)
       return newView
@@ -58,7 +65,7 @@ export default class TodoPlugin extends Plugin {
   async updateSettings(updates: Partial<TodoSettings>) {
     Object.assign(this.settings, updates)
     await this.saveData(this.settings)
-    this.view.rerender()
+    this.view.refresh(true)
   }
 
   getSettingValue<K extends keyof TodoSettings>(setting: K): TodoSettings[K] {

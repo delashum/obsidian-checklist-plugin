@@ -6,6 +6,7 @@ import type { GroupByType, LookAndFeel, SortDirection } from "./_types"
 export interface TodoSettings {
   todoPageName: string
   showChecked: boolean
+  autoRefresh: boolean
   groupBy: GroupByType
   sortDirectionItems: SortDirection
   sortDirectionGroups: SortDirection
@@ -17,9 +18,10 @@ export interface TodoSettings {
 export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: "todo",
   showChecked: false,
+  autoRefresh: true,
   groupBy: "page",
-  sortDirectionItems: "old->new",
-  sortDirectionGroups: "a->z",
+  sortDirectionItems: "new->old",
+  sortDirectionGroups: "new->old",
   includeFiles: "",
   lookAndFeel: "classic",
   _collapsedSections: [],
@@ -51,6 +53,18 @@ export class TodoSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             await this.plugin.updateSettings({ todoPageName: value })
           })
+      )
+
+    new Setting(containerEl)
+      .setName("Auto Refresh List?")
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.getSettingValue("autoRefresh"))
+        toggle.onChange(async (value) => {
+          await this.plugin.updateSettings({ autoRefresh: value })
+        })
+      })
+      .setDesc(
+        'It\'s recommended to leave this on unless you are expereince performance issues due to a large vault. You can then reload manually using the "Checklist: refresh" command'
       )
 
     new Setting(containerEl).setName("Show Completed?").addToggle((toggle) => {

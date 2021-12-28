@@ -33,6 +33,7 @@
   --todoList-tagBaseColor: var(--text-faint);
   --todoList-tagSubColor: #bbb;
   --todoList-groupMargin: 8px;
+  --todoList-contentFontSize: var(--editor-font-size);
 }
 
 .checklist-plugin-main button {

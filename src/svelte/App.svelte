@@ -7,29 +7,12 @@
   import ChecklistGroup from "./ChecklistGroup.svelte"
 
   export let todoTag: string
-  export let showChecked: boolean
-  export let groupBy: GroupByType
-  export let sortDirectionItems: SortDirection
-  export let sortDirectionGroups: SortDirection
   export let lookAndFeel: LookAndFeel
-  export let includeFiles: string
   export let _collapsedSections: string[]
   export let updateSetting: (updates: Partial<TodoSettings>) => Promise<void>
-  export let rerenderKey: symbol
   export let app: App
-  let todos: TodoItem[] = []
-  let todoGroups: TodoGroup[] = []
-  let firstRun = true
-
-  const formGroups = (_todos: TodoItem[]) => {
-    return groupTodos(_todos, groupBy, sortDirectionGroups, sortDirectionItems)
-  }
-
-  const recalcItems = async () => {
-    todos = await parseTodos(app.vault.getFiles(), todoTag, app.metadataCache, app.vault, includeFiles, showChecked)
-    todoGroups = formGroups(todos)
-    firstRun = false
-  }
+  export let todoGroups: TodoGroup[] = []
+  export let initialLoad: boolean
 
   const toggleGroup = (id: string) => {
     const newCollapsedSections = _collapsedSections.includes(id)
@@ -37,16 +20,10 @@
       : [..._collapsedSections, id]
     updateSetting({ _collapsedSections: newCollapsedSections })
   }
-
-  $: {
-    rerenderKey
-    if (firstRun) setTimeout(recalcItems, 600)
-    else recalcItems()
-  }
 </script>
 
 <div class="checklist-plugin-main markdown-preview-view">
-  {#if firstRun}
+  {#if initialLoad}
     <Loading />
   {:else if todoGroups.length === 0}
     <div class="empty">

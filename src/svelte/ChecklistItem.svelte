@@ -41,7 +41,7 @@
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <div bind:this={contentDiv} on:click={(ev)=>handleClick(ev, item)} class="content" />
+  <div bind:this={contentDiv} on:click={(ev) => handleClick(ev, item)} class="content" />
 </li>
 
 <style>
@@ -65,6 +65,7 @@
   .content {
     padding: var(--todoList-contentPadding);
     flex: 1;
+    font-size: var(--todoList-contentFontSize);
   }
   .compact {
     bottom: var(--todoList-listItemMargin--compact);

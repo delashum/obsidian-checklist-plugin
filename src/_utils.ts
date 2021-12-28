@@ -26,7 +26,8 @@ export const parseTodos = async (
   cache: MetadataCache,
   vault: Vault,
   includeFiles: string,
-  showChecked: boolean
+  showChecked: boolean,
+  lastRerender: number
 ): Promise<TodoItem[]> => {
   const includePattern = includeFiles.trim() ? includeFiles.trim().split("\n") : "**/*"
   const validTags = todoTag
@@ -37,6 +38,7 @@ export const parseTodos = async (
   const filesWithCache = await Promise.all(
     files
       .filter((file) => {
+        if (file.stat.mtime < lastRerender) return false
         if (!picomatch.isMatch(file.path, includePattern)) return false
         if (validTags.length === 0) return true
         const fileCache = cache.getFileCache(file)
