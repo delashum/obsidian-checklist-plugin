@@ -2,7 +2,7 @@
   import type { App } from "obsidian"
 
   import type { LookAndFeel, TodoGroup } from "src/_types"
-  import { navToFile } from "src/_utils"
+  import { navToFile } from "src/utils"
   import ChecklistItem from "./ChecklistItem.svelte"
   import Icon from "./Icon.svelte"
 
@@ -22,7 +22,7 @@
     <div class="title" on:click={clickTitle}>
       {#if group.type === "page"}
         {group.pageName}
-      {:else}
+      {:else if group.mainTag}
         <span class="tag-base">#</span>
         <span class={group.subTags == null ? "tag-sub" : "tag-base"}
           >{`${group.mainTag}${group.subTags != null ? "/" : ""}`}</span
@@ -30,6 +30,8 @@
         {#if group.subTags != null}
           <span class="tag-sub">{group.subTags}</span>
         {/if}
+      {:else}
+        <span class="tag-base">All Tags</span>
       {/if}
     </div>
     <div class="space" />
@@ -38,19 +40,19 @@
       <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
     </button>
   </header>
-  <ul>
-    {#if !isCollapsed}
+  {#if !isCollapsed}
+    <ul>
       {#each group.todos as item}
         <ChecklistItem {item} {lookAndFeel} {app} />
       {/each}
-    {/if}
-  </ul>
+    </ul>
+  {/if}
 </section>
 
 <style>
   .page {
-    margin: var(--todoList-pageMargin);
-    color: var(--todoList-textColor);
+    margin: var(--checklist-pageMargin);
+    color: var(--checklist-textColor);
     transition: opacity 150ms ease-in-out;
     cursor: pointer;
   }
@@ -60,11 +62,11 @@
   }
 
   header {
-    font-weight: var(--todoList-headerFontWeight);
-    font-size: var(--todoList-headerFontSize);
-    margin: var(--todoList-headerMargin);
+    font-weight: var(--checklist-headerFontWeight);
+    font-size: var(--checklist-headerFontSize);
+    margin: var(--checklist-headerMargin);
     display: flex;
-    gap: var(--todoList-headerGap);
+    gap: var(--checklist-headerGap);
     align-items: center;
   }
 
@@ -77,10 +79,10 @@
     flex-shrink: 1;
   }
   .count {
-    padding: var(--todoList-countPadding);
-    background: var(--todoList-countBackground);
-    border-radius: var(--todoList-countBorderRadius);
-    font-size: var(--todoList-countFontSize);
+    padding: var(--checklist-countPadding);
+    background: var(--checklist-countBackground);
+    border-radius: var(--checklist-countBorderRadius);
+    font-size: var(--checklist-countFontSize);
   }
   .title {
     min-width: 0;
@@ -90,15 +92,15 @@
   }
   button {
     display: flex;
-    padding: var(--todoList-buttonPadding);
+    padding: var(--checklist-buttonPadding);
     background: transparent;
   }
 
   .tag-base {
-    color: var(--todoList-tagBaseColor);
+    color: var(--checklist-tagBaseColor);
   }
   .tag-sub {
-    color: var(--todoList-tagSubColor);
+    color: var(--checklist-tagSubColor);
   }
 
   ul {
@@ -108,6 +110,6 @@
   }
 
   .group {
-    margin-bottom: var(--todoList-groupMargin);
+    margin-bottom: var(--checklist-groupMargin);
   }
 </style>

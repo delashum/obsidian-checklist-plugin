@@ -2,7 +2,7 @@
   import type { App } from "obsidian"
 
   import type { LookAndFeel, TodoItem } from "src/_types"
-  import { navToFile, toggleTodoItem } from "src/_utils"
+  import { navToFile, toggleTodoItem } from "src/utils"
   import CheckCircle from "./CheckCircle.svelte"
 
   export let item: TodoItem
@@ -48,33 +48,33 @@
   li {
     display: flex;
     align-items: center;
-    background-color: var(--todoList-listItemBackground);
-    border-radius: var(--todoList-listItemBorderRadius);
-    margin: var(--todoList-listItemMargin);
+    background-color: var(--checklist-listItemBackground);
+    border-radius: var(--checklist-listItemBorderRadius);
+    margin: var(--checklist-listItemMargin);
     cursor: pointer;
     transition: background-color 100ms ease-in-out;
   }
   li:hover {
-    background-color: var(--todoList-listItemBackground--hover);
+    background-color: var(--checklist-listItemBackground--hover);
   }
   .toggle {
-    padding: var(--todoList-togglePadding);
+    padding: var(--checklist-togglePadding);
     background: transparent;
     flex-shrink: 1;
   }
   .content {
-    padding: var(--todoList-contentPadding);
+    padding: var(--checklist-contentPadding);
     flex: 1;
-    font-size: var(--todoList-contentFontSize);
+    font-size: var(--checklist-contentFontSize);
   }
   .compact {
-    bottom: var(--todoList-listItemMargin--compact);
+    bottom: var(--checklist-listItemMargin--compact);
   }
   .compact > .content {
-    padding: var(--todoList-contentPadding--compact);
+    padding: var(--checklist-contentPadding--compact);
   }
   .compact > .toggle {
-    padding: var(--todoList-togglePadding--compact);
+    padding: var(--checklist-togglePadding--compact);
   }
   .toggle:hover {
     opacity: 0.8;

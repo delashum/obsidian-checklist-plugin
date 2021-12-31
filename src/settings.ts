@@ -8,23 +8,29 @@ export interface TodoSettings {
   showChecked: boolean
   autoRefresh: boolean
   groupBy: GroupByType
+  subGroups: boolean
   sortDirectionItems: SortDirection
   sortDirectionGroups: SortDirection
+  sortDirectionSubGroups: SortDirection
   includeFiles: string
   lookAndFeel: LookAndFeel
   _collapsedSections: string[]
+  _hiddenTags: string[]
 }
 
 export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: "todo",
   showChecked: false,
   autoRefresh: true,
+  subGroups: false,
   groupBy: "page",
   sortDirectionItems: "new->old",
   sortDirectionGroups: "new->old",
+  sortDirectionSubGroups: "new->old",
   includeFiles: "",
   lookAndFeel: "classic",
   _collapsedSections: [],
+  _hiddenTags: [],
 }
 
 export class TodoSettingTab extends PluginSettingTab {
@@ -33,15 +39,21 @@ export class TodoSettingTab extends PluginSettingTab {
   }
 
   display(): void {
-    let { containerEl } = this
-
     this.containerEl.empty()
 
     this.containerEl.createEl("h3", {
       text: "General Settings",
     })
 
-    new Setting(containerEl)
+    this.buildSettings()
+  }
+
+  private buildSettings() {
+    /** GENERAL */
+
+    new Setting(this.containerEl).setName("General")
+
+    new Setting(this.containerEl)
       .setName("Tag name")
       .setDesc(
         'e.g. "todo" will match #todo. You may add mutliple tags separated by a newline. Leave empty to capture all'
@@ -55,26 +67,18 @@ export class TodoSettingTab extends PluginSettingTab {
           })
       )
 
-    new Setting(containerEl)
-      .setName("Auto Refresh List?")
-      .addToggle((toggle) => {
-        toggle.setValue(this.plugin.getSettingValue("autoRefresh"))
-        toggle.onChange(async (value) => {
-          await this.plugin.updateSettings({ autoRefresh: value })
-        })
-      })
-      .setDesc(
-        'It\'s recommended to leave this on unless you are expereince performance issues due to a large vault. You can then reload manually using the "Checklist: refresh" command'
-      )
-
-    new Setting(containerEl).setName("Show Completed?").addToggle((toggle) => {
+    new Setting(this.containerEl).setName("Show Completed?").addToggle((toggle) => {
       toggle.setValue(this.plugin.getSettingValue("showChecked"))
       toggle.onChange(async (value) => {
         await this.plugin.updateSettings({ showChecked: value })
       })
     })
 
-    new Setting(containerEl).setName("Group By").addDropdown((dropdown) => {
+    /** GORUPING & SORTING */
+
+    new Setting(this.containerEl).setName("Grouping & Sorting")
+
+    new Setting(this.containerEl).setName("Group By").addDropdown((dropdown) => {
       dropdown.addOption("page", "Page")
       dropdown.addOption("tag", "Tag")
       dropdown.setValue(this.plugin.getSettingValue("groupBy"))
@@ -83,7 +87,17 @@ export class TodoSettingTab extends PluginSettingTab {
       })
     })
 
-    new Setting(containerEl)
+    // new Setting(this.containerEl)
+    //   .setName("Enable Sub-Groups?")
+    //   .addToggle((toggle) => {
+    //     toggle.setValue(this.plugin.getSettingValue("subGroups"))
+    //     toggle.onChange(async (value) => {
+    //       await this.plugin.updateSettings({ subGroups: value })
+    //     })
+    //   })
+    //   .setDesc("When grouped by page you will see sub-groups by tag, and vice versa.")
+
+    new Setting(this.containerEl)
       .setName("Item Sort")
       .addDropdown((dropdown) => {
         dropdown.addOption("a->z", "A -> Z")
@@ -97,7 +111,7 @@ export class TodoSettingTab extends PluginSettingTab {
       })
       .setDesc("Time sorts are based on last time the file for a particular item was edited")
 
-    new Setting(containerEl)
+    new Setting(this.containerEl)
       .setName("Group Sort")
       .addDropdown((dropdown) => {
         dropdown.addOption("a->z", "A -> Z")
@@ -111,7 +125,38 @@ export class TodoSettingTab extends PluginSettingTab {
       })
       .setDesc("Time sorts are based on last time the file for the newest or oldest item in a group was edited")
 
-    new Setting(containerEl)
+    // new Setting(this.containerEl)
+    //   .setName("Sub-Group Sort")
+    //   .addDropdown((dropdown) => {
+    //     dropdown.addOption("a->z", "A -> Z")
+    //     dropdown.addOption("z->a", "Z -> A")
+    //     dropdown.addOption("new->old", "New -> Old")
+    //     dropdown.addOption("old->new", "Old -> New")
+    //     dropdown.setValue(this.plugin.getSettingValue("sortDirectionSubGroups"))
+    //     dropdown.onChange(async (value: SortDirection) => {
+    //       await this.plugin.updateSettings({ sortDirectionSubGroups: value })
+    //     })
+    //   })
+    //   .setDesc("Time sorts are based on last time the file for the newest or oldest item in a group was edited")
+
+    /** STYLING */
+
+    new Setting(this.containerEl).setName("Styling")
+
+    new Setting(this.containerEl).setName("Look and Feel").addDropdown((dropdown) => {
+      dropdown.addOption("classic", "Classic")
+      dropdown.addOption("compact", "Compact")
+      dropdown.setValue(this.plugin.getSettingValue("lookAndFeel"))
+      dropdown.onChange(async (value: LookAndFeel) => {
+        await this.plugin.updateSettings({ lookAndFeel: value })
+      })
+    })
+
+    /** ADVANCED */
+
+    new Setting(this.containerEl).setName("Advanced")
+
+    new Setting(this.containerEl)
       .setName("Include Files")
       .setDesc(
         'Include all files that match this glob pattern (e.g. "{*,!(exclude)/**/*}" includes all files except those in the exclude directory). Leave empty to check all files'
@@ -123,13 +168,16 @@ export class TodoSettingTab extends PluginSettingTab {
         })
       )
 
-    new Setting(containerEl).setName("Look and Feel").addDropdown((dropdown) => {
-      dropdown.addOption("classic", "Classic")
-      dropdown.addOption("compact", "Compact")
-      dropdown.setValue(this.plugin.getSettingValue("lookAndFeel"))
-      dropdown.onChange(async (value: LookAndFeel) => {
-        await this.plugin.updateSettings({ lookAndFeel: value })
+    new Setting(this.containerEl)
+      .setName("Auto Refresh List?")
+      .addToggle((toggle) => {
+        toggle.setValue(this.plugin.getSettingValue("autoRefresh"))
+        toggle.onChange(async (value) => {
+          await this.plugin.updateSettings({ autoRefresh: value })
+        })
       })
-    })
+      .setDesc(
+        'It\'s recommended to leave this on unless you are expereince performance issues due to a large vault. You can then reload manually using the "Checklist: refresh" command'
+      )
   }
 }

@@ -65,7 +65,16 @@ export default class TodoPlugin extends Plugin {
   async updateSettings(updates: Partial<TodoSettings>) {
     Object.assign(this.settings, updates)
     await this.saveData(this.settings)
-    this.view.refresh(true)
+    const onlyRepaintWhenChanges = ["autoRefresh", "lookAndFeel", "_collapsedSections"]
+    const onlyReGroupWhenChanges = [
+      "subGroups",
+      "groupBy",
+      "sortDirectionGroups",
+      "sortDirectionSubGroups",
+      "sortDirectionItems",
+    ]
+    if (onlyRepaintWhenChanges.includes(Object.keys(updates)[0])) this.view.rerender()
+    else this.view.refresh(!onlyReGroupWhenChanges.includes(Object.keys(updates)[0]))
   }
 
   getSettingValue<K extends keyof TodoSettings>(setting: K): TodoSettings[K] {

@@ -1,8 +1,8 @@
 import {ItemView, WorkspaceLeaf} from 'obsidian'
 
-import {groupTodos, parseTodos} from './_utils'
 import {TODO_VIEW_TYPE} from './constants'
 import App from './svelte/App.svelte'
+import {groupTodos, parseTodos} from './utils'
 
 import type { TodoSettings } from "./settings"
 import type TodoPlugin from "./main"
@@ -13,6 +13,7 @@ export default class TodoListView extends ItemView {
   private groupedItems: TodoGroup[] = []
   private itemsByFile = new Map<string, TodoItem[]>()
   private initialLoad = true
+  private searchTerm = ""
 
   constructor(leaf: WorkspaceLeaf, private plugin: TodoPlugin) {
     super(leaf)
@@ -28,6 +29,19 @@ export default class TodoListView extends ItemView {
 
   getIcon(): string {
     return "checkmark"
+  }
+
+  get todoTagArray() {
+    return this.plugin
+      .getSettingValue("todoPageName")
+      .trim()
+      .split("\n")
+      .map((e) => e.toLowerCase())
+      .filter((e) => e)
+  }
+
+  get visibleTodoTagArray() {
+    return this.todoTagArray.filter((t) => !this.plugin.getSettingValue("_hiddenTags").includes(t))
   }
 
   async onClose() {
@@ -50,11 +64,18 @@ export default class TodoListView extends ItemView {
   }
 
   async refresh(all = false) {
-    if (all) this.lastRerender = 0
+    if (all) {
+      this.lastRerender = 0
+      this.itemsByFile.clear()
+    }
     await this.calculateAllItems()
     this.groupItems()
     this.renderView()
     this.lastRerender = +new Date()
+  }
+
+  rerender() {
+    this.renderView()
   }
 
   private deleteFile(path: string) {
@@ -65,20 +86,26 @@ export default class TodoListView extends ItemView {
 
   private props() {
     return {
-      todoTag: this.plugin.getSettingValue("todoPageName"),
+      todoTags: this.todoTagArray,
       lookAndFeel: this.plugin.getSettingValue("lookAndFeel"),
+      subGroups: this.plugin.getSettingValue("subGroups"),
       _collapsedSections: this.plugin.getSettingValue("_collapsedSections"),
+      _hiddenTags: this.plugin.getSettingValue("_hiddenTags"),
       app: this.app,
       todoGroups: this.groupedItems,
       initialLoad: this.initialLoad,
       updateSetting: (updates: Partial<TodoSettings>) => this.plugin.updateSettings(updates),
+      onSearch: (val: string) => {
+        this.searchTerm = val
+        this.refresh()
+      },
     }
   }
 
   private async calculateAllItems() {
     const items = await parseTodos(
       this.app.vault.getFiles(),
-      this.plugin.getSettingValue("todoPageName"),
+      this.todoTagArray.length === 0 ? ["*"] : this.visibleTodoTagArray,
       this.app.metadataCache,
       this.app.vault,
       this.plugin.getSettingValue("includeFiles"),
@@ -95,11 +122,14 @@ export default class TodoListView extends ItemView {
 
   private groupItems() {
     const flattenedItems = Array.from(this.itemsByFile.values()).flat()
+    const searchedItems = flattenedItems.filter((e) => e.originalText.toLowerCase().includes(this.searchTerm))
     this.groupedItems = groupTodos(
-      flattenedItems,
+      searchedItems,
       this.plugin.getSettingValue("groupBy"),
       this.plugin.getSettingValue("sortDirectionGroups"),
-      this.plugin.getSettingValue("sortDirectionItems")
+      this.plugin.getSettingValue("sortDirectionItems"),
+      this.plugin.getSettingValue("subGroups"),
+      this.plugin.getSettingValue("sortDirectionSubGroups")
     )
   }
 

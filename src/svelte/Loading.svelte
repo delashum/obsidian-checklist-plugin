@@ -12,10 +12,10 @@
     animation-fill-mode: both;
     margin: 0 auto;
     animation: niceSpinLoader 0.75s 0s infinite linear;
-    border-color: var(--todoList-loaderBorderColor);
+    border-color: var(--checklist-loaderBorderColor);
 
-    width: var(--todoList-loaderSize);
-    height: var(--todoList-loaderSize);
+    width: var(--checklist-loaderSize);
+    height: var(--checklist-loaderSize);
   }
 
   @keyframes niceSpinLoader {

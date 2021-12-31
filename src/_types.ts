@@ -23,6 +23,7 @@ type BaseGroup = {
   className: string
   oldestItem: number
   newestItem: number
+  groups?: TodoGroup[]
 }
 
 export type PageGroup = BaseGroup & {
@@ -53,6 +54,6 @@ export type GroupByType = "page" | "tag"
 export type SortDirection = "new->old" | "old->new" | "a->z" | "z->a"
 export type LookAndFeel = "compact" | "classic"
 
-export type Icon = "chevron"
+export type Icon = "chevron" | "settings"
 
 export type KeysOfType<T, V> = { [K in keyof T]: T[K] extends V ? K : never }[keyof T]
