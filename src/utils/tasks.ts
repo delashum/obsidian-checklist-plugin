@@ -67,8 +67,6 @@ export const parseTodos = async (
 
   if (!showChecked) allTodos = allTodos.filter((f) => !f.checked)
 
-  console.log({ allTodos })
-
   return allTodos
 }
 

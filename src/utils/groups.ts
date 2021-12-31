@@ -33,7 +33,6 @@ export const groupTodos = (
         newGroup.mainTag = item.mainTag
         newGroup.subTags = item.subTag
         newGroup.sortName = item.mainTag + (item.subTag ?? "0")
-        console.log(newGroup)
         newGroup.className = classifyString((newGroup.mainTag ?? "") + (newGroup.subTags ?? ""))
       }
       groups.push(newGroup)
