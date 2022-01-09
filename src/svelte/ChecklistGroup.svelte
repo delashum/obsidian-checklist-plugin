@@ -41,7 +41,7 @@
     </button>
   </header>
   {#if !isCollapsed}
-    <ul class="list">
+    <ul>
       {#each group.todos as item}
         <ChecklistItem {item} {lookAndFeel} {app} />
       {/each}
@@ -107,14 +107,11 @@
     list-style: none;
     padding: 0;
     margin: 0;
+    padding-inline-start: initial !important;
   }
 
   .group {
     margin-bottom: var(--checklist-groupMargin);
-  }
-
-  .list {
-    padding-inline-start: initial;
   }
 
   .collapse {

@@ -61,12 +61,12 @@
     padding: var(--checklist-togglePadding);
     background: transparent;
     flex-shrink: 1;
+    width: initial;
   }
   .content {
     padding: var(--checklist-contentPadding);
     flex: 1;
     font-size: var(--checklist-contentFontSize);
-    width: initial;
   }
   .compact {
     bottom: var(--checklist-listItemMargin--compact);
