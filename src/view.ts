@@ -103,7 +103,7 @@ export default class TodoListView extends ItemView {
   }
 
   private async calculateAllItems() {
-    const items = await parseTodos(
+    const todosForUpdatedFiles = await parseTodos(
       this.app.vault.getFiles(),
       this.todoTagArray.length === 0 ? ["*"] : this.visibleTodoTagArray,
       this.app.metadataCache,
@@ -112,12 +112,9 @@ export default class TodoListView extends ItemView {
       this.plugin.getSettingValue("showChecked"),
       this.lastRerender
     )
-    const changesMap = new Map<string, TodoItem[]>()
-    for (const item of items) {
-      if (!changesMap.has(item.filePath)) changesMap.set(item.filePath, [])
-      changesMap.get(item.filePath).push(item)
+    for (const [file, todos] of todosForUpdatedFiles) {
+      this.itemsByFile.set(file.path, todos)
     }
-    for (const [path, pathItems] of changesMap) this.itemsByFile.set(path, pathItems)
   }
 
   private groupItems() {
