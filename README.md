@@ -1,4 +1,4 @@
-==LOOKING FOR ANOTHER MAINTAINER TO HELP OUT== There's quite a bit of work to do on this plugin still and i've been neglecting it because work is too busy. I would love some help, or at least someone who could approve PRs and triage issues. Send me an email at delashum@gmail.com if you're interested.
+**LOOKING FOR ANOTHER MAINTAINER TO HELP OUT** There's quite a bit of work to do on this plugin still and i've been neglecting it because work is too busy. I would love some help, or at least someone who could approve PRs and triage issues. Send me an email at delashum@gmail.com if you're interested.
 
 
 # obsidian-checklist-plugin
