@@ -12,7 +12,6 @@ export default class TodoListView extends ItemView {
   private lastRerender = 0
   private groupedItems: TodoGroup[] = []
   private itemsByFile = new Map<string, TodoItem[]>()
-  private initialLoad = true
   private searchTerm = ""
 
   constructor(leaf: WorkspaceLeaf, private plugin: TodoPlugin) {
@@ -55,12 +54,12 @@ export default class TodoListView extends ItemView {
     })
     this.registerEvent(
       this.app.metadataCache.on("resolved", async () => {
-        if (!this.plugin.getSettingValue("autoRefresh") && !this.initialLoad) return
-        if (this.initialLoad) this.initialLoad = false
+        if (!this.plugin.getSettingValue("autoRefresh")) return
         await this.refresh()
       })
     )
     this.registerEvent(this.app.vault.on("delete", (file) => this.deleteFile(file.path)))
+    this.refresh()
   }
 
   async refresh(all = false) {
@@ -93,7 +92,6 @@ export default class TodoListView extends ItemView {
       _hiddenTags: this.plugin.getSettingValue("_hiddenTags"),
       app: this.app,
       todoGroups: this.groupedItems,
-      initialLoad: this.initialLoad,
       updateSetting: (updates: Partial<TodoSettings>) => this.plugin.updateSettings(updates),
       onSearch: (val: string) => {
         this.searchTerm = val

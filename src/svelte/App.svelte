@@ -14,7 +14,6 @@
   export let onSearch: (str: string) => void
   export let app: App
   export let todoGroups: TodoGroup[] = []
-  export let initialLoad: boolean
 
   const visibleTags = todoTags.filter((t) => !_hiddenTags.includes(t))
 
@@ -33,9 +32,6 @@
 </script>
 
 <div class="checklist-plugin-main markdown-preview-view">
-  {#if initialLoad}
-    <Loading />
-  {:else}
     <Header
       disableSearch={todoGroups.length === 0}
       {todoTags}
@@ -64,7 +60,6 @@
         />
       {/each}
     {/if}
-  {/if}
 </div>
 
 <style>

@@ -65,6 +65,7 @@ export const parseTodos = async (
   )
   let allTodos = filesWithCache.flatMap(findAllTodosInFile)
 
+  console.log(allTodos)
   if (!showChecked) allTodos = allTodos.filter((f) => !f.checked)
 
   return allTodos
