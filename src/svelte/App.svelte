@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { App } from "obsidian"
   import type { LookAndFeel, TodoGroup } from "src/_types"
-  import Loading from "./Loading.svelte"
   import type { TodoSettings } from "src/settings"
   import ChecklistGroup from "./ChecklistGroup.svelte"
   import Header from "./Header.svelte"
