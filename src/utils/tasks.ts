@@ -43,12 +43,12 @@ export const parseTodos = async (
         if (todoTags.length === 1 && todoTags[0] === "*") return true
         const fileCache = cache.getFileCache(file)
         const allTags = getAllTagsFromMetadata(fileCache)
-        const tagsOnPage = allTags.filter((tag) => todoTags.includes(getTagMeta(tag).main))
+        const tagsOnPage = allTags.filter((tag) => todoTags.includes(getTagMeta(tag).main.toLowerCase()))
         return tagsOnPage.length > 0
       })
       .map<Promise<FileInfo>>(async (file) => {
         const fileCache = cache.getFileCache(file)
-        const tagsOnPage = fileCache?.tags?.filter((e) => todoTags.includes(getTagMeta(e.tag).main)) ?? []
+        const tagsOnPage = fileCache?.tags?.filter((e) => todoTags.includes(getTagMeta(e.tag).main.toLowerCase())) ?? []
         const frontMatterTags = getFrontmatterTags(fileCache, todoTags)
         const hasFrontMatterTag = frontMatterTags.length > 0
         const parseEntireFile = todoTags[0] === "*" || hasFrontMatterTag
