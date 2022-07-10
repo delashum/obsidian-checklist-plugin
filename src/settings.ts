@@ -6,6 +6,7 @@ import type { GroupByType, LookAndFeel, SortDirection } from "./_types"
 export interface TodoSettings {
   todoPageName: string
   showChecked: boolean
+  showAllTodos: boolean
   autoRefresh: boolean
   groupBy: GroupByType
   subGroups: boolean
@@ -21,6 +22,7 @@ export interface TodoSettings {
 export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: "todo",
   showChecked: false,
+  showAllTodos: false,
   autoRefresh: true,
   subGroups: false,
   groupBy: "page",
@@ -71,6 +73,15 @@ export class TodoSettingTab extends PluginSettingTab {
       toggle.setValue(this.plugin.getSettingValue("showChecked"))
       toggle.onChange(async (value) => {
         await this.plugin.updateSettings({ showChecked: value })
+      })
+    })
+
+    new Setting(this.containerEl).setName("Show All Todos In File?").setDesc(
+      "Show all items in file if tag is present, or only items attached to the block where the tag is located. Only has an effect if Tag Name is not empty"
+    ).addToggle((toggle) => {
+      toggle.setValue(this.plugin.getSettingValue("showAllTodos"))
+      toggle.onChange(async (value) => {
+        await this.plugin.updateSettings({ showAllTodos: value })
       })
     })
 

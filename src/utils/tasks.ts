@@ -46,6 +46,7 @@ export const parseTodos = async (
   vault: Vault,
   includeFiles: string,
   showChecked: boolean,
+  showAllTodos: boolean,
   lastRerender: number
 ): Promise<Map<TFile, TodoItem[]>> => {
   const includePattern = includeFiles.trim() ? includeFiles.trim().split("\n") : "**/*"
@@ -65,7 +66,7 @@ export const parseTodos = async (
         const tagsOnPage = fileCache?.tags?.filter((e) => todoTags.includes(getTagMeta(e.tag).main.toLowerCase())) ?? []
         const frontMatterTags = getFrontmatterTags(fileCache, todoTags)
         const hasFrontMatterTag = frontMatterTags.length > 0
-        const parseEntireFile = todoTags[0] === "*" || hasFrontMatterTag
+        const parseEntireFile = todoTags[0] === "*" || hasFrontMatterTag || showAllTodos
         const content = await vault.cachedRead(file)
         return {
           content,
