@@ -1,5 +1,5 @@
 import MD from 'markdown-it'
-import picomatch from 'picomatch'
+import minimatch from 'minimatch'
 
 import {commentPlugin} from '../plugins/comment'
 import {highlightPlugin} from '../plugins/highlight'
@@ -54,7 +54,7 @@ export const parseTodos = async (
     files
       .filter((file) => {
         if (file.stat.mtime < lastRerender) return false
-        if (!picomatch.isMatch(file.path, includePattern)) return false
+        if (!minimatch(file.path, includePattern)) return false
         if (todoTags.length === 1 && todoTags[0] === "*") return true
         const fileCache = cache.getFileCache(file)
         const allTags = getAllTagsFromMetadata(fileCache)

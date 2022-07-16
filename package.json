@@ -17,7 +17,6 @@
     "@tsconfig/svelte": "^1.0.10",
     "@types/markdown-it": "^12.0.1",
     "@types/node": "^16.11.6",
-    "@types/picomatch": "^2.3.0",
     "@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
     "builtin-modules": "3.3.0",
@@ -26,11 +25,9 @@
     "obsidian": "latest",
     "svelte-preprocess": "^4.10.7",
     "tslib": "^2.4.0",
-    "typescript": "^4.7.4"
-  },
-  "dependencies": {
+    "typescript": "^4.7.4",
     "markdown-it": "^12.0.6",
-    "picomatch": "^2.3.0",
+    "minimatch": "^5.1.0",
     "svelte": "^3.38.2"
   }
 }
