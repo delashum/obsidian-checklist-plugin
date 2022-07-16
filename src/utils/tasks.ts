@@ -49,12 +49,14 @@ export const parseTodos = async (
   showAllTodos: boolean,
   lastRerender: number
 ): Promise<Map<TFile, TodoItem[]>> => {
-  const includePattern = includeFiles.trim() ? includeFiles.trim().split("\n") : "**/*"
+  const includePattern = includeFiles.trim() ? includeFiles.trim().split("\n") : ["**/*"]
   const filesWithCache = await Promise.all(
     files
       .filter((file) => {
         if (file.stat.mtime < lastRerender) return false
-        if (!minimatch(file.path, includePattern)) return false
+        console.log(file.path)
+        console.log(includePattern)
+        if(!includePattern.some((p) => minimatch(file.path, p))) return false
         if (todoTags.length === 1 && todoTags[0] === "*") return true
         const fileCache = cache.getFileCache(file)
         const allTags = getAllTagsFromMetadata(fileCache)

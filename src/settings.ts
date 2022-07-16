@@ -170,11 +170,12 @@ export class TodoSettingTab extends PluginSettingTab {
     new Setting(this.containerEl)
       .setName("Include Files")
       .setDesc(
-        'Include all files that match this glob pattern (e.g. "{*,!(exclude)/**/*}" includes all files except those in the exclude directory). Leave empty to check all files'
+        'Include all files that match this glob pattern. Example; "!(exclude_1/**|exclude_2/**)}" includes all files except those in the exclude directories. Or "(Daily/**|Weekly/**) to only include files in the daily & weekly directories.  Leave empty to check all files.'
       )
       .setTooltip("**/*")
       .addText((text) =>
         text.setValue(this.plugin.getSettingValue("includeFiles")).onChange(async (value) => {
+          console.log(value)
           await this.plugin.updateSettings({ includeFiles: value })
         })
       )
