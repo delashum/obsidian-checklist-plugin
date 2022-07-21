@@ -28,6 +28,6 @@
     "typescript": "^4.7.4",
     "markdown-it": "^13.0.1",
     "minimatch": "^5.1.0",
-    "svelte": "^3.38.2"
+    "svelte": "^3.49.0"
   }
 }
