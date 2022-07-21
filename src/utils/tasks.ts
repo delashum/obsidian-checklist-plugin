@@ -54,8 +54,6 @@ export const parseTodos = async (
     files
       .filter((file) => {
         if (file.stat.mtime < lastRerender) return false
-        console.log(file.path)
-        console.log(includePattern)
         if(!includePattern.some((p) => minimatch(file.path, p))) return false
         if (todoTags.length === 1 && todoTags[0] === "*") return true
         const fileCache = cache.getFileCache(file)

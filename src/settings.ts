@@ -175,7 +175,6 @@ export class TodoSettingTab extends PluginSettingTab {
       .setTooltip("**/*")
       .addText((text) =>
         text.setValue(this.plugin.getSettingValue("includeFiles")).onChange(async (value) => {
-          console.log(value)
           await this.plugin.updateSettings({ includeFiles: value })
         })
       )

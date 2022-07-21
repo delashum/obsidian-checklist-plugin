@@ -26,7 +26,7 @@
     "svelte-preprocess": "^4.10.7",
     "tslib": "^2.4.0",
     "typescript": "^4.7.4",
-    "markdown-it": "^12.0.6",
+    "markdown-it": "^13.0.1",
     "minimatch": "^5.1.0",
     "svelte": "^3.38.2"
   }
