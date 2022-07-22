@@ -26,6 +26,10 @@ export const getTagMeta = (tag: string): TagMeta => {
   return { main, sub }
 }
 
+export const retrieveTag = (tagMeta: TagMeta): string => {
+  return tagMeta.main ? tagMeta.main : tagMeta.sub ? tagMeta.sub : ''
+}
+
 export const mapLinkMeta = (linkMeta: LinkMeta[]) => {
   const map = new Map<string, LinkMeta>()
   for (const link of linkMeta) map.set(link.filePath, link)
