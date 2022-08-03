@@ -131,7 +131,13 @@ const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
 
 const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
   const fileContents = file.content
-  const links = file.cache.links ?? []
+  const links = []
+  if (file.cache?.links) {
+    links.push(...file.cache.links)
+  }
+  if (file.cache?.embeds) {
+    links.push(...file.cache.embeds)
+  }
   if (!fileContents) return []
   const fileLines = getAllLinesFromFile(fileContents)
   const tagMeta = getTagMeta(tag.tag)
