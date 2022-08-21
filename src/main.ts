@@ -17,15 +17,25 @@ export default class TodoPlugin extends Plugin {
     this.addSettingTab(new TodoSettingTab(this.app, this))
     this.addCommand({
       id: "show-checklist-view",
-      name: "Open View",
+      name: "Show Checklist Pane",
       callback: () => {
-        const views = this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)
-        if (views.length === 0)
-          this.app.workspace.getRightLeaf(false).setViewState({
+        const workspace = this.app.workspace
+        const views = workspace.getLeavesOfType(TODO_VIEW_TYPE)
+        if (views.length === 0) {
+          workspace.getRightLeaf(false).setViewState({
             type: TODO_VIEW_TYPE,
             active: true,
+          }).then(() => {
+            const todoLeaf = workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]
+            workspace.revealLeaf(todoLeaf)
+            workspace.setActiveLeaf(todoLeaf, true, true)
           })
-        else views[0].setViewState({ active: true, type: TODO_VIEW_TYPE })
+        }
+        else {
+          views[0].setViewState({ active: true, type: TODO_VIEW_TYPE })
+          workspace.revealLeaf(views[0])
+          workspace.setActiveLeaf(views[0], true, true)
+        }
       },
     })
     this.addCommand({
