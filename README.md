@@ -3,7 +3,7 @@
 
 # obsidian-checklist-plugin
 
-This plugin conslidates checklists from across files into a single view.
+This plugin consolidates checklists from across files into a single view.
 
 ![screenshot-main](https://raw.githubusercontent.com/delashum/obsidian-checklist-plugin/master/images/screenshot-two-files.png)
 
