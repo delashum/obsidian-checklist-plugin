@@ -29,8 +29,8 @@
   }
   $: {
     if (contentDiv) contentDiv.innerHTML = item.html
+    item = item
   }
-//   console.log("in comp", item)
 </script>
 
 <li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.file.path, ev)}>
@@ -38,7 +38,7 @@
     class="toggle"
     on:click={(ev) => {
       toggleItem(item)
-    //   ev.stopPropagation()
+      ev.stopPropagation()
     }}
   >
     <CheckCircle checked={item.checked} />
@@ -47,7 +47,7 @@
     <div bind:this={contentDiv} class="content"/>
 	<ul class="nested-list">
 		{#each item.children as taskchild}
-			<svelte:self {lookAndFeel} {app} bind:item={taskchild}/>
+			<svelte:self {lookAndFeel} {app} item={taskchild}/>
 		{/each}
 	</ul>
   </div>
