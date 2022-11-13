@@ -4,6 +4,7 @@
   import type { LookAndFeel, TodoItem } from "src/_types"
   import { navToFile, toggleTodoItem } from "src/utils"
   import CheckCircle from "./CheckCircle.svelte"
+  import { children } from "svelte/internal";
 
   export let item: TodoItem
   export let lookAndFeel: LookAndFeel
@@ -27,11 +28,12 @@
     }
   }
   $: {
-    if (contentDiv) contentDiv.innerHTML = item.rawHTML
+    if (contentDiv) contentDiv.innerHTML = item.html
   }
+  console.log("in comp", item)
 </script>
 
-<li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
+<li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.file.path, ev)}>
   <button
     class="toggle"
     on:click={(ev) => {
@@ -42,11 +44,16 @@
     <CheckCircle checked={item.checked} />
   </button>
   <div bind:this={contentDiv} on:click={(ev) => handleClick(ev, item)} class="content" />
+	<ul>
+		{#each item.children as taskchild}
+			<svelte:self {lookAndFeel} {app} item={taskchild}/>
+		{/each}
+	</ul>
 </li>
 
 <style>
   li {
-    display: flex;
+    /* display: flex; */
     align-items: center;
     background-color: var(--checklist-listItemBackground);
     border-radius: var(--checklist-listItemBorderRadius);

@@ -12,7 +12,7 @@ export const groupTodos = (
   const groups: TodoGroup[] = []
   for (const item of items) {
     const itemKey =
-      groupBy === "page" ? item.filePath : `#${[item.mainTag, item.subTag].filter((e) => e != null).join("/")}`
+      groupBy === "page" ? item.file.path : `#${[item.mainTag, item.subTag].filter((e) => e != null).join("/")}`
     let group = groups.find((g) => g.id === itemKey)
     if (!group) {
       const newGroup: TodoGroup = {
@@ -26,9 +26,9 @@ export const groupTodos = (
       }
 
       if (newGroup.type === "page") {
-        newGroup.pageName = item.fileLabel
-        newGroup.sortName = item.fileLabel
-        newGroup.className = classifyString(item.fileLabel)
+        newGroup.pageName = item.file.name
+        newGroup.sortName = item.file.name
+        newGroup.className = classifyString(item.file.name)
       } else if (newGroup.type === "tag") {
         newGroup.mainTag = item.mainTag
         newGroup.subTags = item.subTag
@@ -38,8 +38,8 @@ export const groupTodos = (
       groups.push(newGroup)
       group = newGroup
     }
-    if (group.newestItem < item.fileCreatedTs) group.newestItem = item.fileCreatedTs
-    if (group.oldestItem > item.fileCreatedTs) group.oldestItem = item.fileCreatedTs
+    if (group.newestItem < item.file.ctime) group.newestItem = item.file.ctime
+    if (group.oldestItem > item.file.ctime) group.oldestItem = item.file.ctime
 
     group.todos.push(item)
   }

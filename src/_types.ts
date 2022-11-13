@@ -1,18 +1,15 @@
 import type { CachedMetadata, TagCache, TFile } from "obsidian"
+import type { PageMetadata } from "obsidian-dataview"
 
 export type TodoItem = {
   checked: boolean
-  filePath: string
-  fileName: string
-  fileLabel: string
-  fileCreatedTs: number
+  children: TodoItem[]
+  file: PageMetadata
   mainTag?: string
   subTag?: string
   line: number
-  spacesIndented: number
-  fileInfo: FileInfo
   originalText: string
-  rawHTML: string
+  html: string;
 }
 
 type BaseGroup = {
