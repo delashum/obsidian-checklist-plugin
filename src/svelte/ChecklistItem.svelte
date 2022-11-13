@@ -14,8 +14,8 @@
 
   const toggleItem = async (_item: TodoItem) => {
 	console.log("before", _item.checked)
-	item.checked = !item.checked
-    // await toggleTodoItem(_item, app)
+	// item.checked = !item.checked
+    await toggleTodoItem(_item, app)
 	console.log("after", _item.checked)
   }
 
@@ -32,6 +32,7 @@
   }
   $: {
     if (contentDiv) contentDiv.innerHTML = item.html
+    // console.debug("hi", item.checked)
 	// item.checked = !item.checked
   }
 </script>
