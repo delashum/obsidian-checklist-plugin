@@ -14,6 +14,7 @@
 
   const toggleItem = async (_item: TodoItem) => {
 	console.log("before", _item.checked)
+    app.workspace.trigger("dataview:refresh-views")
 	// item.checked = !item.checked
     await toggleTodoItem(_item, app)
 	console.log("after", _item.checked)
@@ -43,7 +44,6 @@
     on:click={(ev) => {
       toggleItem(item)
 	  console.log(item)
-	//   item.checked = !item.checked
       ev.stopPropagation()
     }}>
     <CheckCircle bind:checked={item.checked} />

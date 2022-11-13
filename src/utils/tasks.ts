@@ -40,8 +40,9 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
 
  const mapper = (task: STask): TodoItem => {
 	const dv = getAPI();
+    
 	return {
-		checked: task.checked,
+		checked: task.completed,
 		originalText: task.text,
 		file: dv.page(task.path).file,
 		line: task.line,

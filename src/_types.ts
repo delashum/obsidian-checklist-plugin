@@ -1,10 +1,10 @@
 import type { CachedMetadata, TagCache, TFile } from "obsidian"
-import type { PageMetadata } from "obsidian-dataview"
+import type { Literal, PageMetadata } from "obsidian-dataview"
 
 export type TodoItem = {
   checked: boolean
   children: TodoItem[]
-  file: PageMetadata
+  file: Record<string, Literal>
   mainTag?: string
   subTag?: string
   line: number
