@@ -48,7 +48,13 @@ esbuild.build({
 		'@lezer/lr',
 		...builtins],
 	format: 'cjs',
-	watch: !prod,
+	watch: prod ? false : {
+		onRebuild(error, result) {
+			if (error) console.error('watch build failed:', error)
+			else console.log('watch build succeeded:', result)
+			execSync("pwsh.exe ./post-build.ps1")
+		},
+	},
 	target: 'es2016',
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
