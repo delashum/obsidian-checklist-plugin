@@ -20,6 +20,7 @@ esbuild.build({
 	entryPoints: ['src/main.ts'],
 	bundle: true,
 	external: [
+		'obsidian-dataview',
 		'obsidian',
 		'electron',
 		'@codemirror/autocomplete',
