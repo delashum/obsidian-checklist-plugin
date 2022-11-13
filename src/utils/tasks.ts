@@ -38,17 +38,25 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
  const md = new MD().use(commentPlugin).use(tagPlugin).use(highlightPlugin)
  const dv = getAPI();
 
- const mapper = (task: STask): TodoItem => {
-	const dv = getAPI();
-    
-	return {
-		checked: task.completed,
-		originalText: task.text,
-		file: dv.page(task.path).file,
-		line: task.line,
-		children: task.children.map(mapper),
-		html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>")
-	}
+ const mapper = (vault: Vault) => {
+
+  
+	// if (!currentFileLines[item.line].includes(item.originalText)) return;
+  return async (task: STask): Promise<TodoItem> => {
+    const dv = getAPI();
+    const file = getFileFromPath(vault, task.path);
+    if (!file) return;
+    const currentFileContents = await vault.read(file);
+    const currentFileLines = getAllLinesFromFile(currentFileContents);
+    return {
+      checked: todoLineIsChecked(currentFileLines[task.line]),
+      originalText: task.text,
+      file: dv.page(task.path).file,
+      line: task.line,
+      children: await Promise.all(task.children.map(mapper(vault))),
+      html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>")
+    }
+  }
 }
 
 /**
@@ -108,11 +116,11 @@ export const parseTodos = async (
 		const current = dv.page(page.path)?.file
 		// console.log("currrr", current, page)
 		if(!current) continue
-		let tsk = current.tasks.filter(b => !b.parent).map(mapper)
-        // console.log("calling mapper", tsk.values)
-		todosForUpdatedFiles.set(page, tsk.values)
+		let tsk = await Promise.all(current.tasks.filter(b => !b.parent).map(mapper(vault)))
+        console.log("calling mapper", Array.from(tsk))
+		todosForUpdatedFiles.set(page,tsk)
 	}
-	// console.log(todosForUpdatedFiles)
+	console.log(todosForUpdatedFiles)
 	return todosForUpdatedFiles;
 
 };
@@ -128,8 +136,9 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
 		item.line,
 		!item.checked
 	);
+  console.log
+	item.checked = !item.checked;
 	await app.vault.modify(file, newData);
-	// item.checked = !item.checked;
 };
 
 
