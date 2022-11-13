@@ -120,7 +120,7 @@
 	padding-left: 0.3em;
 	padding-right: 0.3em;
   }
-  .collapse > svg {
+  .collapse svg {
 	fill: var(--text-color);
   }
 </style>

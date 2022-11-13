@@ -91,9 +91,6 @@
   .compact {
     bottom: var(--checklist-listItemMargin--compact);
   }
-  .compact > .content {
-    padding: var(--checklist-contentPadding--compact);
-  }
   .compact > .toggle {
     padding: var(--checklist-togglePadding--compact);
   }

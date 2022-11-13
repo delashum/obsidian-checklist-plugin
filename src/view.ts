@@ -117,7 +117,7 @@ export default class TodoListView extends ItemView {
   }
 
   private groupItems() {
-    const flattenedItems = Array.from(this.itemsByFile.values()).flat().flat().map(a => a.values).flat()
+    const flattenedItems = Array.from(this.itemsByFile.values()).flat().flat()
     const searchedItems = flattenedItems.filter((e) => {
 		// console.debug("eeeeee", e.originalText, this.itemsByFile, flattenedItems)
 		return e.originalText.toLowerCase().includes(this.searchTerm)
