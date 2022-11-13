@@ -94,6 +94,7 @@
     display: flex;
     padding: var(--checklist-buttonPadding);
     background: transparent;
+    box-shadow: var(--checklist-buttonBoxShadow);
   }
 
   .tag-base {

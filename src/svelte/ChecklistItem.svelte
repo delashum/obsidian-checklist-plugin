@@ -60,6 +60,7 @@
   .toggle {
     padding: var(--checklist-togglePadding);
     background: transparent;
+    box-shadow: var(--checklist-listItemBoxShadow);
     flex-shrink: 1;
     width: initial;
   }
