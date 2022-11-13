@@ -16,3 +16,5 @@ main.js
 
 yarn.lock
 data.json
+
+.history/
