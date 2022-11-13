@@ -16,6 +16,7 @@
     border: var(--checklist-checkboxBorder);
     padding: 2px;
     position: relative;
+	top: 0.25em
   }
 
   .checked {

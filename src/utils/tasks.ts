@@ -59,7 +59,7 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
 		file: dv.page(task.path).file,
 		line: task.line,
 		children: task.children.map(mapper),
-		html: md.render(task.text)
+		html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>")
 	}
 }
 
@@ -108,7 +108,7 @@ export const parseTodos = async (
 		let tsk = current.tasks.filter(b => !b.parent).map(mapper)
 		todosForUpdatedFiles.set(page, tsk)
 	}
-	console.log(todosForUpdatedFiles)
+	// console.log(todosForUpdatedFiles)
 	return todosForUpdatedFiles;
 
 };

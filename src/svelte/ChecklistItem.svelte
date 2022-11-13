@@ -30,7 +30,7 @@
   $: {
     if (contentDiv) contentDiv.innerHTML = item.html
   }
-  console.log("in comp", item)
+//   console.log("in comp", item)
 </script>
 
 <li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.file.path, ev)}>
@@ -38,24 +38,29 @@
     class="toggle"
     on:click={(ev) => {
       toggleItem(item)
-      ev.stopPropagation()
+    //   ev.stopPropagation()
     }}
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <div bind:this={contentDiv} on:click={(ev) => handleClick(ev, item)} class="content">
-    <ul>
+  <div on:click={(ev) => handleClick(ev, item)} class="content-parent">
+    <div bind:this={contentDiv} class="content"/>
+	<ul class="nested-list">
 		{#each item.children as taskchild}
-			<svelte:self {lookAndFeel} {app} item={taskchild}/>
+			<svelte:self {lookAndFeel} {app} bind:item={taskchild}/>
 		{/each}
 	</ul>
   </div>
 </li>
 
 <style>
+  ul.nested-list {
+    padding-left: 0;
+    padding-right: 1.2em;
+  }
   li {
-    /* display: flex; */
-    align-items: center;
+    display: flex;
+	align-items: baseline;
     background-color: var(--checklist-listItemBackground);
     border-radius: var(--checklist-listItemBorderRadius);
     margin: var(--checklist-listItemMargin);
@@ -64,6 +69,9 @@
   }
   li:hover {
     background-color: var(--checklist-listItemBackground--hover);
+  }
+  li > div {
+    flex-grow: 1;
   }
   .toggle {
     padding: var(--checklist-togglePadding);
@@ -76,6 +84,9 @@
     padding: var(--checklist-contentPadding);
     flex: 1;
     font-size: var(--checklist-contentFontSize);
+  }
+  .compact ul.nested-list, li.compact {
+    /* padding-right:  !important; */
   }
   .compact {
     bottom: var(--checklist-listItemMargin--compact);

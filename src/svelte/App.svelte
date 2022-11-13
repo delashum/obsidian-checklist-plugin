@@ -51,7 +51,7 @@
     {:else}
       {#each todoGroups as group}
         <ChecklistGroup
-          {group}
+          bind:group
           {app}
           {lookAndFeel}
           isCollapsed={_collapsedSections.includes(group.id)}
