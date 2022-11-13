@@ -2,6 +2,7 @@ import esbuild from "esbuild";
 import process from "process";
 import builtins from 'builtin-modules'
 import sveltePlugin from "esbuild-svelte";
+import { execSync } from "child_process";
 import autoPreprocess from 'svelte-preprocess'
 
 const banner =

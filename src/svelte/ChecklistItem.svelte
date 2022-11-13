@@ -43,12 +43,13 @@
   >
     <CheckCircle checked={item.checked} />
   </button>
-  <div bind:this={contentDiv} on:click={(ev) => handleClick(ev, item)} class="content" />
-	<ul>
+  <div bind:this={contentDiv} on:click={(ev) => handleClick(ev, item)} class="content">
+    <ul>
 		{#each item.children as taskchild}
 			<svelte:self {lookAndFeel} {app} item={taskchild}/>
 		{/each}
 	</ul>
+  </div>
 </li>
 
 <style>
