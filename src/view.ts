@@ -84,6 +84,8 @@ export default class TodoListView extends ItemView {
   }
 
   private props() {
+	this.calculateAllItems()
+	this.groupItems()
     return {
       todoTags: this.todoTagArray,
       lookAndFeel: this.plugin.getSettingValue("lookAndFeel"),

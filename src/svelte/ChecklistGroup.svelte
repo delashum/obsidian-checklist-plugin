@@ -43,7 +43,7 @@
   {#if !isCollapsed}
     <ul>
       {#each group.todos as item}
-        <ChecklistItem {item} {lookAndFeel} {app} />
+        <ChecklistItem bind:item {lookAndFeel} {app} />
       {/each}
     </ul>
   {/if}

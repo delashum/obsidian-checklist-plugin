@@ -41,7 +41,7 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
  const mapper = (task: STask): TodoItem => {
 	const dv = getAPI();
 	return {
-		checked: task.completed,
+		checked: task.checked,
 		originalText: task.text,
 		file: dv.page(task.path).file,
 		line: task.line,
@@ -108,7 +108,8 @@ export const parseTodos = async (
 		// console.log("currrr", current, page)
 		if(!current) continue
 		let tsk = current.tasks.filter(b => !b.parent).map(mapper)
-		todosForUpdatedFiles.set(page, tsk)
+        // console.log("calling mapper", tsk.values)
+		todosForUpdatedFiles.set(page, tsk.values)
 	}
 	// console.log(todosForUpdatedFiles)
 	return todosForUpdatedFiles;
@@ -126,69 +127,8 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
 		item.line,
 		!item.checked
 	);
-	app.vault.modify(file, newData);
-	item.checked = !item.checked;
-};
-
-/* const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
-
-	if (!file.parseEntireFile)
-		return file.validTags.flatMap((tag) => findAllTodosFromTagBlock(file, tag));
-
-	if (!file.content) return [];
-	const fileLines = getAllLinesFromFile(file.content);
-	const links = [];
-	if (file.cache?.links) {
-		links.push(...file.cache.links);
-	}
-	if (file.cache?.embeds) {
-		links.push(...file.cache.embeds);
-	}
-	const tagMeta = file.frontmatterTag
-		? getTagMeta(file.frontmatterTag)
-		: undefined;
-
-	const todos: TodoItem[] = [];
-
-	//   for (let i = 0; i < fileLines.length; i++) {
-	//     const line = fileLines[i]
-	//     if (line.length === 0) continue
-	//     if (lineIsValidTodo(line)) {
-	//       todos.push(formTodo(line, file, links, i, tagMeta))
-	//     }
-	//   }
-
-	return todos;
-}; */
-
-const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
-	/* const fileContents = file.content;
-	const links = [];
-	if (file.cache?.links) {
-		links.push(...file.cache.links);
-	}
-	if (file.cache?.embeds) {
-		links.push(...file.cache.embeds);
-	}
-	if (!fileContents) return [];
-	const fileLines = getAllLinesFromFile(fileContents);
-	const tagMeta = getTagMeta(tag.tag);
-	const tagLine = fileLines[tag.position.start.line];
-	if (lineIsValidTodo(tagLine)) {
-		return [formTodo(tagLine, file, links, tag.position.start.line, tagMeta)];
-	}
-
-	const todos: TodoItem[] = [];
-	for (let i = tag.position.start.line; i < fileLines.length; i++) {
-		const line = fileLines[i];
-		if (i === tag.position.start.line + 1 && line.length === 0) continue;
-		if (line.length === 0) break;
-		if (lineIsValidTodo(line)) {
-			todos.push(formTodo(line, file, links, i, tagMeta));
-		}
-	} */
-
-	return []
+	await app.vault.modify(file, newData);
+	// item.checked = !item.checked;
 };
 
 

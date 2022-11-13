@@ -12,8 +12,11 @@
 
   let contentDiv: HTMLDivElement
 
-  const toggleItem = async (item: TodoItem) => {
-    toggleTodoItem(item, app)
+  const toggleItem = async (_item: TodoItem) => {
+	console.log("before", _item.checked)
+	item.checked = !item.checked
+    // await toggleTodoItem(_item, app)
+	console.log("after", _item.checked)
   }
 
   const handleClick = (ev: MouseEvent, item?: TodoItem) => {
@@ -29,7 +32,7 @@
   }
   $: {
     if (contentDiv) contentDiv.innerHTML = item.html
-    item = item
+	// item.checked = !item.checked
   }
 </script>
 
@@ -38,17 +41,18 @@
     class="toggle"
     on:click={(ev) => {
       toggleItem(item)
+	  console.log(item)
+	//   item.checked = !item.checked
       ev.stopPropagation()
-    }}
-  >
-    <CheckCircle checked={item.checked} />
+    }}>
+    <CheckCircle bind:checked={item.checked} />
   </button>
   <div on:click={(ev) => handleClick(ev, item)} class="content-parent">
     <div bind:this={contentDiv} class="content"/>
 	<ul class="nested-list">
-		{#each item.children as taskchild}
-			<svelte:self {lookAndFeel} {app} item={taskchild}/>
-		{/each}
+	  {#each item.children as taskchild}
+		  <svelte:self {lookAndFeel} {app} bind:item={taskchild}/>
+	  {/each}
 	</ul>
   </div>
 </li>

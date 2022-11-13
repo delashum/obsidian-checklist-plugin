@@ -26,9 +26,9 @@ export const groupTodos = (
       }
 
       if (newGroup.type === "page") {
-        newGroup.pageName = item.file.name()
-        newGroup.sortName = item.file.name()
-        newGroup.className = classifyString(item.file.name())
+        newGroup.pageName = item.file.name
+        newGroup.sortName = item.file.name
+        newGroup.className = classifyString(item.file.name)
       } else if (newGroup.type === "tag") {
         newGroup.mainTag = item.mainTag
         newGroup.subTags = item.subTag
