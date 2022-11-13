@@ -34,20 +34,7 @@ import type {
 } from "obsidian";
 import type { TodoItem, TagMeta, FileInfo } from "src/_types";
 
-/**
- * Finds all of the {@link TodoItem todos} in the {@link TFile files} that have been updated since the last re-render.
- *
- * @param files The files to search for todos.
- * @param todoTags The tag(s) that should be present on todos in order to be displayed by this plugin.
- * @param cache The Obsidian {@link MetadataCache} object.
- * @param vault The Obsidian {@link Vault} object.
- * @param includeFiles The pattern of files to include in the search for todos.
- * @param showChecked Whether the user wants to show completed todos in the plugin's UI.
- * @param lastRerender Timestamp of the last time we re-rendered the checklist.
- * @returns A map containing each {@link TFile file} that was updated, and the {@link TodoItem todos} in that file.
- * If there are no todos in a file, that file will still be present in the map, but the value for its entry will be an
- * empty array. This is required to account for the case where a file that previously had todos no longer has any.
- */
+
  const md = new MD().use(commentPlugin).use(tagPlugin).use(highlightPlugin)
  const dv = getAPI();
 
@@ -62,6 +49,21 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
 		html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>")
 	}
 }
+
+/**
+ * Finds all of the {@link TodoItem todos} in the {@link TFile files} that have been updated since the last re-render.
+ *
+ * @param files The files to search for todos.
+ * @param todoTags The tag(s) that should be present on todos in order to be displayed by this plugin.
+ * @param cache The Obsidian {@link MetadataCache} object.
+ * @param vault The Obsidian {@link Vault} object.
+ * @param includeFiles The pattern of files to include in the search for todos.
+ * @param showChecked Whether the user wants to show completed todos in the plugin's UI.
+ * @param lastRerender Timestamp of the last time we re-rendered the checklist.
+ * @returns A map containing each {@link TFile file} that was updated, and the {@link TodoItem todos} in that file.
+ * If there are no todos in a file, that file will still be present in the map, but the value for its entry will be an
+ * empty array. This is required to account for the case where a file that previously had todos no longer has any.
+ */
 
 export const parseTodos = async (
 	files: TFile[],
