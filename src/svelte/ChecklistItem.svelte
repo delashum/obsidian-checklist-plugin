@@ -36,16 +36,19 @@
 </script>
 
 <li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.file.path, ev)}>
-  <button
-    class="toggle"
-    on:click={(ev) => {
-      toggleItem(item)
-      ev.stopPropagation()
-    }}>
-    <CheckCircle bind:checked={item.checked} />
-  </button>
-  <div on:click={(ev) => handleClick(ev, item)} class="content-parent">
+  <div class="checklist-task">
+    <button
+      class="toggle"
+      on:click={(ev) => {
+        toggleItem(item)
+        ev.stopPropagation()
+      }}>
+      <CheckCircle bind:checked={item.checked} />
+    </button>
     <div bind:this={contentDiv} class="content"/>
+    
+  </div>
+  <div on:click={(ev) => handleClick(ev, item)} class="content-parent">
 	<ul class="nested-list">
 	  {#each item.children as taskchild}
 		  <svelte:self {lookAndFeel} {app} bind:item={taskchild}/>
@@ -60,19 +63,29 @@
     padding-right: 1.2em;
   }
   li {
-    display: flex;
-	align-items: baseline;
+    /* display: flex; */
+	  align-items: baseline;
+    cursor: pointer;
+    
+  }
+  .checklist-task {
     background-color: var(--checklist-listItemBackground);
     border-radius: var(--checklist-listItemBorderRadius);
     margin: var(--checklist-listItemMargin);
-    cursor: pointer;
     transition: background-color 100ms ease-in-out;
+    display: flex;
   }
-  li:hover {
+  .checklist-task:hover {
     background-color: var(--checklist-listItemBackground--hover);
+    
   }
   li > div {
     flex-grow: 1;
+  }
+  ul.nested-list {
+    list-style: none;
+    padding-right: 0;
+    padding-left: 1.2em
   }
   .toggle {
     padding: var(--checklist-togglePadding);
@@ -85,9 +98,6 @@
     padding: var(--checklist-contentPadding);
     flex: 1;
     font-size: var(--checklist-contentFontSize);
-  }
-  .compact ul.nested-list, li.compact {
-    /* padding-right:  !important; */
   }
   .compact {
     bottom: var(--checklist-listItemMargin--compact);
