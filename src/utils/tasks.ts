@@ -39,7 +39,7 @@ import type { TodoItem, TagMeta, FileInfo, mapFn } from "src/_types";
  // @ts-ignore it exists shhhhhhhhhhhhhhh
  const dv = window.app.plugins.plugins["dataview"].api
 
- const mapper: mapFn  = (vault: Vault, showChecked: boolean = true) => {
+ const taskMapFn: mapFn  = (vault: Vault, showChecked: boolean = true) => {
 	// if (!currentFileLines[item.line].includes(item.originalText)) return;
   return async (task: STask): Promise<TodoItem> => {
     const dv = getAPI();
@@ -54,7 +54,7 @@ import type { TodoItem, TagMeta, FileInfo, mapFn } from "src/_types";
       originalText: task.text,
       file: dvp.file,
       line: task.line,
-      children: await Promise.all(task.children.filter(a => showChecked ? true : !a.checked).map(mapper(vault))),
+      children: await Promise.all(task.children.filter(a => showChecked ? true : !a.checked).map(taskMapFn(vault))),
       html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>"),
       mainTag: dvpt[0]?.split("/")[0] || dvpt[0],
       subTag: dvpt[0]?.split("/")[1] || null
@@ -110,7 +110,7 @@ export const parseTodos = async (
 	for (const page of dv.pages(query)) {
 		let current = page.file
 		console.log("currrr",  page)
-		let tsk = await Promise.all(current.tasks.filter(b => !b.parent).filter(a => showChecked ? true : !a.checked).map(mapper(vault, showChecked)))
+		let tsk = await Promise.all(current.tasks.filter(b => !b.parent).filter(a => showChecked ? true : !a.checked).map(taskMapFn(vault, showChecked)))
 		  todosForUpdatedFiles.set(vault.getAbstractFileByPath(page.file.path) as TFile,Array.from(tsk))
 	}
 	console.log(todosForUpdatedFiles)
