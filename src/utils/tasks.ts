@@ -36,11 +36,9 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
 
 
  const md = new MD().use(commentPlugin).use(tagPlugin).use(highlightPlugin)
- const dv = getAPI();
+ const dv = window.app.plugins.plugins["dataview"].api
 
- const mapper = (vault: Vault) => {
-
-  
+ const mapper = (vault: Vault, showChecked: boolean = true) => {
 	// if (!currentFileLines[item.line].includes(item.originalText)) return;
   return async (task: STask): Promise<TodoItem> => {
     const dv = getAPI();
@@ -53,7 +51,7 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
       originalText: task.text,
       file: dv.page(task.path).file,
       line: task.line,
-      children: await Promise.all(task.children.map(mapper(vault))),
+      children: await Promise.all(task.children.filter(a => showChecked ? true : !a.checked).map(mapper(vault))),
       html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>")
     }
   }
@@ -103,26 +101,15 @@ export const parseTodos = async (
 	); */
 
 	const todosForUpdatedFiles = new Map<TFile, TodoItem[]>();
-	/* for (const fileInfo of filesWithCache) {
-		let todos = findAllTodosInFile(fileInfo);
-		if (!showChecked) {
-			todos = todos.filter((todo) => !todo.checked);
-		}
-		todosForUpdatedFiles.set(fileInfo.file, todos);
-	} */
-	const dv = getAPI();
-
-	for (const page of files) {
-		const current = dv.page(page.path)?.file
-		// console.log("currrr", current, page)
-		if(!current) continue
-		let tsk = await Promise.all(current.tasks.filter(b => !b.parent).map(mapper(vault)))
-        console.log("calling mapper", Array.from(tsk))
-		todosForUpdatedFiles.set(page,tsk)
+  const query = `(${includeFiles.split("\n").map(a => '"' + (a || "/") + '"').join(" or ")})${todoTags.length ? " and (" + todoTags.map(a => "#" + a).join(" ") + ")" : ""}`
+	for (const page of dv.pages(query)) {
+		let current = page.file
+		console.log("currrr",  page)
+		let tsk = await Promise.all(current.tasks.filter(b => !b.parent).filter(a => showChecked ? true : !a.checked).map(mapper(vault, showChecked)))
+		  todosForUpdatedFiles.set(vault.getAbstractFileByPath(page.file.path) as TFile,Array.from(tsk))
 	}
 	console.log(todosForUpdatedFiles)
 	return todosForUpdatedFiles;
-
 };
 
 export const toggleTodoItem = async (item: TodoItem, app: App) => {
