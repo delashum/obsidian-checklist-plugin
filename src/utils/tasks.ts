@@ -36,6 +36,7 @@ import type { TodoItem, TagMeta, FileInfo, mapFn } from "src/_types";
 
 
  const md = new MD().use(commentPlugin).use(tagPlugin).use(highlightPlugin)
+ // @ts-ignore it exists shhhhhhhhhhhhhhh
  const dv = window.app.plugins.plugins["dataview"].api
 
  const mapper: mapFn  = (vault: Vault, showChecked: boolean = true) => {
