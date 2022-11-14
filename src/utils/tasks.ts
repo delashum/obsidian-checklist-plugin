@@ -109,11 +109,9 @@ export const parseTodos = async (
   const query = `(${includeFiles.split("\n").map(a => '"' + (a || "/") + '"').join(" or ")})${todoTags.filter(a => a.trim() != "*").length ? " and (" + todoTags.map(a => "#" + a).join(" ") + ")" : ""}`
 	for (const page of dv.pages(query)) {
 		let current = page.file
-		console.log("currrr",  page)
 		let tsk = await Promise.all(current.tasks.filter(b => !b.parent).filter(a => showChecked ? true : !a.checked).map(taskMapFn(vault, showChecked)))
 		  todosForUpdatedFiles.set(vault.getAbstractFileByPath(page.file.path) as TFile,Array.from(tsk))
 	}
-	console.log(todosForUpdatedFiles)
 	return todosForUpdatedFiles;
 };
 
@@ -128,7 +126,6 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
 		item.line,
 		!item.checked
 	);
-  console.log
 	item.checked = !item.checked;
 	await app.vault.modify(file, newData);
 };
