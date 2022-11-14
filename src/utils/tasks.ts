@@ -32,13 +32,13 @@ import type {
 	TFile,
 	Vault,
 } from "obsidian";
-import type { TodoItem, TagMeta, FileInfo } from "src/_types";
+import type { TodoItem, TagMeta, FileInfo, mapFn } from "src/_types";
 
 
  const md = new MD().use(commentPlugin).use(tagPlugin).use(highlightPlugin)
  const dv = window.app.plugins.plugins["dataview"].api
 
- const mapper = (vault: Vault, showChecked: boolean = true) => {
+ const mapper: mapFn  = (vault: Vault, showChecked: boolean = true) => {
 	// if (!currentFileLines[item.line].includes(item.originalText)) return;
   return async (task: STask): Promise<TodoItem> => {
     const dv = getAPI();
@@ -46,13 +46,17 @@ import type { TodoItem, TagMeta, FileInfo } from "src/_types";
     if (!file) return;
     const currentFileContents = await vault.read(file);
     const currentFileLines = getAllLinesFromFile(currentFileContents);
+    const dvp = dv.page(task.path)
+    const dvpt = dvp.file.tags.map(a => a.replaceAll("#", ""))
     return {
       checked: todoLineIsChecked(currentFileLines[task.line]),
       originalText: task.text,
-      file: dv.page(task.path).file,
+      file: dvp.file,
       line: task.line,
       children: await Promise.all(task.children.filter(a => showChecked ? true : !a.checked).map(mapper(vault))),
-      html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>")
+      html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>"),
+      mainTag: dvpt[0].split("/")[0],
+      subTag: dvpt[0].split("/")[1] || null
     }
   }
 }

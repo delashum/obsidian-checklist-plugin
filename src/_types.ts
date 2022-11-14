@@ -1,4 +1,4 @@
-import type { CachedMetadata, TagCache, TFile } from "obsidian"
+import type { CachedMetadata, TagCache, TFile, Vault } from "obsidian"
 import type { Literal, PageMetadata } from "obsidian-dataview"
 
 export type TodoItem = {
@@ -54,3 +54,5 @@ export type LookAndFeel = "compact" | "classic"
 export type Icon = "chevron" | "settings"
 
 export type KeysOfType<T, V> = { [K in keyof T]: T[K] extends V ? K : never }[keyof T]
+
+export type mapFn = (vault: Vault, showChecked: boolean) => (task: Stask) => Promise<TodoItem>
