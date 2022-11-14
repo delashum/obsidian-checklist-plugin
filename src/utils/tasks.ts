@@ -56,8 +56,8 @@ import type { TodoItem, TagMeta, FileInfo, mapFn } from "src/_types";
       line: task.line,
       children: await Promise.all(task.children.filter(a => showChecked ? true : !a.checked).map(mapper(vault))),
       html: md.render(task.text).trimEnd().replace(/\n/gm, "<br>"),
-      mainTag: dvpt[0].split("/")[0],
-      subTag: dvpt[0].split("/")[1] || null
+      mainTag: dvpt[0]?.split("/")[0] || dvpt[0],
+      subTag: dvpt[0]?.split("/")[1] || null
     }
   }
 }
@@ -106,7 +106,7 @@ export const parseTodos = async (
 	); */
 
 	const todosForUpdatedFiles = new Map<TFile, TodoItem[]>();
-  const query = `(${includeFiles.split("\n").map(a => '"' + (a || "/") + '"').join(" or ")})${todoTags.length ? " and (" + todoTags.map(a => "#" + a).join(" ") + ")" : ""}`
+  const query = `(${includeFiles.split("\n").map(a => '"' + (a || "/") + '"').join(" or ")})${todoTags.filter(a => a.trim() != "*").length ? " and (" + todoTags.map(a => "#" + a).join(" ") + ")" : ""}`
 	for (const page of dv.pages(query)) {
 		let current = page.file
 		console.log("currrr",  page)
