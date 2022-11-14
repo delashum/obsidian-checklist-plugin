@@ -74,6 +74,7 @@
     margin: var(--checklist-listItemMargin);
     transition: background-color 100ms ease-in-out;
     display: flex;
+    align-items: flex-start;
   }
   .checklist-task:hover {
     background-color: var(--checklist-listItemBackground--hover);
@@ -85,7 +86,7 @@
   ul.nested-list {
     list-style: none;
     padding-right: 0;
-    padding-left: 1.2em
+    padding-left: 1.6em
   }
   .toggle {
     padding: var(--checklist-togglePadding);
@@ -96,6 +97,7 @@
   }
   .content {
     padding: var(--checklist-contentPadding);
+    /* padding-bottom: 0 !important; */
     flex: 1;
     font-size: var(--checklist-contentFontSize);
   }
