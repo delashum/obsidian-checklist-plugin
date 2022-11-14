@@ -101,10 +101,10 @@
 
     color: var(--checklist-tagBaseColor);
   }
-  /* .tag-base:first-of-type {
-    padding-right: 0.1em;
-    color: rgb( var(--color-accent))
-  } */
+  .tag-base:first-of-type {
+    padding-right: 0.25em;
+    /* color: rgb( var(--color-accent)) */
+  }
   .tag-sub {
     color: var(--checklist-tagSubColor);
   }
