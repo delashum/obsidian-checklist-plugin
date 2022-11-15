@@ -122,8 +122,8 @@
 
   .collapse {
     width: 20px;
-	padding-left: 0.3em;
-	padding-right: 0.3em;
+	  padding-left: 0.3em;
+	  padding-right: 0.3em;
   }
   .collapse svg {
 	fill: var(--text-color);
