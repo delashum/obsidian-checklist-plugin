@@ -42,10 +42,10 @@ export const setLineTo = (line: string, setTo: boolean) =>
 export const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 export const combineFileLines = (lines: string[]) => lines.join("\n")
 export const lineIsValidTodo = (line: string) => {
-  return /^\s*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}\S+/.test(line)
+  return /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}\S+/.test(line)
 }
 export const extractTextFromTodoLine = (line: string) =>
-  /^\s*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S{1}.*)$/.exec(line)?.[3]
+  /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S{1}.*)$/.exec(line)?.[4]
 export const getIndentationSpacesFromTodoLine = (line: string) =>
   /^(\s*)([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S+)/.exec(line)?.[1]?.length ?? 0
 export const todoLineIsChecked = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[(\S{1})\]/.test(line)
