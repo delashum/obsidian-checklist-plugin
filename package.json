@@ -1,6 +1,6 @@
 {
   "name": "obsidian-checklist-plugin",
-  "version": "2.2.10",
+  "version": "2.2.11",
   "description": "A plugin for Obsidian.md which consoldiates todo items into a single view.",
   "main": "main.js",
   "scripts": {
