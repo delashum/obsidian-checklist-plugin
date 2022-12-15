@@ -70,10 +70,6 @@ export const ensureMdExtension = (path: string) => {
   return path
 }
 
-export const isMetaPressed = (e: MouseEvent): boolean => {
-  return isMacOS() ? e.metaKey : e.ctrlKey
-}
-
 export const getFrontmatterTags = (cache: CachedMetadata, todoTags: string[] = []) => {
   const frontMatterTags: string[] = parseFrontMatterTags(cache?.frontmatter) ?? []
   if (todoTags.length > 0) return frontMatterTags.filter((tag: string) => todoTags.includes(getTagMeta(tag).main))
