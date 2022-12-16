@@ -25,13 +25,16 @@
         // goto tag
       }
     }
+    else {
+      navToFile(app, item.filePath, ev, item?.line)
+    }
   }
   $: {
     if (contentDiv) contentDiv.innerHTML = item.rawHTML
   }
 </script>
 
-<li class={`${lookAndFeel}`} on:click={(ev) => navToFile(app, item.filePath, ev)}>
+<li class={`${lookAndFeel}`}>
   <button
     class="toggle"
     on:click={(ev) => {

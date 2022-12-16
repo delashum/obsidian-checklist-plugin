@@ -10,7 +10,7 @@ export const navToFile = async (app: App, path: string, ev: MouseEvent, line?: n
   const leaf = app.workspace.getLeaf(mod)
   await leaf.openFile(file)
   if (line) {
-    app.workspace.getActiveViewOfType(MarkdownView)?.currentMode?.applyScroll(line)
+    app.workspace.getActiveViewOfType(MarkdownView).editor.setCursor(line)
   }
 }
 
