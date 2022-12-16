@@ -37,7 +37,7 @@ export const mapLinkMeta = (linkMeta: LinkMeta[]) => {
 }
 
 export const setLineTo = (line: string, setTo: boolean) =>
-  line.replace(/^(\s*([\-\*]|[0-9]+\.)\s\[)([^\]]+)(\].*$)/, `$1${setTo ? "x" : " "}$4`)
+  line.replace(/^((\s|\>)*([\-\*]|[0-9]+\.)\s\[)([^\]]+)(\].*$)/, `$1${setTo ? "x" : " "}$5`)
 
 export const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 export const combineFileLines = (lines: string[]) => lines.join("\n")
@@ -48,7 +48,7 @@ export const extractTextFromTodoLine = (line: string) =>
   /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S{1}.*)$/.exec(line)?.[4]
 export const getIndentationSpacesFromTodoLine = (line: string) =>
   /^(\s*)([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S+)/.exec(line)?.[1]?.length ?? 0
-export const todoLineIsChecked = (line: string) => /^\s*([\-\*]|[0-9]+\.)\s\[(\S{1})\]/.test(line)
+export const todoLineIsChecked = (line: string) => /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(\S{1})\]/.test(line)
 export const getFileLabelFromName = (filename: string) => /^(.+)\.md$/.exec(filename)?.[1]
 
 export const sortGenericItemsInplace = <T, NK extends KeysOfType<T, string>, TK extends KeysOfType<T, number>>(
