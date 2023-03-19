@@ -5,7 +5,7 @@ export const linkPlugin = (linkMap: Map<string, LinkMeta>) =>
   regexPlugin(/\[\[([^\]]+)\]\]/, (match: string[], utils: any) => {
     const content = match[1]
     const [link, label] = content.trim().split("|")
-    const linkItem = linkMap.get(link)
+    const linkItem = linkMap.get(link.trim())
     let displayText = label ? label : linkItem ? linkItem.linkName : link
     if(label) {
       displayText = label
