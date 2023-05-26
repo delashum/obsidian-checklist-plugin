@@ -6,7 +6,7 @@ on:
       - "*"
 
 env:
-  PLUGIN_NAME: obsidian-checklist-plugin
+  PLUGIN_NAME: obsidian-tasklist-plugin
 
 jobs:
   build:
