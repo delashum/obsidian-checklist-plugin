@@ -7,9 +7,15 @@ node_modules
 
 # build
 dist
-main.js
 *.js.map
 
+src/**/*.js
+main.js
+_types.js
+settings.js
+view.js
+worker_helpers.js
+constrants.js
 
 # other
 .DS_Store

@@ -1,11 +1,10 @@
-**LOOKING FOR ANOTHER MAINTAINER TO HELP OUT** There's quite a bit of work to do on this plugin still and i've been neglecting it because work is too busy. I would love some help, or at least someone who could approve PRs and triage issues. Send me an email at delashum@gmail.com if you're interested.
-
-
 # obsidian-checklist-plugin
 
 This plugin consolidates checklists from across files into a single view.
 
 ![screenshot-main](https://raw.githubusercontent.com/delashum/obsidian-checklist-plugin/master/images/screenshot-two-files.png)
+
+**LOOKING FOR ANOTHER MAINTAINER TO HELP OUT** There's quite a bit of work to do on this plugin still and i've been neglecting it because work is too busy. I would love some help, or at least someone who could approve PRs and triage issues. Send me an email at `delashum@gmail.com` if you're interested.
 
 ## Usage
 
@@ -34,10 +33,12 @@ You can complete checklist items by checking them off in your editor (e.g. `- [ 
 **Sort order:** By default checklist items will appear in the order they appear in the file, with files ordered with the oldest at the top. This can be changed to show the newest files at the top.
 
 ## Glob File Matching
+
 The "Include Files" setting uses Glob file matching. Specifically the plugin uses [minimatch](https://github.com/isaacs/minimatch) to match the file pattern - so any specific oddities will come from that plugin.
 
 Couple of common examples to help structure your glob:
-  + `!{_templates/**,_archive/**}` will include everything except for the two directories `_templates` and `_archive`.
-  + `{Daily/**,Weekly/**}` will only include files in the `Daily` & `Weekly` directories
+
+- `!{_templates/**,_archive/**}` will include everything except for the two directories `_templates` and `_archive`.
+- `{Daily/**,Weekly/**}` will only include files in the `Daily` & `Weekly` directories
 
 I recommend the [Digital Ocean Glob Tool](https://www.digitalocean.com/community/tools/glob) for figuring out how globs work - although the implementation is not identical to minimatch so there might be slight differences.

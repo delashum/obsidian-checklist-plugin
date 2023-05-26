@@ -1,10 +1,10 @@
-import MD from 'markdown-it'
-import minimatch from 'minimatch'
+import MD from "markdown-it";
+import { Minimatch } from "minimatch";
 
-import {commentPlugin} from '../plugins/comment'
-import {highlightPlugin} from '../plugins/highlight'
-import {linkPlugin} from '../plugins/link'
-import {tagPlugin} from '../plugins/tag'
+import { commentPlugin } from "../plugins/comment";
+import { highlightPlugin } from "../plugins/highlight";
+import { linkPlugin } from "../plugins/link";
+import { tagPlugin } from "../plugins/tag";
 import {
   combineFileLines,
   extractTextFromTodoLine,
@@ -21,10 +21,17 @@ import {
   removeTagFromText,
   setLineTo,
   todoLineIsChecked,
-} from './helpers'
+} from "./helpers";
 
-import type { App, LinkCache, MetadataCache, TagCache, TFile, Vault } from "obsidian"
-import type { TodoItem, TagMeta, FileInfo } from "src/_types"
+import type {
+  App,
+  LinkCache,
+  MetadataCache,
+  TagCache,
+  TFile,
+  Vault,
+} from "obsidian";
+import type { TodoItem, TagMeta, FileInfo } from "src/_types";
 
 /**
  * Finds all of the {@link TodoItem todos} in the {@link TFile files} that have been updated since the last re-render.
@@ -50,124 +57,154 @@ export const parseTodos = async (
   showAllTodos: boolean,
   lastRerender: number
 ): Promise<Map<TFile, TodoItem[]>> => {
-  const includePattern = includeFiles.trim() ? includeFiles.trim().split("\n") : ["**/*"]
+  const includePattern = includeFiles.trim()
+    ? includeFiles.trim().split("\n")
+    : ["**/*"];
   const filesWithCache = await Promise.all(
     files
       .filter((file) => {
-        if (file.stat.mtime < lastRerender) return false
-        if(!includePattern.some((p) => minimatch(file.path, p))) return false
-        if (todoTags.length === 1 && todoTags[0] === "*") return true
-        const fileCache = cache.getFileCache(file)
-        const allTags = getAllTagsFromMetadata(fileCache)
-        const tagsOnPage = allTags.filter((tag) => todoTags.includes(retrieveTag(getTagMeta(tag)).toLowerCase()))
-        return tagsOnPage.length > 0
+        if (file.stat.mtime < lastRerender) return false;
+
+        var mm = new Minimatch(file.path);
+        if (!includePattern.some((p) => mm.match(p))) return false;
+        if (todoTags.length === 1 && todoTags[0] === "*") return true;
+        const fileCache = cache.getFileCache(file);
+        const allTags = getAllTagsFromMetadata(fileCache);
+        const tagsOnPage = allTags.filter((tag) =>
+          todoTags.includes(retrieveTag(getTagMeta(tag)).toLowerCase())
+        );
+        return tagsOnPage.length > 0;
       })
       .map<Promise<FileInfo>>(async (file) => {
-        const fileCache = cache.getFileCache(file)
-        const tagsOnPage = fileCache?.tags?.filter((e) => todoTags.includes(retrieveTag(getTagMeta(e.tag)).toLowerCase())) ?? []
-        const frontMatterTags = getFrontmatterTags(fileCache, todoTags)
-        const hasFrontMatterTag = frontMatterTags.length > 0
-        const parseEntireFile = todoTags[0] === "*" || hasFrontMatterTag || showAllTodos
-        const content = await vault.cachedRead(file)
+        const fileCache = cache.getFileCache(file);
+        const tagsOnPage =
+          fileCache?.tags?.filter((e) =>
+            todoTags.includes(retrieveTag(getTagMeta(e.tag)).toLowerCase())
+          ) ?? [];
+        const frontMatterTags = getFrontmatterTags(fileCache, todoTags);
+        const hasFrontMatterTag = frontMatterTags.length > 0;
+        const parseEntireFile =
+          todoTags[0] === "*" || hasFrontMatterTag || showAllTodos;
+        const content = await vault.cachedRead(file);
         return {
           content,
           cache: fileCache,
-          validTags: tagsOnPage.map((e) => ({ ...e, tag: e.tag.toLowerCase() })),
+          validTags: tagsOnPage.map((e) => ({
+            ...e,
+            tag: e.tag.toLowerCase(),
+          })),
           file,
           parseEntireFile,
           frontmatterTag: todoTags.length ? frontMatterTags[0] : undefined,
-        }
+        };
       })
-  )
+  );
 
   const todosForUpdatedFiles = new Map<TFile, TodoItem[]>();
   for (const fileInfo of filesWithCache) {
     let todos = findAllTodosInFile(fileInfo);
     if (!showChecked) {
-      todos = todos.filter(todo => !todo.checked);
+      todos = todos.filter((todo) => !todo.checked);
     }
     todosForUpdatedFiles.set(fileInfo.file, todos);
   }
 
-  return todosForUpdatedFiles
-}
+  return todosForUpdatedFiles;
+};
 
 export const toggleTodoItem = async (item: TodoItem, app: App) => {
-  const file = getFileFromPath(app.vault, item.filePath)
-  if (!file) return
-  const currentFileContents = await app.vault.read(file)
-  const currentFileLines = getAllLinesFromFile(currentFileContents)
-  if (!currentFileLines[item.line].includes(item.originalText)) return
-  const newData = setTodoStatusAtLineTo(currentFileLines, item.line, !item.checked)
-  app.vault.modify(file, newData)
-  item.checked = !item.checked
-}
+  const file = getFileFromPath(app.vault, item.filePath);
+  if (!file) return;
+  const currentFileContents = await app.vault.read(file);
+  const currentFileLines = getAllLinesFromFile(currentFileContents);
+  if (!currentFileLines[item.line].includes(item.originalText)) return;
+  const newData = setTodoStatusAtLineTo(
+    currentFileLines,
+    item.line,
+    !item.checked
+  );
+  app.vault.modify(file, newData);
+  item.checked = !item.checked;
+};
 
 const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
-  if (!file.parseEntireFile) return file.validTags.flatMap((tag) => findAllTodosFromTagBlock(file, tag))
+  if (!file.parseEntireFile)
+    return file.validTags.flatMap((tag) => findAllTodosFromTagBlock(file, tag));
 
-  if (!file.content) return []
-  const fileLines = getAllLinesFromFile(file.content)
-  const links = []
+  if (!file.content) return [];
+  const fileLines = getAllLinesFromFile(file.content);
+  const links = [];
   if (file.cache?.links) {
-    links.push(...file.cache.links)
+    links.push(...file.cache.links);
   }
   if (file.cache?.embeds) {
-    links.push(...file.cache.embeds)
+    links.push(...file.cache.embeds);
   }
-  const tagMeta = file.frontmatterTag ? getTagMeta(file.frontmatterTag) : undefined
+  const tagMeta = file.frontmatterTag
+    ? getTagMeta(file.frontmatterTag)
+    : undefined;
 
-  const todos: TodoItem[] = []
+  const todos: TodoItem[] = [];
   for (let i = 0; i < fileLines.length; i++) {
-    const line = fileLines[i]
-    if (line.length === 0) continue
+    const line = fileLines[i];
+    if (line.length === 0) continue;
     if (lineIsValidTodo(line)) {
-      todos.push(formTodo(line, file, links, i, tagMeta))
+      todos.push(formTodo(line, file, links, i, tagMeta));
     }
   }
 
-  return todos
-}
+  return todos;
+};
 
 const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
-  const fileContents = file.content
-  const links = []
+  const fileContents = file.content;
+  const links = [];
   if (file.cache?.links) {
-    links.push(...file.cache.links)
+    links.push(...file.cache.links);
   }
   if (file.cache?.embeds) {
-    links.push(...file.cache.embeds)
+    links.push(...file.cache.embeds);
   }
-  if (!fileContents) return []
-  const fileLines = getAllLinesFromFile(fileContents)
-  const tagMeta = getTagMeta(tag.tag)
-  const tagLine = fileLines[tag.position.start.line]
+  if (!fileContents) return [];
+  const fileLines = getAllLinesFromFile(fileContents);
+  const tagMeta = getTagMeta(tag.tag);
+  const tagLine = fileLines[tag.position.start.line];
   if (lineIsValidTodo(tagLine)) {
-    return [formTodo(tagLine, file, links, tag.position.start.line, tagMeta)]
+    return [formTodo(tagLine, file, links, tag.position.start.line, tagMeta)];
   }
 
-  const todos: TodoItem[] = []
+  const todos: TodoItem[] = [];
   for (let i = tag.position.start.line; i < fileLines.length; i++) {
-    const line = fileLines[i]
-    if (i === tag.position.start.line + 1 && line.length === 0) continue
-    if (line.length === 0) break
+    const line = fileLines[i];
+    if (i === tag.position.start.line + 1 && line.length === 0) continue;
+    if (line.length === 0) break;
     if (lineIsValidTodo(line)) {
-      todos.push(formTodo(line, file, links, i, tagMeta))
+      todos.push(formTodo(line, file, links, i, tagMeta));
     }
   }
 
-  return todos
-}
+  return todos;
+};
 
-const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: number, tagMeta?: TagMeta): TodoItem => {
+const formTodo = (
+  line: string,
+  file: FileInfo,
+  links: LinkCache[],
+  lineNum: number,
+  tagMeta?: TagMeta
+): TodoItem => {
   const relevantLinks = links
     .filter((link) => link.position.start.line === lineNum)
-    .map((link) => ({ filePath: link.link, linkName: link.displayText }))
-  const linkMap = mapLinkMeta(relevantLinks)
-  const rawText = extractTextFromTodoLine(line)
-  const spacesIndented = getIndentationSpacesFromTodoLine(line)
-  const tagStripped = removeTagFromText(rawText, tagMeta?.main)
-  const md = new MD().use(commentPlugin).use(linkPlugin(linkMap)).use(tagPlugin).use(highlightPlugin)
+    .map((link) => ({ filePath: link.link, linkName: link.displayText }));
+  const linkMap = mapLinkMeta(relevantLinks);
+  const rawText = extractTextFromTodoLine(line);
+  const spacesIndented = getIndentationSpacesFromTodoLine(line);
+  const tagStripped = removeTagFromText(rawText, tagMeta?.main);
+  const md = new MD()
+    .use(commentPlugin)
+    .use(linkPlugin(linkMap))
+    .use(tagPlugin)
+    .use(highlightPlugin);
   return {
     mainTag: tagMeta?.main,
     subTag: tagMeta?.sub,
@@ -181,10 +218,14 @@ const formTodo = (line: string, file: FileInfo, links: LinkCache[], lineNum: num
     spacesIndented,
     fileInfo: file,
     originalText: rawText,
-  }
-}
+  };
+};
 
-const setTodoStatusAtLineTo = (fileLines: string[], line: number, setTo: boolean) => {
-  fileLines[line] = setLineTo(fileLines[line], setTo)
-  return combineFileLines(fileLines)
-}
+const setTodoStatusAtLineTo = (
+  fileLines: string[],
+  line: number,
+  setTo: boolean
+) => {
+  fileLines[line] = setLineTo(fileLines[line], setTo);
+  return combineFileLines(fileLines);
+};
