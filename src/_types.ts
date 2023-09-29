@@ -1,4 +1,4 @@
-import type { CachedMetadata, TagCache, TFile } from "obsidian"
+import type {CachedMetadata, TagCache, TFile} from 'obsidian'
 
 export type TodoItem = {
   checked: boolean
@@ -27,11 +27,11 @@ type BaseGroup = {
 }
 
 export type PageGroup = BaseGroup & {
-  type: "page"
+  type: 'page'
   pageName?: string
 }
 export type TagGroup = BaseGroup & {
-  type: "tag"
+  type: 'tag'
   mainTag?: string
   subTags?: string
 }
@@ -47,13 +47,15 @@ export type FileInfo = {
   validTags: TagCache[]
 }
 
-export type TagMeta = { main: string; sub: string }
-export type LinkMeta = { filePath: string; linkName: string }
+export type TagMeta = {main: string; sub: string}
+export type LinkMeta = {filePath: string; linkName: string}
 
-export type GroupByType = "page" | "tag"
-export type SortDirection = "new->old" | "old->new" | "a->z" | "z->a"
-export type LookAndFeel = "compact" | "classic"
+export type GroupByType = 'page' | 'tag'
+export type SortDirection = 'new->old' | 'old->new' | 'a->z' | 'z->a'
+export type LookAndFeel = 'compact' | 'classic'
 
-export type Icon = "chevron" | "settings"
+export type Icon = 'chevron' | 'settings'
 
-export type KeysOfType<T, V> = { [K in keyof T]: T[K] extends V ? K : never }[keyof T]
+export type KeysOfType<T, V> = {
+  [K in keyof T]: T[K] extends V ? K : never
+}[keyof T]

@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [
     "obsidian"
@@ -18,16 +18,19 @@
     "@types/markdown-it": "^12.0.1",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
+    "@typescript-eslint/parser": "5.29.0",
     "builtin-modules": "3.3.0",
-		"esbuild": "0.14.47",
+    "esbuild": "0.14.47",
     "esbuild-svelte": "^0.7.1",
-    "obsidian": "latest",
-    "svelte-preprocess": "^4.10.7",
-    "tslib": "^2.4.0",
-    "typescript": "^4.7.4",
     "markdown-it": "^13.0.1",
     "minimatch": "^5.1.0",
-    "svelte": "^3.49.0"
+    "obsidian": "latest",
+    "svelte": "^3.49.0",
+    "svelte-preprocess": "^4.10.7",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "prettier": "^3.0.3"
   }
 }
