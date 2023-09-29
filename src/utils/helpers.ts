@@ -34,7 +34,6 @@ export const retrieveTag = (tagMeta: TagMeta): string => {
 }
 
 export const mapLinkMeta = (linkMeta: LinkMeta[]) => {
-  console.log(linkMeta)
   const map = new Map<string, LinkMeta>()
   for (const link of linkMeta) map.set(link.filePath, link)
   return map

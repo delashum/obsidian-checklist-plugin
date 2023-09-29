@@ -14,6 +14,7 @@ export const linkPlugin = (linkMap: Map<string, LinkMeta>) =>
     } else {
       displayText = link
     }
+    if (!linkItem) return `[[${content}]]`
     return `<a data-href="${link}" data-type="link" data-filepath="${
       linkItem.filePath
     }" class="internal-link">${utils.escape(displayText)}</a>`
