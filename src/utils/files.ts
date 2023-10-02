@@ -1,8 +1,13 @@
 import {App, MarkdownView, Keymap} from 'obsidian'
 
-import {ensureMdExtension, getFileFromPath } from './helpers'
+import {ensureMdExtension, getFileFromPath} from './helpers'
 
-export const navToFile = async (app: App, path: string, ev: MouseEvent, line?: number) => {
+export const navToFile = async (
+  app: App,
+  path: string,
+  ev: MouseEvent,
+  line?: number,
+) => {
   path = ensureMdExtension(path)
   const file = getFileFromPath(app.vault, path)
   if (!file) return
@@ -17,9 +22,9 @@ export const navToFile = async (app: App, path: string, ev: MouseEvent, line?: n
 export const hoverFile = (event: MouseEvent, app: App, filePath: string) => {
   const targetElement = event.currentTarget
   const timeoutHandle = setTimeout(() => {
-    app.workspace.trigger("link-hover", {}, targetElement, filePath, filePath)
+    app.workspace.trigger('link-hover', {}, targetElement, filePath, filePath)
   }, 800)
-  targetElement.addEventListener("mouseleave", () => {
+  targetElement.addEventListener('mouseleave', () => {
     clearTimeout(timeoutHandle)
   })
 }

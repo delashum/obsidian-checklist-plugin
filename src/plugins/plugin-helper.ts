@@ -1,12 +1,12 @@
-import type MD from "markdown-it"
+import type MD from 'markdown-it'
 
 const escape = (html: string) =>
   String(html)
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 
 const utils = {
   escape,
@@ -16,11 +16,17 @@ let counter = 0
 
 export const regexPlugin = (
   regexp: RegExp,
-  replacer: (match: string[], utils: { escape: (html: string) => string }) => string
+  replacer: (
+    match: string[],
+    utils: {escape: (html: string) => string},
+  ) => string,
 ) => {
-  const flags = (regexp.global ? "g" : "") + (regexp.multiline ? "m" : "") + (regexp.ignoreCase ? "i" : "")
-  const _regexp = RegExp("^" + regexp.source, flags)
-  const id = "regexp-" + counter++
+  const flags =
+    (regexp.global ? 'g' : '') +
+    (regexp.multiline ? 'm' : '') +
+    (regexp.ignoreCase ? 'i' : '')
+  const _regexp = RegExp('^' + regexp.source, flags)
+  const id = 'regexp-' + counter++
 
   return (md: MD) => {
     md.inline.ruler.push(id, (state, silent) => {
@@ -31,8 +37,8 @@ export const regexPlugin = (
 
       if (silent) return true
 
-      var token = state.push(id, "", 0)
-      token.meta = { match: match }
+      var token = state.push(id, '', 0)
+      token.meta = {match: match}
       return true
     })
     md.renderer.rules[id] = (tokens: any, idx: number) => {
