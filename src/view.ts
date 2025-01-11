@@ -64,6 +64,12 @@ export default class TodoListView extends ItemView {
       }),
     )
     this.registerEvent(
+      this.app.workspace.on('active-leaf-change', async () => {
+        if (!this.plugin.getSettingValue('showOnlyActiveFile')) return
+        await this.refresh()
+      })
+    )
+    this.registerEvent(
       this.app.vault.on('delete', file => this.deleteFile(file.path)),
     )
     this.refresh()
@@ -126,7 +132,10 @@ export default class TodoListView extends ItemView {
 
   private groupItems() {
     const flattenedItems = Array.from(this.itemsByFile.values()).flat()
-    const searchedItems = flattenedItems.filter(e =>
+    const viewOnlyOpen = this.plugin.getSettingValue('showOnlyActiveFile');
+    const openFile = this.app.workspace.getActiveFile();
+    const filteredItems = viewOnlyOpen ? flattenedItems.filter(i => i.filePath === openFile.path) : flattenedItems;
+    const searchedItems = filteredItems.filter(e =>
       e.originalText.toLowerCase().includes(this.searchTerm.toLowerCase()),
     )
     this.groupedItems = groupTodos(

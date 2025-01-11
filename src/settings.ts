@@ -7,6 +7,7 @@ export interface TodoSettings {
   todoPageName: string
   showChecked: boolean
   showAllTodos: boolean
+  showOnlyActiveFile: boolean
   autoRefresh: boolean
   groupBy: GroupByType
   subGroups: boolean
@@ -23,6 +24,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: 'todo',
   showChecked: false,
   showAllTodos: false,
+  showOnlyActiveFile: false,
   autoRefresh: true,
   subGroups: false,
   groupBy: 'page',
@@ -92,6 +94,18 @@ export class TodoSettingTab extends PluginSettingTab {
         toggle.setValue(this.plugin.getSettingValue('showAllTodos'))
         toggle.onChange(async value => {
           await this.plugin.updateSettings({showAllTodos: value})
+        })
+      })
+
+    new Setting(this.containerEl)
+      .setName('Show only in currently active file?')
+      .setDesc(
+        'Show only todos present in currently active file?'
+      )
+      .addToggle(toggle => {
+        toggle.setValue(this.plugin.getSettingValue('showOnlyActiveFile'))
+        toggle.onChange(async value => {
+          await this.plugin.updateSettings({showOnlyActiveFile: value})
         })
       })
 
