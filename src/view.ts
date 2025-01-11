@@ -110,7 +110,7 @@ export default class TodoListView extends ItemView {
 
   private async calculateAllItems() {
     const todosForUpdatedFiles = await parseTodos(
-      this.app.vault.getFiles(),
+      this.app.vault.getMarkdownFiles(),
       this.todoTagArray.length === 0 ? ['*'] : this.visibleTodoTagArray,
       this.app.metadataCache,
       this.app.vault,

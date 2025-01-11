@@ -119,7 +119,7 @@ export const getAllTagsFromMetadata = (cache: CachedMetadata): string[] => {
 export const getFileFromPath = (vault: Vault, path: string) => {
   let file = vault.getAbstractFileByPath(path)
   if (file instanceof TFile) return file
-  const files = vault.getFiles()
+  const files = vault.getMarkdownFiles()
   file = files.find(e => e.name === path)
   if (file instanceof TFile) return file
 }
