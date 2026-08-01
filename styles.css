@@ -1,20 +1,20 @@
 /* no content */
 .checklist-plugin-main {
-  --checklist-checkboxSize: 20px;
-  --checklist-checkboxCheckedSize: 12px;
+  --checklist-checkboxSize: 18px;
+  --checklist-checkboxCheckedSize: 10px;
   --checklist-checkboxBorder: 2px solid var(--text-muted);
   --checklist-checkboxFill: var(--text-muted);
-  --checklist-listItemBorderRadius: 8px;
-  --checklist-listItemMargin: 0 0 12px;
+  --checklist-listItemBorderRadius: 6px;
+  --checklist-itemGap: 6px;
+  --checklist-childrenIndent: 16px;
   --checklist-listItemBackground: var(--interactive-normal);
   --checklist-listItemBackground--hover: var(--interactive-hover);
-  --checklist-listItemMargin--compact: 0 0 8px;
   --checklist-listItemBoxShadow: none;
-  --checklist-headerMargin: 0 0 8px;
+  --checklist-headerMargin: 0 0 6px;
   --checklist-headerGap: 4px;
-  --checklist-headerFontSize: 18px;
+  --checklist-headerFontSize: 16px;
   --checklist-headerFontWeight: 600;
-  --checklist-iconSize: 24px;
+  --checklist-iconSize: 20px;
   --checklist-iconFill: var(--text-normal);
   --checklist-iconFill--accent: #777;
   --checklist-textColor: var(--text-muted);
@@ -29,10 +29,10 @@
   --checklist-countPadding: 0 6px;
   --checklist-countBackground: var(--interactive-normal);
   --checklist-countFontSize: 13px;
-  --checklist-togglePadding: 8px 8px 8px 12px;
-  --checklist-contentPadding: 8px 12px 8px 0;
-  --checklist-contentPadding--compact: 4px 8px;
-  --checklist-togglePadding--compact: 4px 8px;
+  --checklist-togglePadding: 6px 6px 6px 10px;
+  --checklist-contentPadding: 6px 10px 6px 0;
+  --checklist-contentPadding--compact: 3px 6px 3px 0;
+  --checklist-togglePadding--compact: 3px 5px 3px 8px;
   --checklist-countBorderRadius: 4px;
   --checklist-tagBaseColor: var(--text-faint);
   --checklist-tagSubColor: #bbb;

@@ -105,6 +105,8 @@
   }
 
   ul {
+    display: grid;
+    gap: var(--checklist-itemGap);
     list-style: none;
     padding: 0;
     margin: 0;

@@ -58,7 +58,9 @@
 
 <style>
   li {
-    margin: var(--checklist-listItemMargin);
+    display: grid;
+    gap: var(--checklist-itemGap);
+    margin: 0;
     list-style: none;
   }
   .task-row {
@@ -73,9 +75,11 @@
     background-color: var(--checklist-listItemBackground--hover);
   }
   .children {
+    display: grid;
+    gap: var(--checklist-itemGap);
     list-style: none;
     margin: 0;
-    padding-inline-start: 1.25rem !important;
+    padding-inline-start: var(--checklist-childrenIndent) !important;
   }
   .toggle {
     padding: var(--checklist-togglePadding);
@@ -87,10 +91,9 @@
   .content {
     padding: var(--checklist-contentPadding);
     flex: 1;
+    min-width: 0;
     font-size: var(--checklist-contentFontSize);
-  }
-  .compact {
-    bottom: var(--checklist-listItemMargin--compact);
+    line-height: 1.35;
   }
   .compact > .task-row > .content {
     padding: var(--checklist-contentPadding--compact);
