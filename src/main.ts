@@ -48,7 +48,7 @@ export default class TodoPlugin extends Plugin {
       id: 'refresh-checklist-view',
       name: 'Refresh List',
       callback: () => {
-        this.view.refresh()
+        this.view?.refresh(true)
       },
     })
     this.registerView(TODO_VIEW_TYPE, leaf => {
@@ -94,9 +94,9 @@ export default class TodoPlugin extends Plugin {
       'sortDirectionItems',
     ]
     if (onlyRepaintWhenChanges.includes(Object.keys(updates)[0]))
-      this.view.rerender()
+      this.view?.rerender()
     else
-      this.view.refresh(
+      this.view?.refresh(
         !onlyReGroupWhenChanges.includes(Object.keys(updates)[0]),
       )
   }

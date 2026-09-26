@@ -9,7 +9,6 @@ import {
   combineFileLines,
   extractTextFromTodoLine,
   getAllLinesFromFile,
-  getAllTagsFromMetadata,
   getFileFromPath,
   getFileLabelFromName,
   getFrontmatterTags,
@@ -65,13 +64,7 @@ export const parseTodos = async (
       .filter(file => {
         if (file.stat.mtime < lastRerender) return false
         if (!includePattern.some(p => minimatch(file.path, p))) return false
-        if (todoTags.length === 1 && todoTags[0] === '*') return true
-        const fileCache = cache.getFileCache(file)
-        const allTags = getAllTagsFromMetadata(fileCache)
-        const tagsOnPage = allTags.filter(tag =>
-          todoTags.includes(retrieveTag(getTagMeta(tag)).toLowerCase()),
-        )
-        return tagsOnPage.length > 0
+        return true
       })
       .map<Promise<FileInfo>>(async file => {
         const fileCache = cache.getFileCache(file)
@@ -83,7 +76,9 @@ export const parseTodos = async (
         const hasFrontMatterTag = frontMatterTags.length > 0
         const parseEntireFile =
           todoTags[0] === '*' || hasFrontMatterTag || showAllTodos
-        const content = await vault.cachedRead(file)
+        const matches =
+          todoTags[0] === '*' || tagsOnPage.length > 0 || hasFrontMatterTag
+        const content = matches ? await vault.cachedRead(file) : ''
         return {
           content,
           cache: fileCache,
@@ -115,7 +110,7 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
   if (!file) return
   const currentFileContents = await app.vault.read(file)
   const currentFileLines = getAllLinesFromFile(currentFileContents)
-  if (!currentFileLines[item.line].includes(item.originalText)) return
+  if (!currentFileLines[item.line]?.includes(item.originalText)) return
   const newData = setTodoStatusAtLineTo(
     currentFileLines,
     item.line,
@@ -126,8 +121,18 @@ export const toggleTodoItem = async (item: TodoItem, app: App) => {
 }
 
 const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
-  if (!file.parseEntireFile)
-    return file.validTags.flatMap(tag => findAllTodosFromTagBlock(file, tag))
+  if (!file.parseEntireFile) {
+    const todos = file.validTags.flatMap(tag =>
+      findAllTodosFromTagBlock(file, tag),
+    )
+    const seen = new Set<string>()
+    return todos.filter(todo => {
+      const key = JSON.stringify([todo.line, todo.mainTag, todo.subTag])
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }
 
   if (!file.content) return []
   const fileLines = getAllLinesFromFile(file.content)
