@@ -8,8 +8,8 @@ export default class TodoPlugin extends Plugin {
   private settings: TodoSettings
 
   get view() {
-    return this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]
-      ?.view as TodoListView
+    const view = this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]?.view
+    return view instanceof TodoListView ? view : undefined
   }
 
   async onload() {
@@ -56,22 +56,20 @@ export default class TodoPlugin extends Plugin {
       return newView
     })
 
-    if (this.app.workspace.layoutReady) this.initLeaf()
-    else this.app.workspace.onLayoutReady(() => this.initLeaf())
+    this.app.workspace.onLayoutReady(() => this.initLeaf())
   }
 
   initLeaf(): void {
     if (this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE).length) return
 
-    this.app.workspace.getRightLeaf(false).setViewState({
+    this.app.workspace.getRightLeaf(false)?.setViewState({
       type: TODO_VIEW_TYPE,
-      active: true,
+      active: false,
     })
   }
 
-  async onunload() {
-    this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]?.detach()
-  }
+  // Obsidian restores registered views in place across plugin reloads.
+  // Detaching leaves on unload would discard the user's pane position.
 
   async loadSettings() {
     const loadedData = await this.loadData()
