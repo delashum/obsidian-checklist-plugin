@@ -5,6 +5,7 @@ import type {GroupByType, LookAndFeel, SortDirection} from './_types'
 
 export interface TodoSettings {
   todoPageName: string
+  showSource: boolean
   showChecked: boolean
   showAllTodos: boolean
   showOnlyActiveFile: boolean
@@ -22,6 +23,7 @@ export interface TodoSettings {
 
 export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: 'todo',
+  showSource: true,
   showChecked: false,
   showAllTodos: false,
   showOnlyActiveFile: false,
@@ -99,9 +101,7 @@ export class TodoSettingTab extends PluginSettingTab {
 
     new Setting(this.containerEl)
       .setName('Show only in currently active file?')
-      .setDesc(
-        'Show only todos present in currently active file?'
-      )
+      .setDesc('Show only todos present in currently active file?')
       .addToggle(toggle => {
         toggle.setValue(this.plugin.getSettingValue('showOnlyActiveFile'))
         toggle.onChange(async value => {
@@ -187,9 +187,9 @@ export class TodoSettingTab extends PluginSettingTab {
     new Setting(this.containerEl).setName('Styling')
 
     new Setting(this.containerEl)
-      .setName('Look and Feel')
+      .setName('Density')
       .addDropdown(dropdown => {
-        dropdown.addOption('classic', 'Classic')
+        dropdown.addOption('classic', 'Comfortable')
         dropdown.addOption('compact', 'Compact')
         dropdown.setValue(this.plugin.getSettingValue('lookAndFeel'))
         dropdown.onChange(async (value: LookAndFeel) => {

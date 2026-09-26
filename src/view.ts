@@ -132,7 +132,10 @@ export default class TodoListView extends ItemView {
     return {
       todoTags: this.todoTagArray,
       lookAndFeel: this.plugin.getSettingValue('lookAndFeel'),
-      subGroups: this.plugin.getSettingValue('subGroups'),
+      groupBy: this.plugin.getSettingValue('groupBy'),
+      showChecked: this.plugin.getSettingValue('showChecked'),
+      showOnlyActiveFile: this.plugin.getSettingValue('showOnlyActiveFile'),
+      showSource: this.plugin.getSettingValue('showSource'),
       _collapsedSections: this.plugin.getSettingValue('_collapsedSections'),
       _hiddenTags: this.plugin.getSettingValue('_hiddenTags'),
       app: this.app,

@@ -7,9 +7,15 @@ import TodoListView from './view'
 export default class TodoPlugin extends Plugin {
   private settings: TodoSettings
 
+  get views(): TodoListView[] {
+    return this.app.workspace
+      .getLeavesOfType(TODO_VIEW_TYPE)
+      .map(leaf => leaf.view)
+      .filter((view): view is TodoListView => view instanceof TodoListView)
+  }
+
   get view() {
-    const view = this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]?.view
-    return view instanceof TodoListView ? view : undefined
+    return this.views[0]
   }
 
   async onload() {
@@ -48,8 +54,16 @@ export default class TodoPlugin extends Plugin {
       id: 'refresh-checklist-view',
       name: 'Refresh List',
       callback: () => {
-        this.view?.refresh(true)
+        this.views.forEach(view => void view.refresh(true))
       },
+    })
+    this.addCommand({
+      id: 'toggle-current-file',
+      name: 'Toggle current file only',
+      callback: () =>
+        this.updateSettings({
+          showOnlyActiveFile: !this.getSettingValue('showOnlyActiveFile'),
+        }),
     })
     this.registerView(TODO_VIEW_TYPE, leaf => {
       const newView = new TodoListView(leaf, this)
@@ -82,6 +96,7 @@ export default class TodoPlugin extends Plugin {
     const onlyRepaintWhenChanges = [
       'autoRefresh',
       'lookAndFeel',
+      'showSource',
       '_collapsedSections',
     ]
     const onlyReGroupWhenChanges = [
@@ -91,11 +106,20 @@ export default class TodoPlugin extends Plugin {
       'sortDirectionSubGroups',
       'sortDirectionItems',
     ]
-    if (onlyRepaintWhenChanges.includes(Object.keys(updates)[0]))
-      this.view?.rerender()
+    const keys = Object.keys(updates)
+    if (keys.every(key => onlyRepaintWhenChanges.includes(key)))
+      this.views.forEach(view => view.rerender())
     else
-      this.view?.refresh(
-        !onlyReGroupWhenChanges.includes(Object.keys(updates)[0]),
+      await Promise.all(
+        this.views.map(view =>
+          view.refresh(
+            !keys.every(
+              key =>
+                onlyReGroupWhenChanges.includes(key) ||
+                onlyRepaintWhenChanges.includes(key),
+            ),
+          ),
+        ),
       )
   }
 

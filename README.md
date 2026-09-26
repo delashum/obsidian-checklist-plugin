@@ -42,3 +42,11 @@ Couple of common examples to help structure your glob:
 - `{Daily/**,Weekly/**}` will only include files in the `Daily` & `Weekly` directories
 
 I recommend the [Digital Ocean Glob Tool](https://www.digitalocean.com/community/tools/glob) for figuring out how globs work - although the implementation is not identical to minimatch so there might be slight differences.
+
+## Sidebar controls
+
+Use **Display options** in the sidebar to switch between page and tag grouping, show completed tasks, focus the current note, choose Comfortable or Compact density, and show source-note labels. Source labels appear when grouping by tag; click one to open its note.
+
+Click a group heading to collapse or expand it. The toolbar also lets you collapse or expand all visible groups. Page headings retain a separate Open note button. Clear search with the × button or Escape.
+
+The **Checklist: Toggle current file only** command can be assigned a hotkey. The sidebar follows Obsidian’s theme colors in both light and dark mode.

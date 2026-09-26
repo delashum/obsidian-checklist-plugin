@@ -5,7 +5,7 @@ import {ensureMdExtension, getFileFromPath} from './helpers'
 export const navToFile = async (
   app: App,
   path: string,
-  ev: MouseEvent,
+  ev: MouseEvent | KeyboardEvent,
   line?: number,
 ) => {
   path = ensureMdExtension(path)
@@ -14,8 +14,8 @@ export const navToFile = async (
   const mod = Keymap.isModEvent(ev)
   const leaf = app.workspace.getLeaf(mod)
   await leaf.openFile(file)
-  if (line) {
-    app.workspace.getActiveViewOfType(MarkdownView).editor.setCursor(line)
+  if (line != null) {
+    app.workspace.getActiveViewOfType(MarkdownView)?.editor.setCursor(line)
   }
 }
 

@@ -260,3 +260,70 @@ test('a deferred view is not treated as an initialized checklist', () => {
   }
   assert.equal(plugin.view, undefined)
 })
+
+async function pluginFixture() {
+  const plugin = new TodoPlugin()
+  const commands = []
+  let makeView
+  plugin.settings = {showOnlyActiveFile: false}
+  plugin.loadSettings = async () => {}
+  plugin.saveData = async () => {}
+  plugin.addSettingTab = () => {}
+  plugin.addCommand = command => commands.push(command)
+  plugin.registerView = (_type, factory) => (makeView = factory)
+  const leaves = []
+  plugin.app = {
+    workspace: {getLeavesOfType: () => leaves, onLayoutReady: () => {}},
+  }
+  await plugin.onload()
+  return {plugin, commands, leaves, makeView}
+}
+
+test('current-file command toggles and persists even with no checklist pane', async () => {
+  const {plugin, commands} = await pluginFixture()
+  const saved = []
+  plugin.saveData = async data => saved.push(data.showOnlyActiveFile)
+  const command = commands.find(command => command.id === 'toggle-current-file')
+  await command.callback()
+  await command.callback()
+  assert.deepEqual(saved, [true, false])
+})
+test('display changes repaint every initialized pane and skip deferred leaves', async () => {
+  const {plugin, leaves, makeView} = await pluginFixture()
+  let repaints = 0
+  for (let i = 0; i < 2; i++) {
+    const view = makeView({app: plugin.app})
+    view.rerender = () => repaints++
+    leaves.push({view})
+  }
+  leaves.push({view: {getViewType: () => 'deferred'}})
+  await plugin.updateSettings({showSource: false})
+  assert.equal(repaints, 2)
+})
+test('combined display and parsing changes request a full refresh in every pane', async () => {
+  const {plugin, leaves, makeView} = await pluginFixture()
+  const scans = []
+  const view = makeView({app: plugin.app})
+  view.refresh = async all => scans.push(all)
+  leaves.push({view})
+  await plugin.updateSettings({lookAndFeel: 'compact', showChecked: true})
+  assert.deepEqual(scans, [true])
+})
+
+obsidian.Keymap = {isModEvent: () => false}
+obsidian.MarkdownView = class {}
+const {navToFile} = load('src/utils/files.ts')
+test('task navigation positions the cursor on line zero', async () => {
+  const f = fixture('- [ ] task')
+  const opened = []
+  const cursors = []
+  f.app.workspace.getLeaf = () => ({
+    openFile: async file => opened.push(file.path),
+  })
+  f.app.workspace.getActiveViewOfType = () => ({
+    editor: {setCursor: line => cursors.push(line)},
+  })
+  await navToFile(f.app, 'note.md', {}, 0)
+  assert.deepEqual(opened, ['note.md'])
+  assert.deepEqual(cursors, [0])
+})
