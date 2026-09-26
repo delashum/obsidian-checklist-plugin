@@ -14,7 +14,7 @@ import {
   getFrontmatterTags,
   getIndentationSpacesFromTodoLine,
   getTagMeta,
-  retrieveTag,
+  matchesTodoTag,
   lineIsValidTodo,
   mapLinkMeta,
   removeTagFromText,
@@ -69,9 +69,7 @@ export const parseTodos = async (
       .map<Promise<FileInfo>>(async file => {
         const fileCache = cache.getFileCache(file)
         const tagsOnPage =
-          fileCache?.tags?.filter(e =>
-            todoTags.includes(retrieveTag(getTagMeta(e.tag)).toLowerCase()),
-          ) ?? []
+          fileCache?.tags?.filter(e => matchesTodoTag(e.tag, todoTags)) ?? []
         const frontMatterTags = getFrontmatterTags(fileCache, todoTags)
         const hasFrontMatterTag = frontMatterTags.length > 0
         const parseEntireFile =

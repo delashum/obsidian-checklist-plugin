@@ -18,7 +18,7 @@ You can complete checklist items by checking them off in your editor (e.g. `- [ 
 
 ![screenshot-settings](https://raw.githubusercontent.com/delashum/obsidian-checklist-plugin/master/images/screenshot-settings.png)
 
-**Tag name:** The default tag to lookup checklist items by is `#todo`, but may be changed to whatever you like
+**Tag name:** The default tag to lookup checklist items by is `#todo`, but may be changed to whatever you like. Enter one tag per line, with or without `#`. A nested filter such as `todo/next` matches `#todo/next` and `#todo/next/errand`, but not `#todo/next-week`. This also applies to frontmatter tags.
 
 **Show completed?:** By default the plugin will only show uncompleted tasks, and as tasks are completed they will filter out of the sidebar. You may choose to show all tasks
 

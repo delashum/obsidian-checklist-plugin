@@ -29,6 +29,18 @@ export const getTagMeta = (tag: string): TagMeta => {
   return {main, sub}
 }
 
+// Match the configured tag itself and descendants, never sibling prefixes.
+export const matchesTodoTag = (tag: string, todoTags: string[]) => {
+  const normalized = tag.replace(/^#/, '').toLowerCase()
+  return todoTags.some(value => {
+    const configured = value.trim().replace(/^#/, '').toLowerCase()
+    return (
+      configured.length > 0 &&
+      (normalized === configured || normalized.startsWith(configured + '/'))
+    )
+  })
+}
+
 export const retrieveTag = (tagMeta: TagMeta): string => {
   return tagMeta.main ? tagMeta.main : tagMeta.sub ? tagMeta.sub : ''
 }
@@ -104,7 +116,7 @@ export const getFrontmatterTags = (
     parseFrontMatterTags(cache?.frontmatter) ?? []
   if (todoTags.length > 0)
     return frontMatterTags.filter((tag: string) =>
-      todoTags.includes(getTagMeta(tag).main),
+      matchesTodoTag(tag, todoTags),
     )
   return frontMatterTags
 }

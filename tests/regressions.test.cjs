@@ -184,3 +184,35 @@ test('clicking a task whose source line was deleted is a safe no-op', async () =
     f.app,
   )
 })
+
+test('nested filters match the exact tag and descendants but not sibling prefixes', async () => {
+  const f = fixture(
+    '- [ ] exact #todo/next\n- [ ] child #todo/next/errand\n- [ ] sibling #todo/next-week',
+  )
+  f.settings.todoPageName = ' #TODO/next '
+  f.setMetadata({
+    tags: [
+      tag('#todo/next', 0),
+      tag('#todo/next/errand', 1),
+      tag('#todo/next-week', 2),
+    ],
+  })
+  await f.view.refresh()
+  assert.deepEqual(
+    f.view.groupedItems[0].todos.map(t => t.line),
+    [0, 1],
+  )
+  f.settings._hiddenTags = ['todo/next']
+  await f.view.refresh(true)
+  assert.equal(f.view.groupedItems.length, 0)
+})
+test('nested frontmatter filters are case insensitive and include descendants', async () => {
+  const f = fixture('- [ ] frontmatter task')
+  f.settings.todoPageName = 'todo/next'
+  f.setMetadata({frontmatter: {tags: ['TODO/Next/Errand']}})
+  await f.view.refresh()
+  assert.equal(f.view.groupedItems[0].todos.length, 1)
+  f.setMetadata({frontmatter: {tags: ['todo/next-week']}})
+  await f.view.refresh()
+  assert.equal(f.view.groupedItems.length, 0)
+})

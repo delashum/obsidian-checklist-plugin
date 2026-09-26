@@ -42,7 +42,7 @@ export default class TodoListView extends ItemView {
       .getSettingValue('todoPageName')
       .trim()
       .split('\n')
-      .map(e => e.toLowerCase())
+      .map(e => e.trim().replace(/^#/, '').toLowerCase())
       .filter(e => e)
   }
 
