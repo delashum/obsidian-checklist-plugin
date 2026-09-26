@@ -1,21 +1,25 @@
-import type {CachedMetadata, TagCache, TFile} from 'obsidian'
-
 export type TodoItem = {
   checked: boolean
   filePath: string
   fileName: string
   fileLabel: string
   fileCreatedTs: number
+  fileModifiedTs: number
+  filterTags: string[]
+  sourceLine: string
+  parentLine?: number
+  children: TodoItem[]
   mainTag?: string
   subTag?: string
   line: number
   spacesIndented: number
-  fileInfo: FileInfo
   originalText: string
   rawHTML: string
 }
 
 type BaseGroup = {
+  path?: string
+  label?: string
   type: GroupByType
   todos: TodoItem[]
   id: string
@@ -36,22 +40,21 @@ export type TagGroup = BaseGroup & {
   subTags?: string
 }
 
-export type TodoGroup = PageGroup | TagGroup
-
-export type FileInfo = {
-  content: string
-  cache: CachedMetadata
-  parseEntireFile: boolean
-  frontmatterTag: string
-  file: TFile
-  validTags: TagCache[]
-}
+export type FolderGroup = BaseGroup & {type: 'folder'}
+export type TodoGroup = PageGroup | TagGroup | FolderGroup
 
 export type TagMeta = {main: string; sub: string}
 export type LinkMeta = {filePath: string; linkName: string}
 
-export type GroupByType = 'page' | 'tag'
-export type SortDirection = 'new->old' | 'old->new' | 'a->z' | 'z->a'
+export type GroupByType = 'page' | 'tag' | 'folder'
+export type SortDirection =
+  | 'new->old'
+  | 'old->new'
+  | 'a->z'
+  | 'z->a'
+  | 'source'
+  | 'modified'
+  | 'configured'
 export type LookAndFeel = 'compact' | 'classic'
 
 export type Icon = 'chevron' | 'settings'

@@ -1,13 +1,13 @@
 {
   "name": "obsidian-checklist-plugin",
-  "version": "2.2.15",
-  "description": "A plugin for Obsidian.md which consoldiates todo items into a single view.",
+  "version": "3.0.0",
+  "description": "A fast, native task sidebar for Obsidian.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/regressions.test.cjs"
   },
   "keywords": [
     "obsidian"
@@ -16,16 +16,16 @@
   "license": "MIT",
   "devDependencies": {
     "@tsconfig/svelte": "^1.0.10",
-    "@types/markdown-it": "^12.0.1",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "5.29.0",
     "@typescript-eslint/parser": "5.29.0",
     "builtin-modules": "3.3.0",
-    "esbuild": "0.14.47",
+    "esbuild": "0.28.2",
     "esbuild-svelte": "^0.7.1",
-    "markdown-it": "^13.0.1",
+    "markdown-it": "15.0.2",
     "minimatch": "^5.1.0",
-    "obsidian": "latest",
+    "obsidian": "1.7.2",
+    "prettier-plugin-svelte": "3.4.1",
     "svelte": "^3.49.0",
     "svelte-preprocess": "^4.10.7",
     "tslib": "^2.4.0",
@@ -33,5 +33,8 @@
   },
   "dependencies": {
     "prettier": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

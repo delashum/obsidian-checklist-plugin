@@ -1,4 +1,4 @@
-import {Plugin} from 'obsidian'
+import {Plugin, FuzzySuggestModal, TFolder} from 'obsidian'
 
 import {TODO_VIEW_TYPE} from './constants'
 import {DEFAULT_SETTINGS, TodoSettings, TodoSettingTab} from './settings'
@@ -22,33 +22,43 @@ export default class TodoPlugin extends Plugin {
     await this.loadSettings()
 
     this.addSettingTab(new TodoSettingTab(this.app, this))
+    this.registerEvent(
+      this.app.workspace.on('file-menu', (menu, file) => {
+        if (!(file instanceof TFolder)) return
+        menu.addItem(item =>
+          item
+            .setTitle('Focus Checklist on this folder')
+            .setIcon('list-checks')
+            .onClick(async () => {
+              await this.updateSettings({
+                focusFolder: file.path === '/' ? '' : file.path,
+                showOnlyActiveFile: false,
+              })
+              await this.showPane()
+            }),
+        )
+      }),
+    )
+    this.addRibbonIcon(
+      'list-checks',
+      'Open Checklist',
+      () => void this.showPane(),
+    )
     this.addCommand({
       id: 'show-checklist-view',
-      name: 'Show Checklist Pane',
-      callback: () => {
-        const workspace = this.app.workspace
-        const views = workspace.getLeavesOfType(TODO_VIEW_TYPE)
-        if (views.length === 0) {
-          workspace
-            .getRightLeaf(false)
-            .setViewState({
-              type: TODO_VIEW_TYPE,
-              active: true,
-            })
-            .then(() => {
-              const todoLeaf = workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]
-              workspace.revealLeaf(todoLeaf)
-              workspace.setActiveLeaf(todoLeaf, true, true)
-            })
-        } else {
-          views[0].setViewState({
-            active: true,
-            type: TODO_VIEW_TYPE,
-          })
-          workspace.revealLeaf(views[0])
-          workspace.setActiveLeaf(views[0], true, true)
-        }
-      },
+      name: 'Show Checklist pane',
+      callback: () => this.showPane(),
+    })
+    this.addCommand({
+      id: 'choose-tag',
+      name: 'Focus a tag',
+      callback: () => new TagPicker(this).open(),
+    })
+    this.addCommand({
+      id: 'toggle-completed',
+      name: 'Toggle completed tasks',
+      callback: () =>
+        this.updateSettings({showChecked: !this.settings.showChecked}),
     })
     this.addCommand({
       id: 'refresh-checklist-view',
@@ -70,16 +80,25 @@ export default class TodoPlugin extends Plugin {
       return newView
     })
 
-    this.app.workspace.onLayoutReady(() => this.initLeaf())
+    // Registered panes restore in place. Create a new pane only on explicit use;
+    // a plugin reload can run before Obsidian finishes restoring existing leaves.
   }
 
-  initLeaf(): void {
-    if (this.app.workspace.getLeavesOfType(TODO_VIEW_TYPE).length) return
-
-    this.app.workspace.getRightLeaf(false)?.setViewState({
-      type: TODO_VIEW_TYPE,
-      active: false,
+  private openingPane: Promise<void> | null = null
+  showPane(): Promise<void> {
+    if (this.openingPane) return this.openingPane
+    this.openingPane = (async () => {
+      const workspace = this.app.workspace
+      const existing = workspace.getLeavesOfType(TODO_VIEW_TYPE)[0]
+      const leaf =
+        existing ?? workspace.getRightLeaf(false) ?? workspace.getLeaf(true)
+      if (!existing)
+        await leaf.setViewState({type: TODO_VIEW_TYPE, active: true})
+      await workspace.revealLeaf(leaf)
+    })().finally(() => {
+      this.openingPane = null
     })
+    return this.openingPane
   }
 
   // Obsidian restores registered views in place across plugin reloads.
@@ -95,6 +114,7 @@ export default class TodoPlugin extends Plugin {
     await this.saveData(this.settings)
     const onlyRepaintWhenChanges = [
       'autoRefresh',
+      'useTasksPlugin',
       'lookAndFeel',
       'showSource',
       '_collapsedSections',
@@ -105,25 +125,54 @@ export default class TodoPlugin extends Plugin {
       'sortDirectionGroups',
       'sortDirectionSubGroups',
       'sortDirectionItems',
+      'showChecked',
+      'showOnlyActiveFile',
+      'focusFolder',
+      '_hiddenTags',
     ]
     const keys = Object.keys(updates)
     if (keys.every(key => onlyRepaintWhenChanges.includes(key)))
       this.views.forEach(view => view.rerender())
-    else
-      await Promise.all(
-        this.views.map(view =>
-          view.refresh(
-            !keys.every(
-              key =>
-                onlyReGroupWhenChanges.includes(key) ||
-                onlyRepaintWhenChanges.includes(key),
-            ),
-          ),
-        ),
+    else if (
+      keys.every(
+        key =>
+          onlyReGroupWhenChanges.includes(key) ||
+          onlyRepaintWhenChanges.includes(key),
       )
+    )
+      this.views.forEach(view => view.regroup())
+    else await Promise.all(this.views.map(view => view.refresh(true)))
   }
 
   getSettingValue<K extends keyof TodoSettings>(setting: K): TodoSettings[K] {
     return this.settings[setting]
+  }
+}
+
+class TagPicker extends FuzzySuggestModal<string> {
+  constructor(private plugin: TodoPlugin) {
+    super(plugin.app)
+    this.setPlaceholder('Focus a tag…')
+  }
+  getItems() {
+    return [
+      'All configured tags',
+      ...this.plugin
+        .getSettingValue('todoPageName')
+        .split('\n')
+        .map(t => t.trim().replace(/^#/, '').toLowerCase())
+        .filter(Boolean),
+    ]
+  }
+  getItemText(item: string) {
+    return item === 'All configured tags' ? item : '#' + item
+  }
+  onChooseItem(item: string) {
+    const tags = this.getItems().slice(1)
+    void this.plugin.updateSettings({
+      _hiddenTags:
+        item === 'All configured tags' ? [] : tags.filter(t => t !== item),
+    })
+    void this.plugin.showPane()
   }
 }

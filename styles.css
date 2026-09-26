@@ -279,7 +279,7 @@
 .checklist-plugin-main .checklist-task-content a:hover {
   text-decoration: underline;
 }
-.checklist-task.is-completed .checklist-task-content {
+.checklist-task.is-completed > .checklist-task-body > .checklist-task-content {
   color: var(--text-faint);
   text-decoration: line-through;
 }
@@ -331,5 +331,94 @@
   .checklist-plugin-main .checklist-task-toggle {
     min-height: 28px;
     flex-basis: 28px;
+  }
+}
+
+/* 3.0: structure stays quiet until it is useful. */
+.checklist-scope {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  margin-bottom: 10px;
+  background: var(--background-modifier-hover);
+  border-radius: 6px;
+}
+.checklist-plugin-main .checklist-scope button {
+  flex: 1;
+  height: 27px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.checklist-plugin-main .checklist-scope button.is-selected {
+  background: var(--background-primary);
+  color: var(--text-normal);
+  box-shadow: 0 1px 3px var(--background-modifier-box-shadow);
+}
+.checklist-display-panel {
+  max-height: min(620px, 70vh);
+  overflow-y: auto;
+}
+.checklist-folder-option input {
+  width: 120px;
+  min-width: 0;
+  height: 26px;
+  font-size: 12px;
+}
+.checklist-subgroups {
+  margin-left: 9px;
+  padding-left: 9px;
+  border-left: 1px solid var(--background-modifier-border);
+}
+.checklist-subgroups .checklist-group {
+  margin-bottom: 10px;
+}
+.checklist-subgroups .checklist-group-header {
+  border: 0;
+  padding-bottom: 0;
+}
+.checklist-plugin-main .checklist-children-toggle {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  padding: 2px 0;
+  height: 22px;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.checklist-plugin-main ul.checklist-children {
+  border-left: 1px solid var(--background-modifier-border);
+  padding-left: 6px !important;
+  margin: 3px 0 0 1px;
+}
+.checklist-plugin-main .checklist-load-more {
+  width: 100%;
+  height: auto;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+}
+.checklist-load-more span {
+  margin-left: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.checklist-status {
+  margin-bottom: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.checklist-status button {
+  padding: 2px 6px;
+  font-size: inherit;
+}
+@media (pointer: coarse) {
+  .checklist-plugin-main .checklist-scope button {
+    min-height: 36px;
   }
 }

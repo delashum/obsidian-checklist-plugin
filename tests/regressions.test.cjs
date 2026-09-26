@@ -22,6 +22,8 @@ class ItemView {
 const obsidian = {
   TFile,
   ItemView,
+  Notice: class {},
+  FuzzySuggestModal: class {},
   Plugin: class {
     onunload() {}
   },
@@ -64,6 +66,10 @@ function fixture(content = '#todo\n- [ ] task') {
         return f.content
       },
       read: async f => f.content,
+      process: async (f, update) => {
+        f.content = update(f.content)
+        return f.content
+      },
       getAbstractFileByPath: () => file,
     },
     metadataCache: {getFileCache: () => metadata},
@@ -229,27 +235,37 @@ test('plugin unload preserves its workspace leaf for Obsidian to restore', async
   await plugin.onunload()
   assert.equal(detached, false)
 })
-test('initializing an existing pane never creates a duplicate or changes focus', () => {
+test('opening the pane reuses an existing restored leaf', async () => {
   const plugin = new TodoPlugin()
+  const existing = {}
+  const revealed = []
   plugin.app = {
     workspace: {
-      getLeavesOfType: () => [{}],
-      getRightLeaf: () => assert.fail('must reuse existing leaf'),
+      getLeavesOfType: () => [existing],
+      getRightLeaf: () => assert.fail('must reuse leaf'),
+      revealLeaf: async leaf => revealed.push(leaf),
     },
   }
-  plugin.initLeaf()
+  await plugin.showPane()
+  assert.deepEqual(revealed, [existing])
 })
-test('initializing a new pane does not activate it', () => {
-  const states = []
+test('simultaneous open commands create only one pane', async () => {
   const plugin = new TodoPlugin()
+  let creations = 0
+  const leaf = {
+    setViewState: async () => {
+      creations++
+    },
+  }
   plugin.app = {
     workspace: {
       getLeavesOfType: () => [],
-      getRightLeaf: () => ({setViewState: state => states.push(state)}),
+      getRightLeaf: () => leaf,
+      revealLeaf: async () => {},
     },
   }
-  plugin.initLeaf()
-  assert.equal(states[0].active, false)
+  await Promise.all([plugin.showPane(), plugin.showPane()])
+  assert.equal(creations, 1)
 })
 test('a deferred view is not treated as an initialized checklist', () => {
   const plugin = new TodoPlugin()
@@ -269,11 +285,17 @@ async function pluginFixture() {
   plugin.loadSettings = async () => {}
   plugin.saveData = async () => {}
   plugin.addSettingTab = () => {}
+  plugin.addRibbonIcon = () => {}
   plugin.addCommand = command => commands.push(command)
+  plugin.registerEvent = () => {}
   plugin.registerView = (_type, factory) => (makeView = factory)
   const leaves = []
   plugin.app = {
-    workspace: {getLeavesOfType: () => leaves, onLayoutReady: () => {}},
+    workspace: {
+      getLeavesOfType: () => leaves,
+      onLayoutReady: () => {},
+      on: () => {},
+    },
   }
   await plugin.onload()
   return {plugin, commands, leaves, makeView}
@@ -306,7 +328,7 @@ test('combined display and parsing changes request a full refresh in every pane'
   const view = makeView({app: plugin.app})
   view.refresh = async all => scans.push(all)
   leaves.push({view})
-  await plugin.updateSettings({lookAndFeel: 'compact', showChecked: true})
+  await plugin.updateSettings({lookAndFeel: 'compact', showAllTodos: true})
   assert.deepEqual(scans, [true])
 })
 
@@ -317,13 +339,364 @@ test('task navigation positions the cursor on line zero', async () => {
   const f = fixture('- [ ] task')
   const opened = []
   const cursors = []
+  const view = new obsidian.MarkdownView()
+  const scrolled = []
+  view.editor = {
+    setCursor: pos => cursors.push(pos.line),
+    scrollIntoView: range => scrolled.push(range.from.line),
+  }
   f.app.workspace.getLeaf = () => ({
+    view,
     openFile: async file => opened.push(file.path),
-  })
-  f.app.workspace.getActiveViewOfType = () => ({
-    editor: {setCursor: line => cursors.push(line)},
+    setEphemeralState: () => {},
   })
   await navToFile(f.app, 'note.md', {}, 0)
   assert.deepEqual(opened, ['note.md'])
   assert.deepEqual(cursors, [0])
+  assert.deepEqual(scrolled, [0])
+})
+
+const {buildTodoTree, countTodoTree} = load('src/utils/hierarchy.ts')
+const {groupTodos} = load('src/utils/groups.ts')
+const {matchesFilePatterns} = load('src/utils/tasks.ts')
+function listItem(line, parent = -1, task = ' ') {
+  return {position: {start: {line}, end: {line}}, parent, task}
+}
+function sample(line, parentLine, extra = {}) {
+  return {
+    filePath: 'note.md',
+    fileName: 'note.md',
+    fileLabel: 'note',
+    line,
+    parentLine,
+    children: [],
+    checked: false,
+    originalText: 'Task ' + line,
+    sourceLine: '- [ ] Task ' + line,
+    fileCreatedTs: 1,
+    fileModifiedTs: 1,
+    ...extra,
+  }
+}
+test('hierarchy keeps source parents, promotes filtered children, and never mutates cached items', () => {
+  const items = [sample(0), sample(2, 0), sample(3, 2)]
+  const tree = buildTodoTree(items)
+  assert.equal(countTodoTree(tree), 3)
+  assert.equal(tree[0].children[0].children[0].line, 3)
+  assert.equal(items[0].children.length, 0)
+  assert.equal(buildTodoTree(items.slice(1))[0].line, 2)
+  assert.equal(buildTodoTree([sample(0, 2), sample(2, 0)]).length, 1)
+})
+test('tagged parent includes descendants through ordinary list items', async () => {
+  const f = fixture(
+    '- [ ] Parent #todo\n  - plain bullet\n    - [ ] Child\n- [ ] Other',
+  )
+  f.setMetadata({
+    tags: [tag('#todo', 0)],
+    listItems: [
+      listItem(0),
+      listItem(1, 0, undefined),
+      listItem(2, 1),
+      listItem(3),
+    ],
+  })
+  const items = (await parse(f)).get(f.file)
+  assert.deepEqual(
+    items.map(t => t.line),
+    [0, 2],
+  )
+  assert.equal(items[1].parentLine, 0)
+  assert.equal('fileInfo' in items[0], false)
+})
+test('wildcard mode keeps tag groups and excludes fenced examples and properties', async () => {
+  const f = fixture(
+    '---\ntitle: Example\n---\n```md\n- [ ] fake\n```\n- [ ] tagged #work\n- [ ] untagged',
+  )
+  f.setMetadata({tags: [tag('#work', 6)]})
+  const result = await parseTodos(
+    f.files,
+    ['*'],
+    f.app.metadataCache,
+    f.app.vault,
+    '',
+    true,
+    false,
+    0,
+  )
+  assert.deepEqual(
+    result.get(f.file).map(t => [t.line, t.mainTag]),
+    [
+      [6, 'work'],
+      [7, undefined],
+    ],
+  )
+})
+test('metadata tasks ignore task-like text in code and support plus bullets', async () => {
+  const f = fixture('+ [ ] valid #todo\n- [ ] code')
+  f.setMetadata({tags: [tag('#todo', 0)], listItems: [listItem(0)]})
+  const result = await parseTodos(
+    f.files,
+    ['*'],
+    f.app.metadataCache,
+    f.app.vault,
+    '',
+    true,
+    false,
+    0,
+  )
+  assert.deepEqual(
+    result.get(f.file).map(t => t.line),
+    [0],
+  )
+})
+test('excluded tags hide a subtree or a whole property-tagged note', async () => {
+  const f = fixture(
+    '- [ ] Parent #todo #archive/later\n  - [ ] Child\n- [ ] Keep #todo',
+  )
+  f.setMetadata({
+    tags: [tag('#todo', 0), tag('#archive/later', 0), tag('#todo', 2)],
+    listItems: [listItem(0), listItem(1, 0), listItem(2)],
+  })
+  const run = () =>
+    parseTodos(
+      f.files,
+      ['todo'],
+      f.app.metadataCache,
+      f.app.vault,
+      '',
+      true,
+      false,
+      0,
+      ['archive'],
+    )
+  assert.deepEqual(
+    (await run()).get(f.file).map(t => t.line),
+    [2],
+  )
+  f.setMetadata({frontmatter: {tags: ['todo', 'archive']}})
+  assert.equal((await run()).get(f.file).length, 0)
+})
+test('positive and negative file patterns compose without re-including exclusions', () => {
+  assert.equal(
+    matchesFilePatterns(
+      'Projects/Work.md',
+      'Projects/**\n!Projects/Archive/**',
+    ),
+    true,
+  )
+  assert.equal(
+    matchesFilePatterns(
+      'Projects/Archive/Old.md',
+      'Projects/**\n!Projects/Archive/**',
+    ),
+    false,
+  )
+  assert.equal(matchesFilePatterns('Elsewhere.md', '!Archive/**'), true)
+  assert.equal(
+    matchesFilePatterns('Archive/Old.md', '!Archive/**\n!Templates/**'),
+    false,
+  )
+})
+test('bounded scan isolates failures and retries unreadable files later', async () => {
+  const f = fixture()
+  f.files.splice(
+    0,
+    1,
+    ...Array.from({length: 24}, (_, i) => new TFile(i + '.md', '- [ ] task')),
+  )
+  let active = 0,
+    peak = 0
+  const failures = []
+  f.app.vault.cachedRead = async file => {
+    active++
+    peak = Math.max(peak, active)
+    await new Promise(resolve => setTimeout(resolve, 1))
+    active--
+    if (file.path === '5.md') throw new Error('simulated sync failure')
+    return file.content
+  }
+  const result = await parseTodos(
+    f.files,
+    ['*'],
+    f.app.metadataCache,
+    f.app.vault,
+    '',
+    true,
+    false,
+    0,
+    [],
+    file => failures.push(file.path),
+  )
+  assert.equal(result.size, 23)
+  assert.deepEqual(failures, ['5.md'])
+  assert.ok(peak <= 4)
+  assert.deepEqual(
+    [...result.keys()].slice(0, 3).map(f => f.path),
+    ['0.md', '1.md', '2.md'],
+  )
+})
+test('atomic toggles preserve CRLF and reject stale source lines', async () => {
+  const f = fixture('- [ ] First #todo\r\n- [ ] Second #todo\r\n')
+  f.setMetadata({tags: [tag('#todo', 0), tag('#todo', 1)]})
+  const items = (await parse(f)).get(f.file)
+  await Promise.all(items.map(item => toggleTodoItem(item, f.app)))
+  assert.equal(f.file.content, '- [x] First #todo\r\n- [x] Second #todo\r\n')
+  const stale = {...items[0], checked: false, sourceLine: '- [ ] First #todo'}
+  assert.equal(await toggleTodoItem(stale, f.app), false)
+  assert.equal(f.file.content.startsWith('- [x]'), true)
+})
+test('failed saves do not optimistically change task state', async () => {
+  const f = fixture('- [ ] task #todo')
+  f.setMetadata({tags: [tag('#todo', 0)]})
+  const item = (await parse(f)).get(f.file)[0]
+  f.app.vault.process = async (file, update) => {
+    update(file.content)
+    throw new Error('simulated write failure')
+  }
+  assert.equal(await toggleTodoItem(item, f.app), false)
+  assert.equal(item.checked, false)
+})
+test('grouping deduplicates page tasks and preserves independent tag trees', () => {
+  const items = [
+    sample(0, undefined, {mainTag: 'a'}),
+    sample(1, 0, {mainTag: 'a'}),
+    sample(0, undefined, {mainTag: 'b'}),
+  ]
+  const pages = groupTodos(items, 'page', 'a->z', 'source', false, 'a->z')
+  assert.equal(countTodoTree(pages[0].todos), 2)
+  const tags = groupTodos(items, 'tag', 'configured', 'source', true, 'a->z', [
+    'b',
+    'a',
+  ])
+  assert.deepEqual(
+    tags.map(g => g.label),
+    ['#b', '#a'],
+  )
+  assert.equal(countTodoTree(tags[0].todos), 1)
+  assert.equal(countTodoTree(tags[1].todos), 2)
+  assert.notEqual(tags[0].groups[0].id, tags[1].groups[0].id)
+})
+test('modified-time ordering and source ordering keep task trees together', () => {
+  const items = [
+    sample(10, undefined, {originalText: 'B'}),
+    sample(11, 10, {originalText: 'A'}),
+    sample(2),
+  ]
+  const groups = groupTodos(items, 'page', 'modified', 'source', false, 'a->z')
+  assert.deepEqual(
+    groups[0].todos.map(t => t.line),
+    [2, 10],
+  )
+  assert.equal(groups[0].todos[1].children[0].line, 11)
+})
+test('view filters and search use cached tasks without reading notes', async () => {
+  const f = fixture('- [ ] Open #todo\n- [x] Done #todo')
+  f.setMetadata({tags: [tag('#todo', 0), tag('#todo', 1)]})
+  await f.view.refresh()
+  const reads = f.reads()
+  f.settings.showChecked = true
+  f.view.regroup()
+  assert.equal(f.view.totalCount, 2)
+  f.view.props().onSearch('note done')
+  assert.equal(f.view.totalCount, 1)
+  assert.equal(f.reads(), reads)
+})
+test('render limit follows source order and load-more reaches all tasks', async () => {
+  const f = fixture(
+    Array.from({length: 230}, (_, i) => '- [ ] Task ' + i).join('\n'),
+  )
+  f.settings.todoPageName = ''
+  f.settings.sortDirectionItems = 'source'
+  f.setMetadata({})
+  await f.view.refresh()
+  assert.equal(f.view.totalCount, 230)
+  assert.equal(countTodoTree(f.view.groupedItems[0].todos), 200)
+  assert.equal(f.view.groupedItems[0].todos[199].line, 199)
+  f.view.props().onLoadMore()
+  assert.equal(countTodoTree(f.view.groupedItems[0].todos), 230)
+})
+test('deleted files cannot be resurrected by a read already in flight', async () => {
+  const f = fixture()
+  let release
+  f.app.vault.cachedRead = async file => {
+    await new Promise(resolve => (release = resolve))
+    return file.content
+  }
+  const refresh = f.view.refresh()
+  f.files.length = 0
+  release()
+  await refresh
+  assert.equal(f.view.groupedItems.length, 0)
+})
+test('loading the plugin registers access controls without creating a pane', async () => {
+  const {commands, leaves} = await pluginFixture()
+  assert.equal(leaves.length, 0)
+  assert.ok(commands.some(command => command.id === 'choose-tag'))
+})
+
+test('Tasks integration atomically saves all recurrence lines and passes the source path', async () => {
+  const f = fixture('- [ ] Repeat #todo\r\nUnrelated text\r\n')
+  f.setMetadata({tags: [tag('#todo', 0)]})
+  const item = (await parse(f)).get(f.file)[0]
+  f.app.plugins = {
+    plugins: {
+      'obsidian-tasks-plugin': {
+        apiV1: {
+          executeToggleTaskDoneCommand: (line, path) => {
+            assert.equal(path, 'note.md')
+            assert.equal(line, '- [ ] Repeat #todo')
+            return '- [x] Repeat #todo ✅ 2026-09-26\n- [ ] Repeat #todo 📅 2026-09-27'
+          },
+        },
+      },
+    },
+  }
+  assert.equal(await toggleTodoItem(item, f.app, true), true)
+  assert.equal(
+    f.file.content,
+    '- [x] Repeat #todo ✅ 2026-09-26\r\n- [ ] Repeat #todo 📅 2026-09-27\r\nUnrelated text\r\n',
+  )
+})
+test('enabled Tasks integration refuses a silent fallback when Tasks is unavailable', async () => {
+  const f = fixture('- [ ] Repeat #todo')
+  f.setMetadata({tags: [tag('#todo', 0)]})
+  const item = (await parse(f)).get(f.file)[0]
+  assert.equal(await toggleTodoItem(item, f.app, true), false)
+  assert.equal(f.file.content, '- [ ] Repeat #todo')
+})
+
+test('focusing a nested configured tag still works when its parent filter is hidden', async () => {
+  const f = fixture('- [ ] Next #todo/next\n- [ ] Later #todo/later')
+  f.settings.todoPageName = 'todo\ntodo/next'
+  f.settings._hiddenTags = ['todo']
+  f.setMetadata({tags: [tag('#todo/next', 0), tag('#todo/later', 1)]})
+  await f.view.refresh()
+  assert.equal(f.view.totalCount, 1)
+  assert.equal(f.view.groupedItems[0].todos[0].line, 0)
+})
+test('whole-note tasks follow tag visibility even without their own inline tags', async () => {
+  const f = fixture('#work\n\n- [ ] Whole note task')
+  f.settings.todoPageName = 'work\nother'
+  f.settings.showAllTodos = true
+  f.settings._hiddenTags = ['work']
+  f.setMetadata({tags: [tag('#work', 0)]})
+  await f.view.refresh()
+  assert.equal(f.view.totalCount, 0)
+})
+test('wiki link attributes are escaped and links remain keyboard accessible', async () => {
+  const f = fixture('- [ ] Read [[Note|the note]] #todo')
+  f.setMetadata({
+    tags: [tag('#todo', 0)],
+    links: [
+      {
+        link: 'Note',
+        displayText: 'the note',
+        position: {start: {line: 0}, end: {line: 0}},
+      },
+    ],
+  })
+  const item = (await parse(f)).get(f.file)[0]
+  assert.match(item.rawHTML, /href="#"/)
+  assert.match(item.rawHTML, /data-filepath="Note"/)
+  assert.match(item.rawHTML, />the note<\/a>/)
 })

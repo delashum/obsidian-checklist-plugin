@@ -15,7 +15,12 @@ export const navToFile = async (
   const leaf = app.workspace.getLeaf(mod)
   await leaf.openFile(file)
   if (line != null) {
-    app.workspace.getActiveViewOfType(MarkdownView)?.editor.setCursor(line)
+    const view = leaf.view
+    if (view instanceof MarkdownView) {
+      view.editor.setCursor({line, ch: 0})
+      view.editor.scrollIntoView({from: {line, ch: 0}, to: {line, ch: 0}}, true)
+    }
+    leaf.setEphemeralState({line, focus: true})
   }
 }
 

@@ -1,10 +1,12 @@
 import {App, PluginSettingTab, Setting} from 'obsidian'
-
 import type TodoPlugin from './main'
 import type {GroupByType, LookAndFeel, SortDirection} from './_types'
 
 export interface TodoSettings {
   todoPageName: string
+  excludeTags: string
+  focusFolder: string
+  useTasksPlugin: boolean
   showSource: boolean
   showChecked: boolean
   showAllTodos: boolean
@@ -20,9 +22,11 @@ export interface TodoSettings {
   _collapsedSections: string[]
   _hiddenTags: string[]
 }
-
 export const DEFAULT_SETTINGS: TodoSettings = {
   todoPageName: 'todo',
+  useTasksPlugin: false,
+  excludeTags: '',
+  focusFolder: '',
   showSource: true,
   showChecked: false,
   showAllTodos: false,
@@ -30,203 +34,169 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   autoRefresh: true,
   subGroups: false,
   groupBy: 'page',
-  sortDirectionItems: 'new->old',
-  sortDirectionGroups: 'new->old',
-  sortDirectionSubGroups: 'new->old',
+  sortDirectionItems: 'source',
+  sortDirectionGroups: 'a->z',
+  sortDirectionSubGroups: 'a->z',
   includeFiles: '',
   lookAndFeel: 'classic',
   _collapsedSections: [],
   _hiddenTags: [],
 }
-
+export const SORT_OPTIONS = {
+  'a->z': 'Name A–Z',
+  'z->a': 'Name Z–A',
+  'new->old': 'Newest created',
+  'old->new': 'Oldest created',
+  modified: 'Recently modified',
+}
 export class TodoSettingTab extends PluginSettingTab {
+  private pending: Partial<TodoSettings> = {}
+  private timer: number
   constructor(
     app: App,
     private plugin: TodoPlugin,
   ) {
     super(app, plugin)
   }
-
-  display(): void {
-    this.containerEl.empty()
-
-    this.containerEl.createEl('h3', {
-      text: 'General Settings',
-    })
-
-    this.buildSettings()
+  private saveText(key: keyof TodoSettings, value: string) {
+    this.pending = {...this.pending, [key]: value}
+    window.clearTimeout(this.timer)
+    this.timer = window.setTimeout(() => this.flush(), 500)
   }
-
-  private buildSettings() {
-    /** GENERAL */
-
-    new Setting(this.containerEl).setName('General')
-
-    new Setting(this.containerEl)
-      .setName('Tag name')
-      .setDesc(
-        'e.g. "todo" will match #todo. You may add mutliple tags separated by a newline. Leave empty to capture all',
-      )
-      .addTextArea(text =>
-        text
-          .setPlaceholder('todo')
-          .setValue(this.plugin.getSettingValue('todoPageName'))
-          .onChange(async value => {
-            await this.plugin.updateSettings({
-              todoPageName: value,
-            })
-          }),
-      )
-
-    new Setting(this.containerEl)
-      .setName('Show Completed?')
-      .addToggle(toggle => {
-        toggle.setValue(this.plugin.getSettingValue('showChecked'))
-        toggle.onChange(async value => {
-          await this.plugin.updateSettings({showChecked: value})
-        })
-      })
-
-    new Setting(this.containerEl)
-      .setName('Show All Todos In File?')
-      .setDesc(
-        'Show all items in file if tag is present, or only items attached to the block where the tag is located. Only has an effect if Tag Name is not empty',
-      )
-      .addToggle(toggle => {
-        toggle.setValue(this.plugin.getSettingValue('showAllTodos'))
-        toggle.onChange(async value => {
-          await this.plugin.updateSettings({showAllTodos: value})
-        })
-      })
-
-    new Setting(this.containerEl)
-      .setName('Show only in currently active file?')
-      .setDesc('Show only todos present in currently active file?')
-      .addToggle(toggle => {
-        toggle.setValue(this.plugin.getSettingValue('showOnlyActiveFile'))
-        toggle.onChange(async value => {
-          await this.plugin.updateSettings({showOnlyActiveFile: value})
-        })
-      })
-
-    /** GORUPING & SORTING */
-
-    new Setting(this.containerEl).setName('Grouping & Sorting')
-
-    new Setting(this.containerEl).setName('Group By').addDropdown(dropdown => {
-      dropdown.addOption('page', 'Page')
-      dropdown.addOption('tag', 'Tag')
-      dropdown.setValue(this.plugin.getSettingValue('groupBy'))
-      dropdown.onChange(async (value: GroupByType) => {
-        await this.plugin.updateSettings({groupBy: value})
-      })
+  private flush() {
+    window.clearTimeout(this.timer)
+    if (Object.keys(this.pending).length) {
+      const updates = this.pending
+      this.pending = {}
+      void this.plugin.updateSettings(updates)
+    }
+  }
+  hide() {
+    this.flush()
+  }
+  display() {
+    this.containerEl.empty()
+    this.containerEl.createEl('h2', {text: 'Checklist'})
+    this.containerEl.createEl('p', {
+      text: 'Your notes are the source of truth. Organize their tasks here without moving or rewriting them.',
     })
-
-    // new Setting(this.containerEl)
-    //   .setName("Enable Sub-Groups?")
-    //   .addToggle((toggle) => {
-    //     toggle.setValue(this.plugin.getSettingValue("subGroups"))
-    //     toggle.onChange(async (value) => {
-    //       await this.plugin.updateSettings({ subGroups: value })
-    //     })
-    //   })
-    //   .setDesc("When grouped by page you will see sub-groups by tag, and vice versa.")
-
+    this.heading('Task sources')
+    this.text(
+      'todoPageName',
+      'Included tags',
+      'One tag per line. A tag includes its nested tags. Leave empty to show all Markdown tasks.',
+      'todo',
+      true,
+    )
+    this.text(
+      'excludeTags',
+      'Excluded tags',
+      'Hide tasks or tagged blocks with these tags, including nested tags. A matching property tag excludes the whole note.',
+      'archive\nsomeday',
+      true,
+    )
+    this.text(
+      'includeFiles',
+      'File patterns',
+      'One glob per line. Positive patterns include files; ! patterns exclude them. Leave empty to include every note.',
+      'Projects/**\n!Projects/Archive/**',
+      true,
+    )
+    this.toggle(
+      'showAllTodos',
+      'Include all tasks in matching notes',
+      'Otherwise include tagged tasks, their children, and tagged blocks. A matching property tag always includes the entire note.',
+    )
+    this.heading('Organization')
+    this.select('groupBy', 'Group by', {
+      page: 'Page',
+      tag: 'Tag',
+      folder: 'Folder',
+    })
+    this.toggle(
+      'subGroups',
+      'Nested groups',
+      'Within pages, group by tag. Within tags or folders, group by page.',
+    )
+    this.select('sortDirectionGroups', 'Group order', {
+      ...SORT_OPTIONS,
+      configured: 'Configured tag order',
+    })
+    this.select('sortDirectionSubGroups', 'Nested group order', SORT_OPTIONS)
+    this.select('sortDirectionItems', 'Task order', {
+      source: 'Order in note',
+      ...SORT_OPTIONS,
+    })
+    this.heading('Display')
+    this.select('lookAndFeel', 'Density', {
+      classic: 'Comfortable',
+      compact: 'Compact',
+    })
+    this.toggle(
+      'showSource',
+      'Show source notes',
+      'Show each task’s note when grouping by tag or folder.',
+    )
+    this.toggle('showChecked', 'Show completed tasks')
+    this.toggle('showOnlyActiveFile', 'Current note only')
+    this.text(
+      'focusFolder',
+      'Focus folder',
+      'Limit the view to this vault-relative folder and its subfolders. Clear to show every folder.',
+      'Projects',
+    )
+    this.heading('Integration')
+    this.toggle(
+      'useTasksPlugin',
+      'Complete with Tasks',
+      'Use the Tasks plugin’s completion command, including its completion dates and recurrence rules. Requires Tasks 7.2 or later to be enabled.',
+    )
+    this.heading('Refresh')
+    this.toggle(
+      'autoRefresh',
+      'Refresh automatically',
+      'Update after notes change. You can always refresh from the pane or command palette.',
+    )
+  }
+  private heading(text: string) {
+    this.containerEl.createEl('h3', {text})
+  }
+  private text(
+    key: keyof TodoSettings,
+    name: string,
+    desc: string,
+    placeholder: string,
+    multiline = false,
+  ) {
+    const setting = new Setting(this.containerEl).setName(name).setDesc(desc)
+    const configure = (input: any) =>
+      input
+        .setPlaceholder(placeholder)
+        .setValue(this.plugin.getSettingValue(key) as string)
+        .onChange((value: string) => this.saveText(key, value))
+    if (multiline) setting.addTextArea(configure)
+    else setting.addText(configure)
+  }
+  private toggle(key: keyof TodoSettings, name: string, desc = '') {
     new Setting(this.containerEl)
-      .setName('Item Sort')
-      .addDropdown(dropdown => {
-        dropdown.addOption('a->z', 'A -> Z')
-        dropdown.addOption('z->a', 'Z -> A')
-        dropdown.addOption('new->old', 'New -> Old')
-        dropdown.addOption('old->new', 'Old -> New')
-        dropdown.setValue(this.plugin.getSettingValue('sortDirectionItems'))
-        dropdown.onChange(async (value: SortDirection) => {
-          await this.plugin.updateSettings({
-            sortDirectionItems: value,
-          })
-        })
-      })
-      .setDesc(
-        'Time sorts are based on last time the file for a particular item was edited',
+      .setName(name)
+      .setDesc(desc)
+      .addToggle(input =>
+        input
+          .setValue(this.plugin.getSettingValue(key) as boolean)
+          .onChange(value => this.plugin.updateSettings({[key]: value})),
       )
-
-    new Setting(this.containerEl)
-      .setName('Group Sort')
-      .addDropdown(dropdown => {
-        dropdown.addOption('a->z', 'A -> Z')
-        dropdown.addOption('z->a', 'Z -> A')
-        dropdown.addOption('new->old', 'New -> Old')
-        dropdown.addOption('old->new', 'Old -> New')
-        dropdown.setValue(this.plugin.getSettingValue('sortDirectionGroups'))
-        dropdown.onChange(async (value: SortDirection) => {
-          await this.plugin.updateSettings({
-            sortDirectionGroups: value,
-          })
-        })
-      })
-      .setDesc(
-        'Time sorts are based on last time the file for the newest or oldest item in a group was edited',
-      )
-
-    // new Setting(this.containerEl)
-    //   .setName("Sub-Group Sort")
-    //   .addDropdown((dropdown) => {
-    //     dropdown.addOption("a->z", "A -> Z")
-    //     dropdown.addOption("z->a", "Z -> A")
-    //     dropdown.addOption("new->old", "New -> Old")
-    //     dropdown.addOption("old->new", "Old -> New")
-    //     dropdown.setValue(this.plugin.getSettingValue("sortDirectionSubGroups"))
-    //     dropdown.onChange(async (value: SortDirection) => {
-    //       await this.plugin.updateSettings({ sortDirectionSubGroups: value })
-    //     })
-    //   })
-    //   .setDesc("Time sorts are based on last time the file for the newest or oldest item in a group was edited")
-
-    /** STYLING */
-
-    new Setting(this.containerEl).setName('Styling')
-
-    new Setting(this.containerEl)
-      .setName('Density')
-      .addDropdown(dropdown => {
-        dropdown.addOption('classic', 'Comfortable')
-        dropdown.addOption('compact', 'Compact')
-        dropdown.setValue(this.plugin.getSettingValue('lookAndFeel'))
-        dropdown.onChange(async (value: LookAndFeel) => {
-          await this.plugin.updateSettings({lookAndFeel: value})
-        })
-      })
-
-    /** ADVANCED */
-
-    new Setting(this.containerEl).setName('Advanced')
-
-    new Setting(this.containerEl)
-      .setName('Include Files')
-      .setDesc(
-        'Include all files that match this glob pattern. Examples on plugin page/github readme. Leave empty to check all files.',
-      )
-      .setTooltip('**/*')
-      .addText(text =>
-        text
-          .setValue(this.plugin.getSettingValue('includeFiles'))
-          .onChange(async value => {
-            await this.plugin.updateSettings({
-              includeFiles: value,
-            })
-          }),
-      )
-
-    new Setting(this.containerEl)
-      .setName('Auto Refresh List?')
-      .addToggle(toggle => {
-        toggle.setValue(this.plugin.getSettingValue('autoRefresh'))
-        toggle.onChange(async value => {
-          await this.plugin.updateSettings({autoRefresh: value})
-        })
-      })
-      .setDesc(
-        'It\'s recommended to leave this on unless you are expereince performance issues due to a large vault. You can then reload manually using the "Checklist: refresh" command',
-      )
+  }
+  private select(
+    key: keyof TodoSettings,
+    name: string,
+    options: Record<string, string>,
+  ) {
+    new Setting(this.containerEl).setName(name).addDropdown(input =>
+      input
+        .addOptions(options)
+        .setValue(this.plugin.getSettingValue(key) as string)
+        .onChange(value => this.plugin.updateSettings({[key]: value})),
+    )
   }
 }

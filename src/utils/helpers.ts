@@ -19,7 +19,10 @@ export const classifyString = (str: string) => {
 export const removeTagFromText = (text: string, tag: string) => {
   if (!text) return ''
   if (!tag) return text.trim()
-  return text.replace(new RegExp(`\\s?\\#${tag}[^\\s]*`, 'g'), '').trim()
+  const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return text
+    .replace(new RegExp(`(^|\\s)#${escaped}(?:/[^\\s]+)?(?=\\s|$)`, 'gi'), '$1')
+    .trim()
 }
 
 export const getTagMeta = (tag: string): TagMeta => {
@@ -53,21 +56,22 @@ export const mapLinkMeta = (linkMeta: LinkMeta[]) => {
 
 export const setLineTo = (line: string, setTo: boolean) =>
   line.replace(
-    /^((\s|\>)*([\-\*]|[0-9]+\.)\s\[)([^\]]+)(\].*$)/,
+    /^((\s|\>)*([\-\*+]|[0-9]+\.)\s\[)([^\]]+)(\].*$)/,
     `$1${setTo ? 'x' : ' '}$5`,
   )
 
 export const getAllLinesFromFile = (cache: string) => cache.split(/\r?\n/)
 export const combineFileLines = (lines: string[]) => lines.join('\n')
 export const lineIsValidTodo = (line: string) => {
-  return /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}\S+/.test(line)
+  return /^(\s|\>)*([\-\*+]|[0-9]+\.)\s\[(.{1})\]\s{1,4}\S+/.test(line)
 }
 export const extractTextFromTodoLine = (line: string) =>
-  /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S{1}.*)$/.exec(line)?.[4]
+  /^(\s|\>)*([\-\*+]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S{1}.*)$/.exec(line)?.[4]
 export const getIndentationSpacesFromTodoLine = (line: string) =>
-  /^(\s*)([\-\*]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S+)/.exec(line)?.[1]?.length ?? 0
+  /^(\s*)([\-\*+]|[0-9]+\.)\s\[(.{1})\]\s{1,4}(\S+)/.exec(line)?.[1]?.length ??
+  0
 export const todoLineIsChecked = (line: string) =>
-  /^(\s|\>)*([\-\*]|[0-9]+\.)\s\[(\S{1})\]/.test(line)
+  /^(\s|\>)*([\-\*+]|[0-9]+\.)\s\[(\S{1})\]/.test(line)
 export const getFileLabelFromName = (filename: string) =>
   /^(.+)\.md$/.exec(filename)?.[1]
 

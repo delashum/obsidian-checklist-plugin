@@ -1,15 +1,14 @@
 import MD from 'markdown-it'
 import minimatch from 'minimatch'
-
+import {Notice} from 'obsidian'
 import {commentPlugin} from '../plugins/comment'
 import {highlightPlugin} from '../plugins/highlight'
 import {linkPlugin} from '../plugins/link'
 import {tagPlugin} from '../plugins/tag'
+import {createDescendantLookup} from './hierarchy'
 import {
-  combineFileLines,
   extractTextFromTodoLine,
   getAllLinesFromFile,
-  getFileFromPath,
   getFileLabelFromName,
   getFrontmatterTags,
   getIndentationSpacesFromTodoLine,
@@ -21,31 +20,24 @@ import {
   setLineTo,
   todoLineIsChecked,
 } from './helpers'
+import type {App, MetadataCache, TFile, Vault} from 'obsidian'
+import type {TodoItem, TagMeta} from 'src/_types'
 
-import type {
-  App,
-  LinkCache,
-  MetadataCache,
-  TagCache,
-  TFile,
-  Vault,
-} from 'obsidian'
-import type {TodoItem, TagMeta, FileInfo} from 'src/_types'
+/** Positive patterns are ORed; every negative pattern excludes from that set. */
+export const matchesFilePatterns = (path: string, patterns: string) => {
+  const rules = patterns
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean)
+  const includes = rules.filter(s => !s.startsWith('!'))
+  const excludes = rules.filter(s => s.startsWith('!')).map(s => s.slice(1))
+  return (
+    (!includes.length || includes.some(p => minimatch(path, p, {dot: true}))) &&
+    !excludes.some(p => minimatch(path, p, {dot: true}))
+  )
+}
 
-/**
- * Finds all of the {@link TodoItem todos} in the {@link TFile files} that have been updated since the last re-render.
- *
- * @param files The files to search for todos.
- * @param todoTags The tag(s) that should be present on todos in order to be displayed by this plugin.
- * @param cache The Obsidian {@link MetadataCache} object.
- * @param vault The Obsidian {@link Vault} object.
- * @param includeFiles The pattern of files to include in the search for todos.
- * @param showChecked Whether the user wants to show completed todos in the plugin's UI.
- * @param lastRerender Timestamp of the last time we re-rendered the checklist.
- * @returns A map containing each {@link TFile file} that was updated, and the {@link TodoItem todos} in that file.
- * If there are no todos in a file, that file will still be present in the map, but the value for its entry will be an
- * empty array. This is required to account for the case where a file that previously had todos no longer has any.
- */
+/** Bounded reads and per-file rendering keep large vaults from retaining all source text. */
 export const parseTodos = async (
   files: TFile[],
   todoTags: string[],
@@ -55,178 +47,279 @@ export const parseTodos = async (
   showChecked: boolean,
   showAllTodos: boolean,
   lastRerender: number,
+  excludedTags: string[] = [],
+  onError: (file: TFile) => void = () => {},
 ): Promise<Map<TFile, TodoItem[]>> => {
-  const includePattern = includeFiles.trim()
-    ? includeFiles.trim().split('\n')
-    : ['**/*']
-  const filesWithCache = await Promise.all(
-    files
-      .filter(file => {
-        if (file.stat.mtime < lastRerender) return false
-        if (!includePattern.some(p => minimatch(file.path, p))) return false
-        return true
-      })
-      .map<Promise<FileInfo>>(async file => {
-        const fileCache = cache.getFileCache(file)
-        const tagsOnPage =
-          fileCache?.tags?.filter(e => matchesTodoTag(e.tag, todoTags)) ?? []
-        const frontMatterTags = getFrontmatterTags(fileCache, todoTags)
-        const hasFrontMatterTag = frontMatterTags.length > 0
-        const parseEntireFile =
-          todoTags[0] === '*' || hasFrontMatterTag || showAllTodos
-        const matches =
-          todoTags[0] === '*' || tagsOnPage.length > 0 || hasFrontMatterTag
-        const content = matches ? await vault.cachedRead(file) : ''
-        return {
-          content,
-          cache: fileCache,
-          validTags: tagsOnPage.map(e => ({
-            ...e,
-            tag: e.tag.toLowerCase(),
-          })),
-          file,
-          parseEntireFile,
-          frontmatterTag: todoTags.length ? frontMatterTags[0] : undefined,
+  const results = new Map<TFile, TodoItem[]>()
+  let next = 0
+  async function worker() {
+    while (next < files.length) {
+      const file = files[next++]
+      if (file.stat.mtime < lastRerender) continue
+      try {
+        if (!matchesFilePatterns(file.path, includeFiles)) {
+          results.set(file, [])
+          continue
         }
-      }),
-  )
-
-  const todosForUpdatedFiles = new Map<TFile, TodoItem[]>()
-  for (const fileInfo of filesWithCache) {
-    let todos = findAllTodosInFile(fileInfo)
-    if (!showChecked) {
-      todos = todos.filter(todo => !todo.checked)
+        const metadata = cache.getFileCache(file)
+        const wildcard = todoTags.includes('*')
+        const frontmatter = getFrontmatterTags(metadata)
+        if (frontmatter.some(tag => matchesTodoTag(tag, excludedTags))) {
+          results.set(file, [])
+          continue
+        }
+        const matchedFrontmatter = frontmatter.filter(
+          tag => wildcard || matchesTodoTag(tag, todoTags),
+        )
+        const tags = metadata?.tags ?? []
+        const matchingTags = tags.filter(
+          tag => wildcard || matchesTodoTag(tag.tag, todoTags),
+        )
+        if (!wildcard && !matchedFrontmatter.length && !matchingTags.length) {
+          results.set(file, [])
+          continue
+        }
+        const content = await vault.cachedRead(file)
+        const lines = getAllLinesFromFile(content)
+        const listItems = metadata?.listItems
+        const relations = (listItems ?? []).map(item => ({
+          line: item.position.start.line,
+          parent: item.parent,
+        }))
+        const descendants = createDescendantLookup(relations)
+        const relationMap = new Map(
+          relations.map(item => [item.line, item.parent]),
+        )
+        const taskLines = new Set<number>()
+        // Metadata excludes fenced examples and frontmatter. Fallback while the cache resolves.
+        const blocked = new Set<number>()
+        for (const section of metadata?.sections ?? []) {
+          if (section.type === 'code' || section.type === 'yaml')
+            for (
+              let line = section.position.start.line;
+              line <= section.position.end.line;
+              line++
+            )
+              blocked.add(line)
+        }
+        let fence = ''
+        let inFrontmatter = lines[0] === '---'
+        for (let line = 0; line < lines.length; line++) {
+          if (!listItems) {
+            if (inFrontmatter) {
+              if (line > 0 && /^(---|\.\.\.)\s*$/.test(lines[line]))
+                inFrontmatter = false
+              continue
+            }
+            const marker = /^\s{0,3}(`{3,}|~{3,})/.exec(lines[line])?.[1]
+            if (marker && !fence) {
+              fence = marker
+              continue
+            }
+            if (fence) {
+              if (marker?.[0] === fence[0] && marker.length >= fence.length)
+                fence = ''
+              continue
+            }
+          }
+          if (!blocked.has(line) && lineIsValidTodo(lines[line]))
+            taskLines.add(line)
+        }
+        if (listItems) {
+          const cachedTasks = new Set(
+            listItems
+              .filter(item => item.task != null)
+              .map(item => item.position.start.line),
+          )
+          for (const line of taskLines)
+            if (!cachedTasks.has(line)) taskLines.delete(line)
+        }
+        const selectBlock = (line: number) => {
+          if (taskLines.has(line))
+            return [...descendants(line)].filter(n => taskLines.has(n))
+          const selected: number[] = []
+          for (let n = line; n < lines.length; n++) {
+            if (n === line + 1 && !lines[n].trim()) continue
+            if (!lines[n].trim()) break
+            if (taskLines.has(n)) selected.push(n)
+          }
+          return selected
+        }
+        const excluded = new Set<number>()
+        for (const tag of tags.filter(tag =>
+          matchesTodoTag(tag.tag, excludedTags),
+        ))
+          for (const line of selectBlock(tag.position.start.line))
+            excluded.add(line)
+        const selected = new Map<number, Map<string, TagMeta>>()
+        const add = (line: number, tag?: string) => {
+          if (excluded.has(line)) return
+          const byTag = selected.get(line) ?? new Map<string, TagMeta>()
+          byTag.set(
+            tag?.toLowerCase() ?? '',
+            tag ? getTagMeta(tag.toLowerCase()) : undefined,
+          )
+          selected.set(line, byTag)
+        }
+        for (const tag of matchingTags)
+          for (const line of selectBlock(tag.position.start.line))
+            add(line, tag.tag)
+        if (wildcard || matchedFrontmatter.length || showAllTodos) {
+          for (const line of taskLines) {
+            if (!selected.has(line)) {
+              if (matchedFrontmatter.length)
+                for (const tag of matchedFrontmatter) add(line, tag)
+              else add(line)
+            }
+          }
+        }
+        const links = [...(metadata?.links ?? []), ...(metadata?.embeds ?? [])]
+        const md = new MD()
+          .use(commentPlugin)
+          .use(
+            linkPlugin(
+              mapLinkMeta(
+                links.map(link => ({
+                  filePath: link.link,
+                  linkName: link.displayText,
+                })),
+              ),
+            ),
+          )
+          .use(tagPlugin)
+          .use(highlightPlugin)
+        const todos: TodoItem[] = []
+        let rendered = 0
+        for (const [line, tagMetas] of selected) {
+          if (++rendered % 250 === 0)
+            await new Promise(resolve => setTimeout(resolve, 0))
+          const checked = todoLineIsChecked(lines[line])
+          if (checked && !showChecked) continue
+          let parentLine = relationMap.get(line)
+          // A plain list item between two tasks should not sever the task hierarchy.
+          const seen = new Set<number>()
+          while (
+            parentLine != null &&
+            parentLine >= 0 &&
+            !taskLines.has(parentLine) &&
+            !seen.has(parentLine)
+          ) {
+            seen.add(parentLine)
+            parentLine = relationMap.get(parentLine)
+          }
+          const originalText = extractTextFromTodoLine(lines[line])
+          for (const tagMeta of tagMetas.values())
+            todos.push({
+              checked,
+              filePath: file.path,
+              fileName: file.name,
+              fileLabel: getFileLabelFromName(file.name),
+              fileCreatedTs: file.stat.ctime,
+              fileModifiedTs: file.stat.mtime,
+              mainTag: tagMeta?.main,
+              subTag: tagMeta?.sub,
+              line,
+              parentLine:
+                parentLine >= 0 && parentLine < line ? parentLine : undefined,
+              children: [],
+              spacesIndented: getIndentationSpacesFromTodoLine(lines[line]),
+              originalText,
+              sourceLine: lines[line],
+              filterTags: tagMeta
+                ? [[tagMeta.main, tagMeta.sub].filter(Boolean).join('/')]
+                : [...matchedFrontmatter, ...matchingTags.map(tag => tag.tag)],
+              rawHTML: md.render(
+                removeTagFromText(originalText, tagMeta?.main),
+              ),
+            })
+        }
+        results.set(
+          file,
+          todos.sort((a, b) => a.line - b.line),
+        )
+      } catch (error) {
+        // Leave failed files out so the view retries them on the next refresh.
+        console.warn('Checklist: unable to read', file.path, error)
+        onError(file)
+      }
+      // Give typing, navigation, and mobile rendering a chance between batches.
+      if (next % 16 === 0) await new Promise(resolve => setTimeout(resolve, 0))
     }
-    todosForUpdatedFiles.set(fileInfo.file, todos)
   }
-
-  return todosForUpdatedFiles
-}
-
-export const toggleTodoItem = async (item: TodoItem, app: App) => {
-  const file = getFileFromPath(app.vault, item.filePath)
-  if (!file) return
-  const currentFileContents = await app.vault.read(file)
-  const currentFileLines = getAllLinesFromFile(currentFileContents)
-  if (!currentFileLines[item.line]?.includes(item.originalText)) return
-  const newData = setTodoStatusAtLineTo(
-    currentFileLines,
-    item.line,
-    !item.checked,
+  await Promise.all(
+    Array.from({length: Math.min(4, files.length)}, () => worker()),
   )
-  app.vault.modify(file, newData)
-  item.checked = !item.checked
+  // Disk completion order must not change source ordering.
+  return new Map(
+    files
+      .filter(file => results.has(file))
+      .map(file => [file, results.get(file)]),
+  )
 }
 
-const findAllTodosInFile = (file: FileInfo): TodoItem[] => {
-  if (!file.parseEntireFile) {
-    const todos = file.validTags.flatMap(tag =>
-      findAllTodosFromTagBlock(file, tag),
-    )
-    const seen = new Set<string>()
-    return todos.filter(todo => {
-      const key = JSON.stringify([todo.line, todo.mainTag, todo.subTag])
-      if (seen.has(key)) return false
-      seen.add(key)
-      return true
-    })
-  }
-
-  if (!file.content) return []
-  const fileLines = getAllLinesFromFile(file.content)
-  const links = []
-  if (file.cache?.links) {
-    links.push(...file.cache.links)
-  }
-  if (file.cache?.embeds) {
-    links.push(...file.cache.embeds)
-  }
-  const tagMeta = file.frontmatterTag
-    ? getTagMeta(file.frontmatterTag)
+type TasksApi = {
+  executeToggleTaskDoneCommand: (line: string, path: string) => string
+}
+/** Documented Tasks API; optional and resolved at click time to survive plugin reloads. */
+export const getTasksApi = (app: App): TasksApi | undefined => {
+  const api = (
+    app as App & {plugins?: {plugins?: Record<string, {apiV1?: TasksApi}>}}
+  ).plugins?.plugins?.['obsidian-tasks-plugin']?.apiV1
+  return typeof api?.executeToggleTaskDoneCommand === 'function'
+    ? api
     : undefined
-
-  const todos: TodoItem[] = []
-  for (let i = 0; i < fileLines.length; i++) {
-    const line = fileLines[i]
-    if (line.length === 0) continue
-    if (lineIsValidTodo(line)) {
-      todos.push(formTodo(line, file, links, i, tagMeta))
-    }
-  }
-
-  return todos
 }
-
-const findAllTodosFromTagBlock = (file: FileInfo, tag: TagCache) => {
-  const fileContents = file.content
-  const links = []
-  if (file.cache?.links) {
-    links.push(...file.cache.links)
+export const toggleTodoItem = async (
+  item: TodoItem,
+  app: App,
+  useTasksPlugin = false,
+): Promise<boolean> => {
+  const file = app.vault.getAbstractFileByPath(item.filePath) as TFile
+  if (!file || file.extension !== 'md') {
+    new Notice('This note is no longer available. Refresh Checklist.')
+    return false
   }
-  if (file.cache?.embeds) {
-    links.push(...file.cache.embeds)
+  const tasksApi = useTasksPlugin ? getTasksApi(app) : undefined
+  if (useTasksPlugin && !tasksApi) {
+    new Notice(
+      'Enable Tasks 7.2 or later, or turn off “Complete with Tasks” in Checklist settings.',
+    )
+    return false
   }
-  if (!fileContents) return []
-  const fileLines = getAllLinesFromFile(fileContents)
-  const tagMeta = getTagMeta(tag.tag)
-  const tagLine = fileLines[tag.position.start.line]
-  if (lineIsValidTodo(tagLine)) {
-    return [formTodo(tagLine, file, links, tag.position.start.line, tagMeta)]
+  let changed = false
+  let replacement: string
+  try {
+    await app.vault.process(file, content => {
+      const lines = getAllLinesFromFile(content)
+      const current = lines[item.line]
+      if (current !== item.sourceLine || !lineIsValidTodo(current))
+        return content
+      replacement = tasksApi
+        ? tasksApi.executeToggleTaskDoneCommand(current, file.path)
+        : setLineTo(current, !item.checked)
+      if (typeof replacement !== 'string')
+        throw new Error('Tasks returned an invalid task')
+      changed = replacement !== current
+      lines.splice(
+        item.line,
+        1,
+        ...(replacement ? getAllLinesFromFile(replacement) : []),
+      )
+      return lines.join(content.includes('\r\n') ? '\r\n' : '\n')
+    })
+    if (changed && !tasksApi) {
+      item.sourceLine = replacement
+      item.checked = !item.checked
+    } else if (!changed)
+      new Notice(
+        'This task changed in its note. Refresh Checklist and try again.',
+      )
+  } catch (error) {
+    changed = false
+    new Notice(
+      'Could not save the task. Check that the note is available and try again.',
+    )
+    console.error('Checklist: task update failed', error)
   }
-
-  const todos: TodoItem[] = []
-  for (let i = tag.position.start.line; i < fileLines.length; i++) {
-    const line = fileLines[i]
-    if (i === tag.position.start.line + 1 && line.length === 0) continue
-    if (line.length === 0) break
-    if (lineIsValidTodo(line)) {
-      todos.push(formTodo(line, file, links, i, tagMeta))
-    }
-  }
-
-  return todos
-}
-
-const formTodo = (
-  line: string,
-  file: FileInfo,
-  links: LinkCache[],
-  lineNum: number,
-  tagMeta?: TagMeta,
-): TodoItem => {
-  const relevantLinks = links
-    .filter(link => link.position.start.line === lineNum)
-    .map(link => ({filePath: link.link, linkName: link.displayText}))
-  const linkMap = mapLinkMeta(relevantLinks)
-  const rawText = extractTextFromTodoLine(line)
-  const spacesIndented = getIndentationSpacesFromTodoLine(line)
-  const tagStripped = removeTagFromText(rawText, tagMeta?.main)
-  const md = new MD()
-    .use(commentPlugin)
-    .use(linkPlugin(linkMap))
-    .use(tagPlugin)
-    .use(highlightPlugin)
-  return {
-    mainTag: tagMeta?.main,
-    subTag: tagMeta?.sub,
-    checked: todoLineIsChecked(line),
-    filePath: file.file.path,
-    fileName: file.file.name,
-    fileLabel: getFileLabelFromName(file.file.name),
-    fileCreatedTs: file.file.stat.ctime,
-    rawHTML: md.render(tagStripped),
-    line: lineNum,
-    spacesIndented,
-    fileInfo: file,
-    originalText: rawText,
-  }
-}
-
-const setTodoStatusAtLineTo = (
-  fileLines: string[],
-  line: number,
-  setTo: boolean,
-) => {
-  fileLines[line] = setLineTo(fileLines[line], setTo)
-  return combineFileLines(fileLines)
+  return changed
 }
