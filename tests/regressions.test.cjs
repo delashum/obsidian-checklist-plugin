@@ -22,7 +22,9 @@ class ItemView {
 const obsidian = {
   TFile,
   ItemView,
-  Plugin: class {},
+  Plugin: class {
+    onunload() {}
+  },
   PluginSettingTab: class {},
   parseFrontMatterTags: fm =>
     (fm?.tags || []).map(t => (t.startsWith('#') ? t : '#' + t)),
@@ -215,4 +217,46 @@ test('nested frontmatter filters are case insensitive and include descendants', 
   f.setMetadata({frontmatter: {tags: ['todo/next-week']}})
   await f.view.refresh()
   assert.equal(f.view.groupedItems.length, 0)
+})
+
+const TodoPlugin = load('src/main.ts').default
+test('plugin unload preserves its workspace leaf for Obsidian to restore', async () => {
+  let detached = false
+  const plugin = new TodoPlugin()
+  plugin.app = {
+    workspace: {getLeavesOfType: () => [{detach: () => (detached = true)}]},
+  }
+  await plugin.onunload()
+  assert.equal(detached, false)
+})
+test('initializing an existing pane never creates a duplicate or changes focus', () => {
+  const plugin = new TodoPlugin()
+  plugin.app = {
+    workspace: {
+      getLeavesOfType: () => [{}],
+      getRightLeaf: () => assert.fail('must reuse existing leaf'),
+    },
+  }
+  plugin.initLeaf()
+})
+test('initializing a new pane does not activate it', () => {
+  const states = []
+  const plugin = new TodoPlugin()
+  plugin.app = {
+    workspace: {
+      getLeavesOfType: () => [],
+      getRightLeaf: () => ({setViewState: state => states.push(state)}),
+    },
+  }
+  plugin.initLeaf()
+  assert.equal(states[0].active, false)
+})
+test('a deferred view is not treated as an initialized checklist', () => {
+  const plugin = new TodoPlugin()
+  plugin.app = {
+    workspace: {
+      getLeavesOfType: () => [{view: {getViewType: () => 'deferred'}}],
+    },
+  }
+  assert.equal(plugin.view, undefined)
 })
