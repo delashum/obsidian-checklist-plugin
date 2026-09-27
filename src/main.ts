@@ -151,6 +151,7 @@ export default class TodoPlugin extends Plugin {
       'sortDirectionSubGroups',
       'sortDirectionItems',
       'showChecked',
+      'animateCompletion',
       'showOnlyActiveFile',
       'focusFolder',
       '_hiddenTags',

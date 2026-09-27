@@ -7,6 +7,7 @@
   import type {SortDirection} from 'src/_types'
   export let todoTags: string[]
   export let groupBy: GroupByType
+  export let animateCompletion: boolean
   export let showChecked: boolean
   export let showOnlyActiveFile: boolean
   export let showGroupCounts: boolean
@@ -66,6 +67,7 @@
     hiddenTags={_hiddenTags}
     {groupBy}
     {showChecked}
+    {animateCompletion}
     {showOnlyActiveFile}
     {showGroupCounts}
     {showSource}

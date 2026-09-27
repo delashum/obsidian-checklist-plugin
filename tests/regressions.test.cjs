@@ -81,6 +81,7 @@ function fixture(content = '#todo\n- [ ] task') {
     _collapsedSections: [],
     includeFiles: '',
     showChecked: false,
+    animateCompletion: true,
     showAllTodos: false,
     showOnlyActiveFile: false,
     groupBy: 'page',
@@ -879,7 +880,7 @@ test('completion grace period survives refresh and hides the row at expiry', asy
   await f.view.refresh(true)
   assert.equal(f.view.groupedItems[0].todos.length, 1)
   const timer = [...timers.values()][0]
-  assert.equal(timer.delay, 3000)
+  assert.ok(timer.delay > 1900 && timer.delay <= 2000)
   timer.callback()
   assert.equal(f.view.groupedItems.length, 0)
 })
@@ -923,4 +924,38 @@ test('a rejected stale completion does not start an animation or remove the task
   assert.equal(f.view.pendingCompletions.size, 0)
   assert.equal(f.view.groupedItems[0].todos[0].checked, false)
   assert.match(f.file.content, /Edited task/)
+})
+
+test('disabling completion animation removes checked tasks immediately', async t => {
+  const timer = t.mock.method(global, 'setTimeout', () => { throw new Error('Unexpected timer') })
+  const f = fixture()
+  f.settings.animateCompletion = false
+  await f.view.refresh()
+  await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
+  assert.match(f.file.content, /\[x\]/i)
+  assert.equal(f.view.groupedItems.length, 0)
+  assert.equal(f.view.pendingCompletions.size, 0)
+  assert.equal(timer.mock.callCount(), 0)
+})
+
+test('metadata refresh during save does not restart the completion timeline', async t => {
+  let now = 10000
+  t.mock.method(Date, 'now', () => now)
+  let delay
+  t.mock.method(global, 'setTimeout', (callback, value) => { delay = value; return 1 })
+  t.mock.method(global, 'clearTimeout', () => {})
+  const f = fixture()
+  let initialDeadline
+  f.app.vault.process = async (file, update) => {
+    file.content = update(file.content)
+    await f.view.refresh(true)
+    initialDeadline = f.view.groupedItems[0].todos[0].completionExpiresAt
+    now += 100
+    return file.content
+  }
+  await f.view.refresh()
+  await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
+  assert.equal(initialDeadline, 12000)
+  assert.equal(f.view.groupedItems[0].todos[0].completionExpiresAt, initialDeadline)
+  assert.equal(delay, 1900)
 })

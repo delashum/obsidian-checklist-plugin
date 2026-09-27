@@ -3,7 +3,6 @@
   import {Keymap} from 'obsidian'
   import type {TodoItem} from 'src/_types'
   import {navToFile} from 'src/utils'
-  import CheckCircle from './CheckCircle.svelte'
   import Icon from './Icon.svelte'
   import {TASK_COMPLETION_DELAY_MS} from 'src/constants'
   export let item: TodoItem
@@ -12,9 +11,31 @@
   export let onTagClick: (tag: string) => void
   export let app: App
   export let onToggleTask: (item: TodoItem) => Promise<void>
+  let checkbox: HTMLInputElement
   let contentDiv: HTMLDivElement
   let busy = false
   let expanded = true
+  // Set the negative delay once per completion, not on every metadata rerender.
+  // Updating an active animation's delay would jump its playhead forward.
+  function completionProgress(node: HTMLElement, deadline: number | undefined) {
+    let previous: number | undefined
+    const update = (value: number | undefined) => {
+      if (value === previous) return
+      previous = value
+      node.style.setProperty(
+        '--completion-duration',
+        `${TASK_COMPLETION_DELAY_MS}ms`,
+      )
+      node.style.setProperty(
+        '--completion-delay',
+        `${
+          value ? Math.min(0, value - Date.now() - TASK_COMPLETION_DELAY_MS) : 0
+        }ms`,
+      )
+    }
+    update(deadline)
+    return {update}
+  }
   async function toggle() {
     if (busy) return
     busy = true
@@ -22,6 +43,7 @@
       await onToggleTask(item)
     } finally {
       busy = false
+      checkbox.checked = item.checked
     }
   }
   const handleClick = (event: MouseEvent) => {
@@ -52,21 +74,19 @@
   <div
     class="checklist-task-row"
     class:is-completing={!!item.completionExpiresAt}
-    style={item.completionExpiresAt
-      ? `--completion-duration: ${TASK_COMPLETION_DELAY_MS}ms; --completion-delay: ${Math.min(
-          0,
-          item.completionExpiresAt - Date.now() - TASK_COMPLETION_DELAY_MS,
-        )}ms`
-      : undefined}>
-    <button
-      class="checklist-task-toggle"
-      disabled={busy}
-      aria-pressed={item.checked}
-      on:click|stopPropagation={toggle}
-      ><span class="checklist-sr-only"
+    use:completionProgress={item.completionExpiresAt}>
+    <label class="checklist-task-toggle">
+      <span class="checklist-sr-only"
         >{(item.checked ? 'Mark incomplete: ' : 'Complete: ') +
-          item.originalText}</span
-      ><CheckCircle checked={item.checked} /></button>
+          item.originalText}</span>
+      <input
+        type="checkbox"
+        class="task-list-item-checkbox"
+        bind:this={checkbox}
+        checked={item.checked}
+        disabled={busy}
+        on:change={toggle} />
+    </label>
     <div class="checklist-task-body">
       <div class="checklist-task-line">
         <div

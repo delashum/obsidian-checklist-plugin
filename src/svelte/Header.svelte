@@ -9,6 +9,7 @@
   export let todoTags: string[]
   export let hiddenTags: string[]
   export let groupBy: GroupByType
+  export let animateCompletion: boolean
   export let showChecked: boolean
   export let showOnlyActiveFile: boolean
   export let showGroupCounts: boolean
@@ -223,19 +224,19 @@
             >{/each}</select
         ></label>
       <div class="checklist-panel-heading checklist-section-heading">
-        Properties
+        Options
       </div>
       <label
         class="checklist-option"
         title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
-        <span>Sub-tasks</span><input
+        <span>Show sub-tasks</span><input
           type="checkbox"
           checked={nestSubtasks}
           on:change={event =>
             updateSetting({nestSubtasks: event.currentTarget.checked})} />
       </label>
       <label class="checklist-option"
-        ><span>Task count</span><input
+        ><span>Show task count</span><input
           type="checkbox"
           checked={showGroupCounts}
           on:change={event =>
@@ -243,7 +244,7 @@
               showGroupCounts: event.currentTarget.checked,
             })} /></label>
       <label class="checklist-option"
-        ><span>Completed</span><input
+        ><span>Show completed</span><input
           type="checkbox"
           checked={showChecked}
           on:change={event =>
@@ -254,12 +255,21 @@
       <label class="checklist-option"
         ><span
           title="Show the originating note beneath each task, except inside page groups."
-          >Source notes</span
+          >Show source notes</span
         ><input
           type="checkbox"
           checked={showSource}
           on:change={event =>
             updateSetting({showSource: event.currentTarget.checked})} /></label>
+      <label
+        class="checklist-option"
+        title="Keep completed tasks visible briefly so you can undo an accidental check.">
+        <span>Animate completion</span><input
+          type="checkbox"
+          checked={animateCompletion}
+          on:change={event =>
+            updateSetting({animateCompletion: event.currentTarget.checked})} />
+      </label>
       <div class="checklist-panel-heading checklist-section-heading">
         Filter
       </div>

@@ -195,7 +195,10 @@ export default class TodoListView extends ItemView {
     const key = this.taskKey(item)
     if (this.togglingTasks.has(key)) return
     const completing = !item.checked
-    const hold = completing && !this.plugin.getSettingValue('showChecked')
+    const hold =
+      completing &&
+      !this.plugin.getSettingValue('showChecked') &&
+      this.plugin.getSettingValue('animateCompletion')
     this.togglingTasks.add(key)
     // Register before saving so metadata refreshes cannot remove the row early.
     if (hold)
@@ -207,8 +210,10 @@ export default class TodoListView extends ItemView {
         this.plugin.getSettingValue('useTasksPlugin'),
       )
       if (changed && hold && !this.closed) {
-        this.pendingCompletions.set(key, Date.now() + TASK_COMPLETION_DELAY_MS)
-        this.scheduleCompletionRemoval(key, TASK_COMPLETION_DELAY_MS)
+        this.scheduleCompletionRemoval(
+          key,
+          Math.max(0, this.pendingCompletions.get(key)! - Date.now()),
+        )
       } else if (changed || hold) {
         this.clearCompletion(key)
       }
@@ -224,6 +229,7 @@ export default class TodoListView extends ItemView {
       todoTags: this.todoTagArray,
       groupBy: this.plugin.getSettingValue('groupBy'),
       showChecked: this.plugin.getSettingValue('showChecked'),
+      animateCompletion: this.plugin.getSettingValue('animateCompletion'),
       showOnlyActiveFile: this.plugin.getSettingValue('showOnlyActiveFile'),
       showGroupCounts: this.plugin.getSettingValue('showGroupCounts'),
       showSource: this.plugin.getSettingValue('showSource'),
@@ -324,7 +330,9 @@ export default class TodoListView extends ItemView {
       .map(item => ({
         ...item,
         completionExpiresAt:
-          item.checked && !this.plugin.getSettingValue('showChecked')
+          item.checked &&
+          !this.plugin.getSettingValue('showChecked') &&
+          this.plugin.getSettingValue('animateCompletion')
             ? this.pendingCompletions.get(this.taskKey(item))
             : undefined,
       }))

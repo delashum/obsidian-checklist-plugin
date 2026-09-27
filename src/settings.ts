@@ -9,6 +9,7 @@ export interface TodoSettings {
   useTasksPlugin: boolean
   showGroupCounts: boolean
   showSource: boolean
+  animateCompletion: boolean
   showChecked: boolean
   showAllTodos: boolean
   showOnlyActiveFile: boolean
@@ -31,6 +32,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   focusFolder: '',
   showGroupCounts: true,
   showSource: false,
+  animateCompletion: true,
   showChecked: false,
   showAllTodos: false,
   showOnlyActiveFile: false,
@@ -151,6 +153,11 @@ export class TodoSettingTab extends PluginSettingTab {
       'Show the total task count and group counts.',
     )
     this.toggle('showChecked', 'Show completed tasks')
+    this.toggle(
+      'animateCompletion',
+      'Animate completion',
+      'Keep completed tasks visible briefly so you can undo an accidental check.',
+    )
     this.toggle('showOnlyActiveFile', 'Current note only')
     this.text(
       'focusFolder',

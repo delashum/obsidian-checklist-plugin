@@ -5,4 +5,4 @@ export const LOCAL_SORT_OPT = {
   ignorePunctuation: true,
 }
 
-export const TASK_COMPLETION_DELAY_MS = 3000
+export const TASK_COMPLETION_DELAY_MS = 2000

@@ -661,3 +661,21 @@
     animation: none;
   }
 }
+
+/* Use Obsidian's native checkbox, extending its hover state to the click target. */
+.checklist-plugin-main .checklist-task-toggle {
+  cursor: pointer;
+}
+.checklist-plugin-main .checklist-task-toggle input[type='checkbox'] {
+  margin: 0;
+  flex-shrink: 0;
+}
+.checklist-plugin-main .checklist-task-toggle:hover input[type='checkbox'] {
+  border-color: var(--checkbox-border-color-hover);
+}
+.checklist-plugin-main
+  .checklist-task-toggle:hover
+  input[type='checkbox']:checked {
+  background-color: var(--checkbox-color-hover);
+  border-color: var(--checkbox-color-hover);
+}
