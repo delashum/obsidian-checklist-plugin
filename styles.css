@@ -322,12 +322,23 @@
   display: inline;
   margin: 0;
 }
-.checklist-plugin-main .checklist-task-content a {
+.checklist-plugin-main .checklist-task-content a:not(.tag) {
   color: var(--text-accent);
   text-decoration: none;
 }
-.checklist-plugin-main .checklist-task-content a:hover {
+.checklist-plugin-main .checklist-task-content a:not(.tag):hover {
   text-decoration: underline;
+}
+/* Keep native tag colors, but fit the pill to the task's line box. */
+.checklist-plugin-main .checklist-task-content a.tag {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 20px;
+  padding: 0 var(--tag-padding-x);
+  font-size: inherit;
+  line-height: 1;
+  vertical-align: baseline;
 }
 .checklist-task.is-completed
   > .checklist-task-row
