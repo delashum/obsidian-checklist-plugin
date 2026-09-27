@@ -96,12 +96,15 @@
 .checklist-search-wrap:focus-within {
   border-color: var(--interactive-accent);
 }
-.checklist-plugin-main input.checklist-search {
+.checklist-plugin-main input.checklist-search,
+.checklist-plugin-main input.checklist-search:hover,
+.checklist-plugin-main input.checklist-search:focus {
   min-width: 0;
   width: 100%;
   height: 30px;
   padding: 0;
   border: 0;
+  border-radius: 0;
   outline: 0;
   box-shadow: none;
   background: transparent;
@@ -207,9 +210,16 @@
   padding: 0 8px;
   text-align: left;
   border: 0;
-  border-radius: 4px;
+  border-radius: inherit;
   background: transparent;
   color: inherit;
+}
+.checklist-group-header:has(.checklist-group-toggle:focus-visible) {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+.checklist-plugin-main .checklist-group-toggle:focus-visible {
+  outline: none;
 }
 .checklist-group-header:hover,
 .checklist-group-header:focus-within {
@@ -414,12 +424,32 @@
 
 /* 3.0: structure stays quiet until it is useful. */
 .checklist-scope {
-  display: flex;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   flex: none;
-  gap: 1px;
+  gap: 0;
   padding: 2px;
   background: var(--background-modifier-hover);
   border-radius: 999px;
+}
+.checklist-scope::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / 2);
+  border-radius: inherit;
+  background: var(--background-primary);
+  box-shadow: 0 1px 3px var(--background-modifier-box-shadow);
+  transition: transform 180ms ease;
+  pointer-events: none;
+}
+.checklist-scope.is-note::before {
+  transform: translateX(100%);
 }
 .checklist-plugin-main .checklist-scope button {
   flex: 1;
@@ -433,9 +463,12 @@
   font-size: 12px;
 }
 .checklist-plugin-main .checklist-scope button.is-selected {
-  background: var(--background-primary);
   color: var(--text-normal);
-  box-shadow: 0 1px 3px var(--background-modifier-box-shadow);
+}
+@media (prefers-reduced-motion: reduce) {
+  .checklist-scope::before {
+    transition: none;
+  }
 }
 .checklist-display-panel {
   max-height: min(620px, 70vh);

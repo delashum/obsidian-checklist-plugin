@@ -70,7 +70,11 @@
   on:keydown={closeOnEscape}>
   <div class="checklist-toolbar-heading">
     <span class="checklist-toolbar-title">Tasks</span>
-    <div class="checklist-scope" role="group" aria-label="Task scope">
+    <div
+      class="checklist-scope"
+      class:is-note={showOnlyActiveFile}
+      role="group"
+      aria-label="Task scope">
       <button
         class:is-selected={!showOnlyActiveFile}
         aria-pressed={!showOnlyActiveFile}
