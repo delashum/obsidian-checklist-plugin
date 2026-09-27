@@ -613,6 +613,11 @@
     var(--text-normal) 4%
   );
 }
+.checklist-group.has-subgroups
+  > .checklist-group-header
+  > .checklist-group-count {
+  color: var(--text-muted);
+}
 .checklist-group.has-subgroups > .checklist-group-header:hover,
 .checklist-group.has-subgroups > .checklist-group-header:focus-within {
   background: color-mix(
