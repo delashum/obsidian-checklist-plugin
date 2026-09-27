@@ -264,7 +264,7 @@
       <label
         class="checklist-option"
         title="Keep completed tasks visible briefly so you can undo an accidental check.">
-        <span>Animate completion</span><input
+        <span>Delay completion</span><input
           type="checkbox"
           checked={animateCompletion}
           on:change={event =>

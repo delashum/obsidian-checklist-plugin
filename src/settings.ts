@@ -155,7 +155,7 @@ export class TodoSettingTab extends PluginSettingTab {
     this.toggle('showChecked', 'Show completed tasks')
     this.toggle(
       'animateCompletion',
-      'Animate completion',
+      'Delay completion',
       'Keep completed tasks visible briefly so you can undo an accidental check.',
     )
     this.toggle('showOnlyActiveFile', 'Current note only')

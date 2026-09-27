@@ -351,9 +351,10 @@
   justify-content: center;
   flex: 0 0 var(--checklist-control-width);
   width: var(--checklist-control-width);
-  min-height: 22px;
-  height: auto;
-  padding: 2px 3px;
+  position: relative;
+  box-sizing: border-box;
+  height: max(22px, 1.5em);
+  padding: 0;
   border: 0;
   background: transparent;
 }
@@ -662,20 +663,55 @@
   }
 }
 
-/* Use Obsidian's native checkbox, extending its hover state to the click target. */
+/* Keep native checkbox appearance, centered on the first text line. */
 .checklist-plugin-main .checklist-task-toggle {
   cursor: pointer;
 }
+/* Extend the label's native click target to the row edge without moving text. */
+.checklist-task-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -3px -2px;
+}
 .checklist-plugin-main .checklist-task-toggle input[type='checkbox'] {
   margin: 0;
+  top: 0;
+  left: 0;
+  transform: none;
   flex-shrink: 0;
-}
-.checklist-plugin-main .checklist-task-toggle:hover input[type='checkbox'] {
-  border-color: var(--checkbox-border-color-hover);
+  border-color: color-mix(
+    in srgb,
+    var(--checkbox-border-color) 70%,
+    transparent
+  );
 }
 .checklist-plugin-main
+  .checklist-task-row:hover
+  .checklist-task-toggle
+  input[type='checkbox'] {
+  border-color: var(--checkbox-border-color);
+}
+.checklist-plugin-main
+  .checklist-task-row
+  .checklist-task-toggle:hover
+  input[type='checkbox'] {
+  border-color: var(--checkbox-border-color-hover);
+}
+.checklist-plugin-main .checklist-task-toggle input[type='checkbox']:checked {
+  background-color: color-mix(in srgb, var(--checkbox-color) 80%, transparent);
+  border-color: transparent;
+}
+.checklist-plugin-main
+  .checklist-task-row:hover
+  .checklist-task-toggle
+  input[type='checkbox']:checked {
+  background-color: var(--checkbox-color);
+  border-color: transparent;
+}
+.checklist-plugin-main
+  .checklist-task-row
   .checklist-task-toggle:hover
   input[type='checkbox']:checked {
   background-color: var(--checkbox-color-hover);
-  border-color: var(--checkbox-color-hover);
+  border-color: transparent;
 }

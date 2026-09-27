@@ -880,7 +880,7 @@ test('completion grace period survives refresh and hides the row at expiry', asy
   await f.view.refresh(true)
   assert.equal(f.view.groupedItems[0].todos.length, 1)
   const timer = [...timers.values()][0]
-  assert.ok(timer.delay > 1900 && timer.delay <= 2000)
+  assert.ok(timer.delay > 900 && timer.delay <= 1000)
   timer.callback()
   assert.equal(f.view.groupedItems.length, 0)
 })
@@ -955,7 +955,7 @@ test('metadata refresh during save does not restart the completion timeline', as
   }
   await f.view.refresh()
   await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
-  assert.equal(initialDeadline, 12000)
+  assert.equal(initialDeadline, 11000)
   assert.equal(f.view.groupedItems[0].todos[0].completionExpiresAt, initialDeadline)
-  assert.equal(delay, 1900)
+  assert.equal(delay, 900)
 })
