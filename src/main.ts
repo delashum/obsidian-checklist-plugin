@@ -139,7 +139,6 @@ export default class TodoPlugin extends Plugin {
     const onlyRepaintWhenChanges = [
       'autoRefresh',
       'useTasksPlugin',
-      'lookAndFeel',
       'showSource',
       'showGroupCounts',
       '_collapsedSections',

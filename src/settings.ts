@@ -1,6 +1,6 @@
 import {App, PluginSettingTab, Setting} from 'obsidian'
 import type TodoPlugin from './main'
-import type {GroupByType, LookAndFeel, SortDirection} from './_types'
+import type {GroupByType, SortDirection} from './_types'
 
 export interface TodoSettings {
   todoPageName: string
@@ -21,7 +21,6 @@ export interface TodoSettings {
   sortDirectionGroups: SortDirection
   sortDirectionSubGroups: SortDirection
   includeFiles: string
-  lookAndFeel: LookAndFeel
   _collapsedSections: string[]
   _hiddenTags: string[]
 }
@@ -44,7 +43,6 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   sortDirectionGroups: 'new->old',
   sortDirectionSubGroups: 'new->old',
   includeFiles: '',
-  lookAndFeel: 'classic',
   _collapsedSections: [],
   _hiddenTags: [],
 }
@@ -142,10 +140,6 @@ export class TodoSettingTab extends PluginSettingTab {
       ...SORT_OPTIONS,
     })
     this.heading('Display')
-    this.select('lookAndFeel', 'Density', {
-      classic: 'Comfortable',
-      compact: 'Compact',
-    })
     this.toggle(
       'showSource',
       'Show source notes',

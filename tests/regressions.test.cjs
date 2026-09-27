@@ -328,7 +328,7 @@ test('combined display and parsing changes request a full refresh in every pane'
   const view = makeView({app: plugin.app})
   view.refresh = async all => scans.push(all)
   leaves.push({view})
-  await plugin.updateSettings({lookAndFeel: 'compact', showAllTodos: true})
+  await plugin.updateSettings({showSource: true, showAllTodos: true})
   assert.deepEqual(scans, [true])
 })
 

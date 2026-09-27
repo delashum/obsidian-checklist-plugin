@@ -66,7 +66,7 @@ Commands can be assigned hotkeys in Obsidian:
 - Toggle completed tasks
 - Focus a tag (choose among configured tags)
 
-Checklist uses Obsidian’s interface font, theme colors, focus accents, and touch targets. Comfortable and Compact density are available in Display. CSS snippets can adjust `--checklist-contentFontSize` and `--checklist-row-padding` on `.checklist-plugin-main`.
+Checklist uses Obsidian’s interface font, theme colors, focus accents, and touch targets. A single consistent row size is used throughout. CSS snippets can adjust `--checklist-contentFontSize` and `--checklist-row-padding` on `.checklist-plugin-main`.
 
 ## Development
 

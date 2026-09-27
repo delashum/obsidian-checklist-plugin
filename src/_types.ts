@@ -59,7 +59,6 @@ export type SortDirection =
   | 'source'
   | 'modified'
   | 'configured'
-export type LookAndFeel = 'compact' | 'classic'
 
 export type Icon = 'chevron' | 'settings'
 

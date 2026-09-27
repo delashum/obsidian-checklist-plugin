@@ -17,9 +17,6 @@
   font-variant-numeric: tabular-nums;
   font-size: var(--checklist-contentFontSize);
 }
-.checklist-plugin-main.checklist-compact {
-  --checklist-row-padding: 3px;
-}
 .checklist-plugin-main button {
   margin: 0;
   font: inherit;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import {tick} from 'svelte'
   import type {TodoSettings} from 'src/settings'
-  import type {GroupByType, LookAndFeel, SortDirection} from 'src/_types'
+  import type {GroupByType, SortDirection} from 'src/_types'
   import Icon from './Icon.svelte'
   import {SORT_OPTIONS} from 'src/settings'
   import {clickOutside} from './clickOutside.directive'
@@ -13,7 +13,6 @@
   export let showOnlyActiveFile: boolean
   export let showGroupCounts: boolean
   export let showSource: boolean
-  export let lookAndFeel: LookAndFeel
   export let taskCount: number
   export let subGroupBy: GroupByType
   export let nestSubtasks: boolean
@@ -220,15 +219,6 @@
           >{#each Object.entries(SORT_OPTIONS) as [value, label]}<option {value}
               >{label}</option
             >{/each}</select
-        ></label>
-      <label class="checklist-option"
-        >Density<select
-          value={lookAndFeel}
-          on:change={event =>
-            updateSetting({lookAndFeel: event.currentTarget.value})}
-          ><option value="classic">Comfortable</option><option value="compact"
-            >Compact</option
-          ></select
         ></label>
       <label class="checklist-option checklist-folder-option"
         >Focus folder<input

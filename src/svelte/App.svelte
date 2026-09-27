@@ -1,12 +1,11 @@
 <script lang="ts">
   import type {App} from 'obsidian'
-  import type {LookAndFeel, TodoGroup, GroupByType} from 'src/_types'
+  import type {TodoGroup, GroupByType} from 'src/_types'
   import type {TodoSettings} from 'src/settings'
   import ChecklistGroup from './ChecklistGroup.svelte'
   import Header from './Header.svelte'
   import type {SortDirection} from 'src/_types'
   export let todoTags: string[]
-  export let lookAndFeel: LookAndFeel
   export let groupBy: GroupByType
   export let showChecked: boolean
   export let showOnlyActiveFile: boolean
@@ -60,9 +59,7 @@
     })
 </script>
 
-<div
-  class="checklist-plugin-main markdown-preview-view"
-  class:checklist-compact={lookAndFeel === 'compact'}>
+<div class="checklist-plugin-main markdown-preview-view">
   <Header
     bind:search
     {todoTags}
@@ -72,7 +69,6 @@
     {showOnlyActiveFile}
     {showGroupCounts}
     {showSource}
-    {lookAndFeel}
     taskCount={totalCount}
     {subGroupBy}
     {nestSubtasks}
