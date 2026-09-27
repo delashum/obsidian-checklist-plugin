@@ -1,6 +1,7 @@
 <script lang="ts">
   export let name:
     | 'chevron'
+    | 'disclosure'
     | 'settings'
     | 'search'
     | 'close'
@@ -14,8 +15,9 @@
 
 <svg
   class="checklist-icon"
-  class:chevron={name === 'chevron'}
-  class:rotated={name === 'chevron' && direction === 'right'}
+  class:chevron={name === 'chevron' || name === 'disclosure'}
+  class:rotated={(name === 'chevron' || name === 'disclosure') &&
+    direction === 'right'}
   viewBox="0 0 24 24"
   fill="none"
   stroke="currentColor"
@@ -25,6 +27,10 @@
   aria-hidden="true">
   {#if name === 'refresh'}<path
       d="M20 7v5h-5M4 17v-5h5M6.1 7a7 7 0 0 1 11.55-1L20 9M4 15l2.35 3A7 7 0 0 0 18 17" />
+  {:else if name === 'disclosure'}<path
+      d="m8 10 4 6 4-6z"
+      fill="currentColor"
+      stroke="none" />
   {:else if name === 'chevron'}<path d="m7 10 5 5 5-5" />
   {:else if name === 'settings'}<path d="M4 7h9m4 0h3M4 17h3m4 0h9" /><circle
       cx="15"
