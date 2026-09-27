@@ -2,8 +2,11 @@ import {classifyString} from './helpers'
 import {buildTodoTree} from './hierarchy'
 import type {TodoItem, TodoGroup, GroupByType, SortDirection} from 'src/_types'
 
-const compareText = (a: string, b: string) =>
-  a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'})
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+})
+const compareText = (a: string, b: string) => collator.compare(a, b)
 export const sortTodoTree = (
   items: TodoItem[],
   direction: SortDirection,
@@ -112,18 +115,27 @@ export const groupTodos = (
   }
   const modified = (group: TodoGroup) =>
     group.todos.reduce((n, t) => Math.max(n, t.fileModifiedTs), 0)
+  // Compute expensive sort keys once, not during every comparison.
+  const sortKeys = new Map(
+    groups.map(group => [
+      group,
+      sortGroups === 'modified'
+        ? modified(group)
+        : sortGroups === 'configured' && groupBy === 'tag'
+        ? configuredRank(group)
+        : 0,
+    ]),
+  )
   groups.sort((a, b) => {
     if (sortGroups === 'new->old')
       return b.newestItem - a.newestItem || compareText(a.label, b.label)
     if (sortGroups === 'old->new')
       return a.oldestItem - b.oldestItem || compareText(a.label, b.label)
     if (sortGroups === 'modified')
-      return modified(b) - modified(a) || compareText(a.label, b.label)
+      return sortKeys.get(b) - sortKeys.get(a) || compareText(a.label, b.label)
     if (sortGroups === 'z->a') return compareText(b.label, a.label)
     if (sortGroups === 'configured' && groupBy === 'tag')
-      return (
-        configuredRank(a) - configuredRank(b) || compareText(a.label, b.label)
-      )
+      return sortKeys.get(a) - sortKeys.get(b) || compareText(a.label, b.label)
     return compareText(a.label, b.label)
   })
   for (const group of groups) {

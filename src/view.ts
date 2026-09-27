@@ -325,22 +325,23 @@ export default class TodoListView extends ItemView {
   }
 
   private groupItems() {
-    const flattenedItems = Array.from(this.itemsByFile.values())
-      .flat()
-      .map(item => ({
-        ...item,
-        completionExpiresAt:
-          item.checked &&
-          !this.plugin.getSettingValue('showChecked') &&
-          this.plugin.getSettingValue('animateCompletion')
-            ? this.pendingCompletions.get(this.taskKey(item))
-            : undefined,
-      }))
+    const todoTags = this.todoTagArray
+    const hiddenTags = new Set(this.plugin.getSettingValue('_hiddenTags'))
+    const visibleTags = todoTags.filter(tag => !hiddenTags.has(tag))
+    const showChecked = this.plugin.getSettingValue('showChecked')
+    const animateCompletion = this.plugin.getSettingValue('animateCompletion')
     const viewOnlyOpen = this.plugin.getSettingValue('showOnlyActiveFile')
     const openFile = this.app.workspace.getActiveFile()
-    const filteredItems = viewOnlyOpen
-      ? flattenedItems.filter(i => i.filePath === openFile?.path)
-      : flattenedItems
+    const candidates = viewOnlyOpen
+      ? this.itemsByFile.get(openFile?.path) ?? []
+      : Array.from(this.itemsByFile.values()).flat()
+    const filteredItems = candidates.map(item => ({
+      ...item,
+      completionExpiresAt:
+        item.checked && !showChecked && animateCompletion
+          ? this.pendingCompletions.get(this.taskKey(item))
+          : undefined,
+    }))
     const folder = (this.plugin.getSettingValue('focusFolder') ?? '')
       .trim()
       .replace(/^\/+|\/+$/g, '')
@@ -350,22 +351,16 @@ export default class TodoListView extends ItemView {
       .split(/\s+/)
       .filter(Boolean)
     const searchedItems = filteredItems.filter(item => {
-      if (
-        !this.plugin.getSettingValue('showChecked') &&
-        item.checked &&
-        !item.completionExpiresAt
-      )
+      if (!showChecked && item.checked && !item.completionExpiresAt)
         return false
       if (folder && !item.filePath.startsWith(folder + '/')) return false
-      if (this.todoTagArray.length && !this.visibleTodoTagArray.length)
-        return false
+      if (todoTags.length && !visibleTags.length) return false
       if (
-        this.todoTagArray.length &&
-        !item.filterTags.some(tag =>
-          matchesTodoTag(tag, this.visibleTodoTagArray),
-        )
+        todoTags.length &&
+        !item.filterTags.some(tag => matchesTodoTag(tag, visibleTags))
       )
         return false
+      if (!terms.length) return true
       const text = `${item.originalText} ${item.filePath} ${
         item.mainTag ?? ''
       }/${item.subTag ?? ''}`.toLowerCase()
@@ -381,7 +376,7 @@ export default class TodoListView extends ItemView {
       this.plugin.getSettingValue('sortDirectionItems'),
       this.plugin.getSettingValue('subGroupBy') ?? 'none',
       this.plugin.getSettingValue('sortDirectionGroups'),
-      this.todoTagArray,
+      todoTags,
       '',
       this.plugin.getSettingValue('nestSubtasks') ?? false,
     )
@@ -389,13 +384,14 @@ export default class TodoListView extends ItemView {
     const admitted = new Set<string>()
     const admitTree = (items: TodoItem[]) => {
       for (const item of items) {
-        if (admitted.size < this.visibleLimit)
-          admitted.add(JSON.stringify([item.filePath, item.line]))
+        if (admitted.size >= this.visibleLimit) return
+        admitted.add(JSON.stringify([item.filePath, item.line]))
         admitTree(item.children)
       }
     }
     const admitGroups = (groups: TodoGroup[]) => {
       for (const group of groups) {
+        if (admitted.size >= this.visibleLimit) return
         if (group.groups) admitGroups(group.groups)
         else admitTree(group.todos)
       }

@@ -972,3 +972,50 @@ test('Groups sort controls both grouping levels despite a legacy subgroup sort',
   assert.deepEqual(f.view.groupedItems.map(g => g.label), ['Z', 'A'])
   for (const group of f.view.groupedItems) assert.deepEqual(group.groups.map(g => g.label), ['B.md', 'A.md'])
 })
+
+test('compiled file filters are reusable across paths and preserve glob behavior', () => {
+  const {createFileMatcher} = load('src/utils/tasks.ts')
+  const matches = createFileMatcher(' {Daily,Weekly}/** \n !**/Archive/** \n!**/*.tmp.md')
+  for (let pass = 0; pass < 2; pass++) {
+    assert.equal(matches('Daily/.hidden.md'), true)
+    assert.equal(matches('Weekly/Plan.md'), true)
+    assert.equal(matches('Daily/Archive/Old.md'), false)
+    assert.equal(matches('Weekly/Draft.tmp.md'), false)
+    assert.equal(matches('Other/Plan.md'), false)
+  }
+  assert.equal(createFileMatcher('')('Any.md'), true)
+  assert.equal(createFileMatcher('!Archive/**')('Other.md'), true)
+})
+
+test('current-note grouping switches cached files and retains all-note results', async () => {
+  const f = fixture()
+  const second = new TFile('second.md', '#todo\n- [ ] second task')
+  f.files.push(second)
+  let active = f.file
+  f.app.workspace.getActiveFile = () => active
+  await f.view.refresh()
+  const reads = f.reads()
+  f.settings.showOnlyActiveFile = true
+  f.view.regroup()
+  assert.equal(f.view.totalCount, 1)
+  assert.equal(f.view.groupedItems[0].todos[0].filePath, 'note.md')
+  active = second
+  f.view.regroup()
+  assert.equal(f.view.totalCount, 1)
+  assert.equal(f.view.groupedItems[0].todos[0].filePath, 'second.md')
+  f.settings.showOnlyActiveFile = false
+  f.view.regroup()
+  assert.equal(f.view.totalCount, 2)
+  assert.equal(f.reads(), reads)
+})
+
+test('precomputed group sort keys retain newest modification and natural-name ties', () => {
+  const items = [
+    sample(0, undefined, {filePath: 'Page10.md', fileLabel: 'Page10', fileModifiedTs: 50}),
+    sample(0, undefined, {filePath: 'Page2.md', fileLabel: 'Page2', fileModifiedTs: 1}),
+    sample(1, undefined, {filePath: 'Page2.md', fileLabel: 'Page2', fileModifiedTs: 50}),
+    sample(0, undefined, {filePath: 'First.md', fileLabel: 'First', fileModifiedTs: 100}),
+  ]
+  const groups = groupTodos(items, 'page', 'modified', 'source', false, 'modified')
+  assert.deepEqual(groups.map(g => g.label), ['First', 'Page2', 'Page10'])
+})

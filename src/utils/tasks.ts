@@ -1,5 +1,5 @@
 import MD from 'markdown-it'
-import minimatch from 'minimatch'
+import {Minimatch} from 'minimatch'
 import {Notice} from 'obsidian'
 import {commentPlugin} from '../plugins/comment'
 import {highlightPlugin} from '../plugins/highlight'
@@ -24,18 +24,24 @@ import type {App, MetadataCache, TFile, Vault} from 'obsidian'
 import type {TodoItem, TagMeta} from 'src/_types'
 
 /** Positive patterns are ORed; every negative pattern excludes from that set. */
-export const matchesFilePatterns = (path: string, patterns: string) => {
+export const createFileMatcher = (patterns: string) => {
   const rules = patterns
     .split('\n')
     .map(s => s.trim())
     .filter(Boolean)
-  const includes = rules.filter(s => !s.startsWith('!'))
-  const excludes = rules.filter(s => s.startsWith('!')).map(s => s.slice(1))
-  return (
-    (!includes.length || includes.some(p => minimatch(path, p, {dot: true}))) &&
-    !excludes.some(p => minimatch(path, p, {dot: true}))
-  )
+  const includes = rules
+    .filter(s => !s.startsWith('!'))
+    .map(p => new Minimatch(p, {dot: true}))
+  const excludes = rules
+    .filter(s => s.startsWith('!'))
+    .map(s => new Minimatch(s.slice(1), {dot: true}))
+  return (path: string) =>
+    (!includes.length || includes.some(p => p.match(path))) &&
+    !excludes.some(p => p.match(path))
 }
+
+export const matchesFilePatterns = (path: string, patterns: string) =>
+  createFileMatcher(patterns)(path)
 
 /** Bounded reads and per-file rendering keep large vaults from retaining all source text. */
 export const parseTodos = async (
@@ -52,13 +58,15 @@ export const parseTodos = async (
   nestSubtasks = true,
 ): Promise<Map<TFile, TodoItem[]>> => {
   const results = new Map<TFile, TodoItem[]>()
+  let matchesFile: ReturnType<typeof createFileMatcher>
   let next = 0
   async function worker() {
     while (next < files.length) {
       const file = files[next++]
       if (file.stat.mtime < lastRerender) continue
       try {
-        if (!matchesFilePatterns(file.path, includeFiles)) {
+        matchesFile ??= createFileMatcher(includeFiles)
+        if (!matchesFile(file.path)) {
           results.set(file, [])
           continue
         }
