@@ -65,6 +65,7 @@
   gap: 8px;
 }
 .checklist-toolbar-title {
+  padding-left: 8px;
   font-weight: 600;
   display: flex;
   align-items: center;
