@@ -174,9 +174,8 @@
       class="checklist-display-panel"
       role="group"
       aria-label="Display options">
-      <div class="checklist-panel-heading">Group</div>
       <label class="checklist-option"
-        >Group by<select
+        >Grouping<select
           value={groupBy}
           on:change={event =>
             updateSetting({groupBy: event.currentTarget.value})}
@@ -186,7 +185,7 @@
         ></label>
       {#if groupBy !== 'none'}
         <label class="checklist-option"
-          >Subgroup by<select
+          >Sub-grouping<select
             value={subGroupBy}
             on:change={event =>
               updateSetting({subGroupBy: event.currentTarget.value})}>
@@ -205,7 +204,7 @@
       {/if}
       <div class="checklist-panel-heading checklist-section-heading">Sort</div>
       <label class="checklist-option"
-        >Group order<select
+        >Groups<select
           value={sortDirectionGroups}
           on:change={event =>
             updateSetting({sortDirectionGroups: event.currentTarget.value})}
@@ -214,7 +213,7 @@
             >{/each}<option value="configured">Tag order</option></select
         ></label>
       <label class="checklist-option"
-        >Task order<select
+        >Tasks<select
           value={sortDirectionItems}
           on:change={event =>
             updateSetting({sortDirectionItems: event.currentTarget.value})}
@@ -229,7 +228,7 @@
       <label
         class="checklist-option"
         title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
-        <span>Sub tasks</span><input
+        <span>Sub-tasks</span><input
           type="checkbox"
           checked={nestSubtasks}
           on:change={event =>
@@ -289,10 +288,6 @@
                 .trim()
                 .replace(/^\/+|\/+$/g, ''),
             })} /></label>
-      <div class="checklist-option-description">
-        Only show tasks from this folder and its subfolders. Leave empty for all
-        folders.
-      </div>
     </div>
   {/if}
 </div>
