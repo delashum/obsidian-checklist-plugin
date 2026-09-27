@@ -88,7 +88,9 @@
         on:change={toggle} />
     </label>
     <div class="checklist-task-body">
-      <div class="checklist-task-line">
+      <div
+        class="checklist-task-line"
+        class:has-children={item.children.length > 0}>
         <div
           bind:this={contentDiv}
           class="checklist-task-content"
@@ -109,9 +111,11 @@
               item.children.length
             } ${item.children.length === 1 ? 'subtask' : 'subtasks'}`}
             on:click={() => (expanded = !expanded)}
-            ><span>{item.children.length}</span><Icon
-              name="chevron"
+            ><Icon
+              name="disclosure"
               direction={expanded ? 'down' : 'right'} /></button>
+          <span class="checklist-group-count checklist-children-count"
+            >{item.children.length}</span>
         {/if}
       </div>
       {#if showSource}<button
