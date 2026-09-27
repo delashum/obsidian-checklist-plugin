@@ -83,3 +83,5 @@ npm run build
 See [the 3.0 review notes](RELEASE-3.0.md) for scope, issue attribution, validation, and release gates. The hierarchy implementation incorporates the work in [PR #213](https://github.com/delashum/obsidian-checklist-plugin/pull/213) by SeanYHan888.
 
 New installs keep the previous page grouping and newest-first ordering. Saved choices are preserved on upgrade. Nested groups, source-note labels, folder focus, and Tasks integration are opt-in. Choose **Group by → None** for a single list without group headers, or turn off **Nested groups** to keep only the primary groups.
+
+**Show nested subtasks** is off by default: included tasks stay flat, and tagging a parent does not automatically include untagged children, matching the previous release. Turn it on to include those children and display expandable task trees. Existing tag/block/whole-note filters still apply.

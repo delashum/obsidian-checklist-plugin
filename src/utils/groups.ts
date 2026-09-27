@@ -34,7 +34,17 @@ export const groupTodos = (
   subGroupSort: SortDirection,
   configuredTags: string[] = [],
   parentId = '',
+  nestSubtasks = true,
 ): TodoGroup[] => {
+  const organize = (tasks: TodoItem[]) =>
+    sortTodoTree(
+      buildTodoTree(
+        nestSubtasks
+          ? tasks
+          : tasks.map(task => ({...task, parentLine: undefined})),
+      ),
+      sortItems,
+    )
   if (groupBy === 'none') {
     if (!items.length) return []
     return [
@@ -46,7 +56,7 @@ export const groupTodos = (
         className: '',
         oldestItem: 0,
         newestItem: 0,
-        todos: sortTodoTree(buildTodoTree(items), sortItems),
+        todos: organize(items),
       },
     ]
   }
@@ -127,9 +137,10 @@ export const groupTodos = (
         subGroupSort,
         configuredTags,
         group.id,
+        nestSubtasks,
       )
     // One checkbox per source line in a page/folder; a task can still appear under distinct tags.
-    group.todos = sortTodoTree(buildTodoTree(group.todos), sortItems)
+    group.todos = organize(group.todos)
   }
   return groups
 }

@@ -745,3 +745,92 @@ test('defaults preserve legacy organization and upgrades retain saved choices', 
   assert.equal(plugin.getSettingValue('sortDirectionItems'), 'old->new')
   assert.equal(plugin.getSettingValue('showSource'), false)
 })
+
+test('legacy subtask mode keeps inline-tag selection while opt-in includes descendants', async () => {
+  const f = fixture('- [ ] parent #todo\n  - [ ] child\n    - [ ] grandchild')
+  f.setMetadata({
+    tags: [tag('#todo', 0)],
+    listItems: [listItem(0), listItem(1, 0), listItem(2, 1)],
+  })
+  const read = (nested, all = false) =>
+    parseTodos(
+      f.files,
+      ['todo'],
+      f.app.metadataCache,
+      f.app.vault,
+      '',
+      false,
+      all,
+      0,
+      [],
+      () => {},
+      nested,
+    )
+  assert.deepEqual(
+    (await read(false)).get(f.file).map(t => t.line),
+    [0],
+  )
+  assert.deepEqual(
+    (await read(true)).get(f.file).map(t => t.line),
+    [0, 1, 2],
+  )
+  const wholeNote = (await read(false, true)).get(f.file)
+  assert.deepEqual(
+    wholeNote.map(t => t.line),
+    [0, 1, 2],
+  )
+  for (const mode of ['none', 'page', 'tag', 'folder']) {
+    const groups = groupTodos(
+      wholeNote,
+      mode,
+      'a->z',
+      'source',
+      false,
+      'a->z',
+      [],
+      '',
+      false,
+    )
+    const tasks = groups.flatMap(g => g.todos)
+    assert.equal(tasks.length, 3)
+    assert.ok(tasks.every(t => t.children.length === 0))
+  }
+  const nested = groupTodos(
+    wholeNote,
+    'page',
+    'a->z',
+    'source',
+    true,
+    'a->z',
+    [],
+    '',
+    true,
+  )
+  assert.equal(countTodoTree(nested[0].todos), 3)
+  const flat = groupTodos(
+    wholeNote,
+    'page',
+    'a->z',
+    'source',
+    true,
+    'a->z',
+    [],
+    '',
+    false,
+  )
+  assert.ok(
+    flat[0].groups.flatMap(g => g.todos).every(t => t.children.length === 0),
+  )
+})
+
+test('subtask hierarchy is opt-in for fresh installs and legacy saved settings', async () => {
+  const plugin = new TodoPlugin()
+  for (const data of [null, {groupBy: 'tag'}, {nestSubtasks: true}]) {
+    plugin.loadData = async () => data
+    await plugin.loadSettings()
+    assert.equal(
+      plugin.getSettingValue('nestSubtasks'),
+      data?.nestSubtasks === true,
+    )
+  }
+})

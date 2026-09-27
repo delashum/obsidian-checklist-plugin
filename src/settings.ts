@@ -14,6 +14,7 @@ export interface TodoSettings {
   autoRefresh: boolean
   groupBy: GroupByType
   subGroups: boolean
+  nestSubtasks: boolean
   sortDirectionItems: SortDirection
   sortDirectionGroups: SortDirection
   sortDirectionSubGroups: SortDirection
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   showOnlyActiveFile: false,
   autoRefresh: true,
   subGroups: false,
+  nestSubtasks: false,
   groupBy: 'page',
   sortDirectionItems: 'new->old',
   sortDirectionGroups: 'new->old',
@@ -118,6 +120,11 @@ export class TodoSettingTab extends PluginSettingTab {
       'subGroups',
       'Nested groups',
       'Within pages, group by tag. Within tags or folders, group by page. Off by default; ignored with None.',
+    )
+    this.toggle(
+      'nestSubtasks',
+      'Show nested subtasks',
+      'Off keeps the previous version’s flat list and task selection. Turn on to include children of tagged tasks and show an expandable hierarchy.',
     )
     this.select('sortDirectionGroups', 'Group order', {
       ...SORT_OPTIONS,

@@ -15,6 +15,7 @@
   export let lookAndFeel: LookAndFeel
   export let taskCount: number
   export let subGroups: boolean
+  export let nestSubtasks: boolean
   export let sortDirectionGroups: SortDirection
   export let sortDirectionItems: SortDirection
   export let focusFolder: string
@@ -179,6 +180,15 @@
           checked={subGroups}
           on:change={event =>
             updateSetting({subGroups: event.currentTarget.checked})} /></label>
+      <label
+        class="checklist-option"
+        title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
+        <span>Show nested subtasks</span><input
+          type="checkbox"
+          checked={nestSubtasks}
+          on:change={event =>
+            updateSetting({nestSubtasks: event.currentTarget.checked})} />
+      </label>
       <label class="checklist-option"
         >Group order<select
           value={sortDirectionGroups}

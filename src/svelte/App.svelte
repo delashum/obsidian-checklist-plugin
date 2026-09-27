@@ -12,6 +12,7 @@
   export let showOnlyActiveFile: boolean
   export let showSource: boolean
   export let subGroups: boolean
+  export let nestSubtasks: boolean
   export let sortDirectionGroups: SortDirection
   export let sortDirectionItems: SortDirection
   export let focusFolder: string
@@ -72,6 +73,7 @@
     {lookAndFeel}
     taskCount={totalCount}
     {subGroups}
+    {nestSubtasks}
     {sortDirectionGroups}
     {sortDirectionItems}
     {focusFolder}

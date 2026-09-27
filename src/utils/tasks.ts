@@ -49,6 +49,7 @@ export const parseTodos = async (
   lastRerender: number,
   excludedTags: string[] = [],
   onError: (file: TFile) => void = () => {},
+  nestSubtasks = true,
 ): Promise<Map<TFile, TodoItem[]>> => {
   const results = new Map<TFile, TodoItem[]>()
   let next = 0
@@ -162,7 +163,10 @@ export const parseTodos = async (
           selected.set(line, byTag)
         }
         for (const tag of matchingTags)
-          for (const line of selectBlock(tag.position.start.line))
+          for (const line of !nestSubtasks &&
+          taskLines.has(tag.position.start.line)
+            ? [tag.position.start.line]
+            : selectBlock(tag.position.start.line))
             add(line, tag.tag)
         if (wildcard || matchedFrontmatter.length || showAllTodos) {
           for (const line of taskLines) {

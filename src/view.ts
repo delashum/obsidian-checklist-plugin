@@ -167,6 +167,7 @@ export default class TodoListView extends ItemView {
       showSource: this.plugin.getSettingValue('showSource'),
       useTasksPlugin: this.plugin.getSettingValue('useTasksPlugin'),
       subGroups: this.plugin.getSettingValue('subGroups'),
+      nestSubtasks: this.plugin.getSettingValue('nestSubtasks') ?? false,
       sortDirectionGroups: this.plugin.getSettingValue('sortDirectionGroups'),
       sortDirectionItems: this.plugin.getSettingValue('sortDirectionItems'),
       focusFolder: this.plugin.getSettingValue('focusFolder'),
@@ -242,6 +243,7 @@ export default class TodoListView extends ItemView {
         .map(s => s.trim())
         .filter(Boolean),
       file => this.failedFiles.add(file.path),
+      this.plugin.getSettingValue('nestSubtasks') ?? false,
     )
     const currentPaths = new Set(
       this.app.vault.getMarkdownFiles().map(file => file.path),
@@ -301,6 +303,8 @@ export default class TodoListView extends ItemView {
       this.plugin.getSettingValue('subGroups'),
       this.plugin.getSettingValue('sortDirectionSubGroups'),
       this.todoTagArray,
+      '',
+      this.plugin.getSettingValue('nestSubtasks') ?? false,
     )
     // Apply the render limit after sorting; always admit parents before children.
     const admitted = new Set<string>()

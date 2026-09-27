@@ -305,7 +305,7 @@
 }
 .checklist-task-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   min-height: 22px;
 }
@@ -313,7 +313,7 @@
   flex: 1;
   min-width: 0;
   display: block;
-  line-height: 1.5;
+  line-height: max(22px, 1.5em);
   cursor: pointer;
   overflow-wrap: anywhere;
   font-size: var(--checklist-contentFontSize);
@@ -438,6 +438,10 @@
 .checklist-plugin-main .checklist-children-toggle {
   display: inline-flex;
   flex: none;
+  margin-top: max(
+    1px,
+    calc((var(--checklist-contentFontSize) * 1.5 - 20px) / 2)
+  );
   margin-left: 0;
   white-space: nowrap;
   border-radius: 5px;
