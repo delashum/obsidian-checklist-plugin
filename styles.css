@@ -575,7 +575,7 @@
 }
 .checklist-plugin-main ul.checklist-children {
   padding-left: 0 !important;
-  margin: 0 0 3px 28px;
+  margin: 0 0 3px calc(var(--checkbox-size, 16px) + 2px);
 }
 .checklist-plugin-main .checklist-load-more {
   width: 100%;
