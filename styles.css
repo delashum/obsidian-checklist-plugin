@@ -144,7 +144,8 @@
     var(--background-modifier-box-shadow, rgba(0, 0, 0, 0.18));
 }
 .checklist-panel-heading {
-  padding: 5px 6px 7px;
+  padding: 2px 6px 4px;
+  line-height: 16px;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-faint);
@@ -173,8 +174,8 @@
   margin: 0;
 }
 .checklist-tags-heading {
-  margin-top: 7px;
-  padding-top: 11px;
+  margin-top: 5px;
+  padding-top: 5px;
   border-top: 1px solid var(--background-modifier-border);
 }
 .checklist-tag-options {
