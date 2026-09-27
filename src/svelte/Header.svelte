@@ -68,8 +68,7 @@
   on:click_outside={() => (showPopover = false)}
   on:keydown={closeOnEscape}>
   <div class="checklist-toolbar-heading">
-    <span class="checklist-toolbar-title"
-      >Tasks <span class="checklist-total">{taskCount}</span></span>
+    <span class="checklist-toolbar-title">Tasks</span>
     <div class="checklist-scope" role="group" aria-label="Task scope">
       <button
         class:is-selected={!showOnlyActiveFile}
@@ -84,6 +83,8 @@
         title="This note"
         aria-label="This note">Note</button>
     </div>
+    <span class="checklist-total" aria-label={`${taskCount} tasks`}
+      >{taskCount}</span>
     <div class="checklist-toolbar-actions">
       <button
         bind:this={searchButton}

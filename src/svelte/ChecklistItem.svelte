@@ -72,13 +72,6 @@
             navToFile(app, item.filePath, event, item.line)
           }
         }} />
-      {#if showSource}<button
-          class="checklist-source"
-          title={item.filePath}
-          on:click={event => navToFile(app, item.filePath, event, item.line)}
-          ><Icon name="file" /><span>{item.filePath.replace(/\.md$/, '')}</span
-          ></button
-        >{/if}
       {#if item.children.length}
         <button
           class="checklist-children-toggle"
@@ -88,6 +81,13 @@
             .children.length}
           {item.children.length === 1 ? 'subtask' : 'subtasks'}</button>
       {/if}
+      {#if showSource}<button
+          class="checklist-source"
+          title={item.filePath}
+          on:click={event => navToFile(app, item.filePath, event, item.line)}
+          ><Icon name="file" /><span>{item.filePath.replace(/\.md$/, '')}</span
+          ></button
+        >{/if}
     </div>
   </div>
   {#if item.children.length}
