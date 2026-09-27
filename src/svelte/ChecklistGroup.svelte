@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {App} from 'obsidian'
-  import type {TodoGroup} from 'src/_types'
+  import type {TodoGroup, TodoItem} from 'src/_types'
   import {navToFile} from 'src/utils'
   import {countTodoTree} from 'src/utils/hierarchy'
   import ChecklistItem from './ChecklistItem.svelte'
@@ -13,7 +13,7 @@
   export let onTagClick: (tag: string) => void
   export let app: App
   export let onToggle: (id: string) => void
-  export let onTaskChanged: (path: string) => Promise<void>
+  export let onToggleTask: (item: TodoItem) => Promise<void>
   $: isCollapsed = collapsed.includes(group.id)
 </script>
 
@@ -60,7 +60,7 @@
             {showSource}
             {collapsed}
             {onToggle}
-            {onTaskChanged}
+            {onToggleTask}
             {onTagClick}
             {useTasksPlugin} />{/each}
       </div>
@@ -70,7 +70,7 @@
             {item}
             {app}
             {useTasksPlugin}
-            {onTaskChanged}
+            {onToggleTask}
             {onTagClick}
             showSource={showSource && group.type !== 'page'} />{/each}
       </ul>

@@ -1,8 +1,8 @@
 import {ItemView, WorkspaceLeaf} from 'obsidian'
 
-import {TODO_VIEW_TYPE} from './constants'
+import {TODO_VIEW_TYPE, TASK_COMPLETION_DELAY_MS} from './constants'
 import App from './svelte/App.svelte'
-import {groupTodos, parseTodos} from './utils'
+import {groupTodos, parseTodos, toggleTodoItem} from './utils'
 import {matchesTodoTag} from './utils/helpers'
 
 import type {TodoSettings} from './settings'
@@ -22,6 +22,9 @@ export default class TodoListView extends ItemView {
   private totalCount = 0
   private loading = false
   private failedFiles = new Set<string>()
+  private completionTimers = new Map<string, ReturnType<typeof setTimeout>>()
+  private pendingCompletions = new Map<string, number>()
+  private togglingTasks = new Set<string>()
   private refreshTimer: number
 
   constructor(
@@ -60,6 +63,9 @@ export default class TodoListView extends ItemView {
 
   async onClose() {
     this.closed = true
+    for (const timer of this.completionTimers.values()) clearTimeout(timer)
+    this.completionTimers.clear()
+    this.pendingCompletions.clear()
     window.clearTimeout(this.refreshTimer)
     this._app?.$destroy()
   }
@@ -157,6 +163,62 @@ export default class TodoListView extends ItemView {
     this.renderView()
   }
 
+  private taskKey(item: TodoItem) {
+    return JSON.stringify([item.filePath, item.line])
+  }
+
+  private clearCompletion(key: string) {
+    clearTimeout(this.completionTimers.get(key))
+    this.completionTimers.delete(key)
+    this.pendingCompletions.delete(key)
+  }
+
+  private scheduleCompletionRemoval(key: string, delay: number) {
+    clearTimeout(this.completionTimers.get(key))
+    this.completionTimers.set(
+      key,
+      setTimeout(() => {
+        if (this.togglingTasks.has(key)) {
+          this.scheduleCompletionRemoval(key, 50)
+          return
+        }
+        this.clearCompletion(key)
+        if (!this.closed) {
+          this.groupItems()
+          this.renderView()
+        }
+      }, delay),
+    )
+  }
+
+  private async toggleTask(item: TodoItem) {
+    const key = this.taskKey(item)
+    if (this.togglingTasks.has(key)) return
+    const completing = !item.checked
+    const hold = completing && !this.plugin.getSettingValue('showChecked')
+    this.togglingTasks.add(key)
+    // Register before saving so metadata refreshes cannot remove the row early.
+    if (hold)
+      this.pendingCompletions.set(key, Date.now() + TASK_COMPLETION_DELAY_MS)
+    try {
+      const changed = await toggleTodoItem(
+        item,
+        this.app,
+        this.plugin.getSettingValue('useTasksPlugin'),
+      )
+      if (changed && hold && !this.closed) {
+        this.pendingCompletions.set(key, Date.now() + TASK_COMPLETION_DELAY_MS)
+        this.scheduleCompletionRemoval(key, TASK_COMPLETION_DELAY_MS)
+      } else if (changed || hold) {
+        this.clearCompletion(key)
+      }
+      this.fileVersions.delete(item.filePath)
+      if (!this.closed) await this.refresh()
+    } finally {
+      this.togglingTasks.delete(key)
+    }
+  }
+
   private props() {
     return {
       todoTags: this.todoTagArray,
@@ -181,10 +243,7 @@ export default class TodoListView extends ItemView {
         this.renderView()
       },
       onRefresh: () => this.refresh(true),
-      onTaskChanged: (path: string) => {
-        this.fileVersions.delete(path)
-        return this.refresh()
-      },
+      onToggleTask: (item: TodoItem) => this.toggleTask(item),
       _collapsedSections: this.plugin.getSettingValue('_collapsedSections'),
       _hiddenTags: this.plugin.getSettingValue('_hiddenTags'),
       app: this.app,
@@ -260,7 +319,15 @@ export default class TodoListView extends ItemView {
   }
 
   private groupItems() {
-    const flattenedItems = Array.from(this.itemsByFile.values()).flat()
+    const flattenedItems = Array.from(this.itemsByFile.values())
+      .flat()
+      .map(item => ({
+        ...item,
+        completionExpiresAt:
+          item.checked && !this.plugin.getSettingValue('showChecked')
+            ? this.pendingCompletions.get(this.taskKey(item))
+            : undefined,
+      }))
     const viewOnlyOpen = this.plugin.getSettingValue('showOnlyActiveFile')
     const openFile = this.app.workspace.getActiveFile()
     const filteredItems = viewOnlyOpen
@@ -275,7 +342,11 @@ export default class TodoListView extends ItemView {
       .split(/\s+/)
       .filter(Boolean)
     const searchedItems = filteredItems.filter(item => {
-      if (!this.plugin.getSettingValue('showChecked') && item.checked)
+      if (
+        !this.plugin.getSettingValue('showChecked') &&
+        item.checked &&
+        !item.completionExpiresAt
+      )
         return false
       if (folder && !item.filePath.startsWith(folder + '/')) return false
       if (this.todoTagArray.length && !this.visibleTodoTagArray.length)

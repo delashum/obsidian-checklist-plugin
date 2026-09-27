@@ -2,15 +2,16 @@
   import type {App} from 'obsidian'
   import {Keymap} from 'obsidian'
   import type {TodoItem} from 'src/_types'
-  import {navToFile, toggleTodoItem} from 'src/utils'
+  import {navToFile} from 'src/utils'
   import CheckCircle from './CheckCircle.svelte'
   import Icon from './Icon.svelte'
+  import {TASK_COMPLETION_DELAY_MS} from 'src/constants'
   export let item: TodoItem
   export let showSource = false
   export let useTasksPlugin = false
   export let onTagClick: (tag: string) => void
   export let app: App
-  export let onTaskChanged: (path: string) => Promise<void>
+  export let onToggleTask: (item: TodoItem) => Promise<void>
   let contentDiv: HTMLDivElement
   let busy = false
   let expanded = true
@@ -18,9 +19,7 @@
     if (busy) return
     busy = true
     try {
-      await toggleTodoItem(item, app, useTasksPlugin)
-      item = item
-      await onTaskChanged(item.filePath)
+      await onToggleTask(item)
     } finally {
       busy = false
     }
@@ -50,7 +49,15 @@
 </script>
 
 <li class="checklist-task" class:is-completed={item.checked}>
-  <div class="checklist-task-row">
+  <div
+    class="checklist-task-row"
+    class:is-completing={!!item.completionExpiresAt}
+    style={item.completionExpiresAt
+      ? `--completion-duration: ${TASK_COMPLETION_DELAY_MS}ms; --completion-delay: ${Math.min(
+          0,
+          item.completionExpiresAt - Date.now() - TASK_COMPLETION_DELAY_MS,
+        )}ms`
+      : undefined}>
     <button
       class="checklist-task-toggle"
       disabled={busy}
@@ -101,7 +108,7 @@
         {#each item.children as child (child.filePath + ':' + child.line)}<svelte:self
             item={child}
             {app}
-            {onTaskChanged}
+            {onToggleTask}
             {onTagClick}
             {useTasksPlugin} />{/each}
       </ul>{/if}

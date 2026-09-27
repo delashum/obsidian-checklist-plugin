@@ -1,4 +1,5 @@
 export type TodoItem = {
+  completionExpiresAt?: number
   checked: boolean
   filePath: string
   fileName: string

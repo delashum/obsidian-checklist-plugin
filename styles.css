@@ -626,3 +626,38 @@
     var(--text-normal) 8%
   );
 }
+
+.checklist-task-row.is-completing {
+  position: relative;
+  isolation: isolate;
+  background: color-mix(
+    in srgb,
+    var(--background-modifier-hover) 45%,
+    transparent
+  ) !important;
+}
+.checklist-task-row.is-completing::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--background-modifier-hover);
+  transform-origin: left;
+  pointer-events: none;
+  animation: checklist-completion-fill var(--completion-duration) linear
+    var(--completion-delay) both;
+}
+@keyframes checklist-completion-fill {
+  from {
+    clip-path: inset(0 100% 0 0 round 7px);
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 7px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .checklist-task-row.is-completing::before {
+    animation: none;
+  }
+}

@@ -861,3 +861,66 @@ test('two-level grouping swaps duplicates and migrates the legacy subgroup toggl
   )
   assert.equal(groups[0].groups[0].type, 'folder')
 })
+
+test('completion grace period survives refresh and hides the row at expiry', async t => {
+  const timers = new Map()
+  let timerId = 0
+  t.mock.method(global, 'setTimeout', (callback, delay) => {
+    timers.set(++timerId, {callback, delay})
+    return timerId
+  })
+  t.mock.method(global, 'clearTimeout', id => timers.delete(id))
+  const f = fixture()
+  await f.view.refresh()
+  await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
+  assert.match(f.file.content, /\[x\]/i)
+  assert.equal(f.view.groupedItems[0].todos[0].checked, true)
+  assert.ok(f.view.groupedItems[0].todos[0].completionExpiresAt)
+  await f.view.refresh(true)
+  assert.equal(f.view.groupedItems[0].todos.length, 1)
+  const timer = [...timers.values()][0]
+  assert.equal(timer.delay, 3000)
+  timer.callback()
+  assert.equal(f.view.groupedItems.length, 0)
+})
+
+test('unchecking during completion grace cancels removal and restores the file', async t => {
+  const timers = new Map()
+  let timerId = 0
+  t.mock.method(global, 'setTimeout', callback => {
+    timers.set(++timerId, callback)
+    return timerId
+  })
+  t.mock.method(global, 'clearTimeout', id => timers.delete(id))
+  const f = fixture()
+  await f.view.refresh()
+  await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
+  await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
+  assert.match(f.file.content, /\[ \]/)
+  assert.equal(f.view.groupedItems[0].todos[0].checked, false)
+  assert.equal(f.view.groupedItems[0].todos[0].completionExpiresAt, undefined)
+  assert.equal(timers.size, 0)
+})
+
+test('visible completed tasks do not start a removal timer', async t => {
+  const timer = t.mock.method(global, 'setTimeout', () => { throw new Error('Unexpected timer') })
+  const f = fixture()
+  f.settings.showChecked = true
+  await f.view.refresh()
+  await f.view.props().onToggleTask(f.view.groupedItems[0].todos[0])
+  assert.equal(f.view.groupedItems[0].todos[0].checked, true)
+  assert.equal(f.view.groupedItems[0].todos[0].completionExpiresAt, undefined)
+  assert.equal(timer.mock.callCount(), 0)
+})
+
+test('a rejected stale completion does not start an animation or remove the task', async t => {
+  t.mock.method(global, 'setTimeout', () => { throw new Error('Unexpected timer') })
+  const f = fixture()
+  await f.view.refresh()
+  const stale = f.view.groupedItems[0].todos[0]
+  f.file.content = '#todo\n- [ ] Edited task'
+  await f.view.props().onToggleTask(stale)
+  assert.equal(f.view.pendingCompletions.size, 0)
+  assert.equal(f.view.groupedItems[0].todos[0].checked, false)
+  assert.match(f.file.content, /Edited task/)
+})

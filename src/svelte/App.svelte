@@ -1,6 +1,6 @@
 <script lang="ts">
   import type {App} from 'obsidian'
-  import type {TodoGroup, GroupByType} from 'src/_types'
+  import type {TodoGroup, TodoItem, GroupByType} from 'src/_types'
   import type {TodoSettings} from 'src/settings'
   import ChecklistGroup from './ChecklistGroup.svelte'
   import Header from './Header.svelte'
@@ -22,7 +22,7 @@
   export let failedCount: number
   export let onLoadMore: () => void
   export let onRefresh: () => Promise<void>
-  export let onTaskChanged: (path: string) => Promise<void>
+  export let onToggleTask: (item: TodoItem) => Promise<void>
   export let _collapsedSections: string[]
   export let _hiddenTags: string[]
   export let updateSetting: (updates: Partial<TodoSettings>) => Promise<void>
@@ -116,7 +116,7 @@
         {showSource}
         collapsed={_collapsedSections}
         onToggle={toggleGroup}
-        {onTaskChanged}
+        {onToggleTask}
         onTagClick={tag => {
           search = tag
           onSearch(tag)
