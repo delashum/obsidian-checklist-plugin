@@ -41,12 +41,16 @@ export type TagGroup = BaseGroup & {
 }
 
 export type FolderGroup = BaseGroup & {type: 'folder'}
-export type TodoGroup = PageGroup | TagGroup | FolderGroup
+export type TodoGroup =
+  | PageGroup
+  | TagGroup
+  | FolderGroup
+  | (BaseGroup & {type: 'none'})
 
 export type TagMeta = {main: string; sub: string}
 export type LinkMeta = {filePath: string; linkName: string}
 
-export type GroupByType = 'page' | 'tag' | 'folder'
+export type GroupByType = 'none' | 'page' | 'tag' | 'folder'
 export type SortDirection =
   | 'new->old'
   | 'old->new'

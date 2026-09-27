@@ -78,7 +78,7 @@
     {loading}
     {onRefresh}
     {allCollapsed}
-    hasGroups={todoGroups.length > 0}
+    hasGroups={groupBy !== 'none' && todoGroups.length > 0}
     onToggleAll={toggleAll}
     {updateSetting}
     onTagStatusChange={updateTagStatus}

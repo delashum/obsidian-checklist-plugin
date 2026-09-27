@@ -35,6 +35,21 @@ export const groupTodos = (
   configuredTags: string[] = [],
   parentId = '',
 ): TodoGroup[] => {
+  if (groupBy === 'none') {
+    if (!items.length) return []
+    return [
+      {
+        id: 'ungrouped',
+        type: 'none',
+        label: '',
+        sortName: '',
+        className: '',
+        oldestItem: 0,
+        newestItem: 0,
+        todos: sortTodoTree(buildTodoTree(items), sortItems),
+      },
+    ]
+  }
   const byKey = new Map<string, TodoGroup>()
   for (const item of items) {
     const folder = item.filePath.includes('/')

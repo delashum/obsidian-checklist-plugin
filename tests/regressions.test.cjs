@@ -700,3 +700,48 @@ test('wiki link attributes are escaped and links remain keyboard accessible', as
   assert.match(item.rawHTML, /data-filepath="Note"/)
   assert.match(item.rawHTML, />the note<\/a>/)
 })
+
+test('ungrouped tasks deduplicate tags, retain children, and honor task sorting', () => {
+  const items = [
+    sample(3, undefined, {mainTag: 'a'}),
+    sample(4, 3),
+    sample(3, undefined, {mainTag: 'b'}),
+    sample(0),
+  ]
+  const groups = groupTodos(items, 'none', 'a->z', 'source', true, 'a->z')
+  assert.equal(groups.length, 1)
+  assert.equal(groups[0].type, 'none')
+  assert.equal(groups[0].groups, undefined)
+  assert.deepEqual(
+    groups[0].todos.map(t => t.line),
+    [0, 3],
+  )
+  assert.equal(countTodoTree(groups[0].todos), 3)
+  assert.equal(groups[0].todos[1].children[0].line, 4)
+  assert.deepEqual(groupTodos([], 'none', 'a->z', 'source', true, 'a->z'), [])
+})
+
+test('defaults preserve legacy organization and upgrades retain saved choices', async () => {
+  const {DEFAULT_SETTINGS} = load('src/settings.ts')
+  assert.equal(DEFAULT_SETTINGS.groupBy, 'page')
+  assert.equal(DEFAULT_SETTINGS.subGroups, false)
+  assert.equal(DEFAULT_SETTINGS.showSource, false)
+  assert.equal(DEFAULT_SETTINGS.useTasksPlugin, false)
+  for (const key of [
+    'sortDirectionItems',
+    'sortDirectionGroups',
+    'sortDirectionSubGroups',
+  ])
+    assert.equal(DEFAULT_SETTINGS[key], 'new->old')
+  const plugin = new TodoPlugin()
+  plugin.loadData = async () => ({
+    groupBy: 'tag',
+    subGroups: false,
+    sortDirectionItems: 'old->new',
+  })
+  await plugin.loadSettings()
+  assert.equal(plugin.getSettingValue('groupBy'), 'tag')
+  assert.equal(plugin.getSettingValue('subGroups'), false)
+  assert.equal(plugin.getSettingValue('sortDirectionItems'), 'old->new')
+  assert.equal(plugin.getSettingValue('showSource'), false)
+})

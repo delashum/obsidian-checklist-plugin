@@ -415,7 +415,7 @@
   font-size: 12px;
 }
 .checklist-subgroups {
-  margin-left: 18px;
+  margin-left: 0;
 }
 .checklist-subgroups .checklist-group {
   margin-bottom: 16px;

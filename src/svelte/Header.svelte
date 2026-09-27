@@ -168,12 +168,14 @@
           value={groupBy}
           on:change={event =>
             updateSetting({groupBy: event.currentTarget.value})}
-          ><option value="page">Page</option><option value="tag">Tag</option
-          ><option value="folder">Folder</option></select
+          ><option value="none">None</option><option value="page">Page</option
+          ><option value="tag">Tag</option><option value="folder">Folder</option
+          ></select
         ></label>
       <label class="checklist-option"
         ><span>Nested groups</span><input
           type="checkbox"
+          disabled={groupBy === 'none'}
           checked={subGroups}
           on:change={event =>
             updateSetting({subGroups: event.currentTarget.checked})} /></label>

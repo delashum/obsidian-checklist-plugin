@@ -27,16 +27,16 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   useTasksPlugin: false,
   excludeTags: '',
   focusFolder: '',
-  showSource: true,
+  showSource: false,
   showChecked: false,
   showAllTodos: false,
   showOnlyActiveFile: false,
   autoRefresh: true,
   subGroups: false,
   groupBy: 'page',
-  sortDirectionItems: 'source',
-  sortDirectionGroups: 'a->z',
-  sortDirectionSubGroups: 'a->z',
+  sortDirectionItems: 'new->old',
+  sortDirectionGroups: 'new->old',
+  sortDirectionSubGroups: 'new->old',
   includeFiles: '',
   lookAndFeel: 'classic',
   _collapsedSections: [],
@@ -109,6 +109,7 @@ export class TodoSettingTab extends PluginSettingTab {
     )
     this.heading('Organization')
     this.select('groupBy', 'Group by', {
+      none: 'None',
       page: 'Page',
       tag: 'Tag',
       folder: 'Folder',
@@ -116,7 +117,7 @@ export class TodoSettingTab extends PluginSettingTab {
     this.toggle(
       'subGroups',
       'Nested groups',
-      'Within pages, group by tag. Within tags or folders, group by page.',
+      'Within pages, group by tag. Within tags or folders, group by page. Off by default; ignored with None.',
     )
     this.select('sortDirectionGroups', 'Group order', {
       ...SORT_OPTIONS,
@@ -135,7 +136,7 @@ export class TodoSettingTab extends PluginSettingTab {
     this.toggle(
       'showSource',
       'Show source notes',
-      'Show each task’s note when grouping by tag or folder.',
+      'Show each task’s note outside page groups. Off by default.',
     )
     this.toggle('showChecked', 'Show completed tasks')
     this.toggle('showOnlyActiveFile', 'Current note only')
