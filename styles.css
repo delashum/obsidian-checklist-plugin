@@ -1,5 +1,6 @@
 /* Checklist uses Obsidian's colors and font so light, dark, and community themes stay coherent. */
 .checklist-plugin-main {
+  --checklist-section-gap: var(--size-4-3, 12px);
   --checklist-row-padding: 3px;
   --checklist-control-width: 24px;
   --checklist-contentFontSize: var(--font-ui-small, 13px);
@@ -53,7 +54,7 @@
 }
 .checklist-toolbar {
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: var(--checklist-section-gap);
 }
 .checklist-toolbar-heading {
   display: flex;
@@ -187,7 +188,7 @@
   white-space: nowrap;
 }
 .checklist-group {
-  margin: 0 0 28px;
+  margin: 0 0 var(--checklist-section-gap);
 }
 .checklist-group-header {
   display: flex;
