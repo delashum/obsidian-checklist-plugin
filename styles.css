@@ -1,6 +1,8 @@
 /* Checklist uses Obsidian's colors and font so light, dark, and community themes stay coherent. */
 .checklist-plugin-main {
   --checklist-section-gap: var(--size-4-3, 12px);
+  --checklist-input-background: var(--background-modifier-form-field);
+  --checklist-input-border: var(--background-modifier-border-hover);
   --checklist-row-padding: 3px;
   --checklist-control-width: 24px;
   --checklist-contentFontSize: var(--font-ui-small, 13px);
@@ -89,13 +91,10 @@
   gap: 7px;
   padding: 0 7px;
   min-height: 32px;
-  background: var(--background-primary);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 6px;
+  background: var(--checklist-input-background);
+  border: 0.5px solid var(--checklist-input-border);
+  border-radius: 8px;
   color: var(--text-faint);
-}
-.checklist-search-wrap:focus-within {
-  border-color: var(--interactive-accent);
 }
 .checklist-plugin-main input.checklist-search,
 .checklist-plugin-main input.checklist-search:hover,
@@ -168,6 +167,35 @@
   min-width: 0;
   font: inherit;
   height: 26px;
+  padding: 0 9px;
+  border: 0.5px solid var(--checklist-input-border);
+  border-radius: 8px;
+  background-color: var(--checklist-input-background);
+  color: var(--text-normal);
+  box-shadow: none;
+}
+.checklist-option select {
+  appearance: none;
+  padding-right: 27px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 12px;
+}
+.checklist-option select:hover,
+.checklist-folder-option input:hover,
+.checklist-search-wrap:hover {
+  background-color: var(--checklist-input-background);
+  border-color: var(--background-modifier-border-focus);
+}
+.checklist-option select:focus,
+.checklist-folder-option input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+  box-shadow: none;
+}
+.checklist-search-wrap:focus-within {
+  border-color: var(--interactive-accent);
 }
 .checklist-option input[type='checkbox'] {
   flex: none;
