@@ -60,27 +60,30 @@
       on:click|stopPropagation={toggle}
       ><CheckCircle checked={item.checked} /></button>
     <div class="checklist-task-body">
-      <div
-        bind:this={contentDiv}
-        class="checklist-task-content"
-        role="link"
-        tabindex="0"
-        on:click={handleClick}
-        on:keydown={event => {
-          if (event.key === 'Enter' && event.target === event.currentTarget) {
-            event.preventDefault()
-            navToFile(app, item.filePath, event, item.line)
-          }
-        }} />
-      {#if item.children.length}
-        <button
-          class="checklist-children-toggle"
-          aria-expanded={expanded}
-          on:click={() => (expanded = !expanded)}
-          ><Icon name="chevron" direction={expanded ? 'down' : 'right'} />{item
-            .children.length}
-          {item.children.length === 1 ? 'subtask' : 'subtasks'}</button>
-      {/if}
+      <div class="checklist-task-line">
+        <div
+          bind:this={contentDiv}
+          class="checklist-task-content"
+          role="link"
+          tabindex="0"
+          on:click={handleClick}
+          on:keydown={event => {
+            if (event.key === 'Enter' && event.target === event.currentTarget) {
+              event.preventDefault()
+              navToFile(app, item.filePath, event, item.line)
+            }
+          }} />
+        {#if item.children.length}
+          <button
+            class="checklist-children-toggle"
+            aria-expanded={expanded}
+            on:click={() => (expanded = !expanded)}
+            ><Icon
+              name="chevron"
+              direction={expanded ? 'down' : 'right'} />{item.children.length}
+            {item.children.length === 1 ? 'subtask' : 'subtasks'}</button>
+        {/if}
+      </div>
       {#if showSource}<button
           class="checklist-source"
           title={item.filePath}

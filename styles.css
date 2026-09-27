@@ -299,10 +299,18 @@
 .checklist-task-body {
   min-width: 0;
   flex: 1;
-  padding: 1px 4px 1px 0;
+  padding: 0 4px 0 0;
+}
+.checklist-task-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  min-height: 22px;
 }
 .checklist-task-content {
-  display: inline;
+  min-width: 0;
+  display: block;
   line-height: 1.5;
   cursor: pointer;
   overflow-wrap: anywhere;
@@ -322,6 +330,7 @@
 .checklist-task.is-completed
   > .checklist-task-row
   > .checklist-task-body
+  > .checklist-task-line
   > .checklist-task-content {
   color: var(--text-faint);
   text-decoration: line-through;
@@ -426,8 +435,8 @@
 }
 .checklist-plugin-main .checklist-children-toggle {
   display: inline-flex;
-  vertical-align: middle;
-  margin-left: 6px;
+  flex: none;
+  margin-left: 0;
   white-space: nowrap;
   border-radius: 5px;
   gap: 3px;
