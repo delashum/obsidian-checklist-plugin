@@ -277,12 +277,13 @@
   flex: 0 0 var(--checklist-control-width);
 }
 .checklist-tag-base {
-  color: var(--checklist-tagBaseColor, var(--text-muted));
+  color: var(--checklist-tagBaseColor, var(--text-normal));
 }
 .checklist-tag-sub {
   color: var(--checklist-tagSubColor, inherit);
 }
 .checklist-group-title {
+  color: var(--text-normal);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
