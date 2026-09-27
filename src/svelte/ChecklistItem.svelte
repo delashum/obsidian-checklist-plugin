@@ -77,11 +77,13 @@
           <button
             class="checklist-children-toggle"
             aria-expanded={expanded}
+            aria-label={`${expanded ? 'Collapse' : 'Expand'} ${
+              item.children.length
+            } ${item.children.length === 1 ? 'subtask' : 'subtasks'}`}
             on:click={() => (expanded = !expanded)}
-            ><Icon
+            ><span>{item.children.length}</span><Icon
               name="chevron"
-              direction={expanded ? 'down' : 'right'} />{item.children.length}
-            {item.children.length === 1 ? 'subtask' : 'subtasks'}</button>
+              direction={expanded ? 'down' : 'right'} /></button>
         {/if}
       </div>
       {#if showSource}<button

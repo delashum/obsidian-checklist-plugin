@@ -11,6 +11,7 @@
   overflow: visible;
   color: var(--text-normal);
   font-family: var(--font-interface);
+  font-variant-numeric: tabular-nums;
   font-size: var(--checklist-contentFontSize);
 }
 .checklist-plugin-main.checklist-compact {
@@ -19,6 +20,7 @@
 .checklist-plugin-main button {
   margin: 0;
   font: inherit;
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
   box-shadow: none;
 }
@@ -304,11 +306,11 @@
 .checklist-task-line {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 2px 6px;
+  gap: 6px;
   min-height: 22px;
 }
 .checklist-task-content {
+  flex: 1;
   min-width: 0;
   display: block;
   line-height: 1.5;
