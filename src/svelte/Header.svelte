@@ -30,6 +30,8 @@
   let showPopover = false
   export let search = ''
   let showSearch = false
+  let allScopeWidth = 0
+  let noteScopeWidth = 0
   let searchButton: HTMLButtonElement
   $: if (search) showSearch = true
 
@@ -73,15 +75,18 @@
     <div
       class="checklist-scope"
       class:is-note={showOnlyActiveFile}
+      style={`--scope-all-width: ${allScopeWidth}px; --scope-note-width: ${noteScopeWidth}px`}
       role="group"
       aria-label="Task scope">
       <button
+        bind:clientWidth={allScopeWidth}
         class:is-selected={!showOnlyActiveFile}
         aria-pressed={!showOnlyActiveFile}
         on:click={() => updateSetting({showOnlyActiveFile: false})}
         title="All notes"
         aria-label="All notes">All</button>
       <button
+        bind:clientWidth={noteScopeWidth}
         class:is-selected={showOnlyActiveFile}
         aria-pressed={showOnlyActiveFile}
         on:click={() => updateSetting({showOnlyActiveFile: true})}
