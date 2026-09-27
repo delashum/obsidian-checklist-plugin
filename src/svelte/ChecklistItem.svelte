@@ -1,87 +1,140 @@
 <script lang="ts">
-  import type { App } from "obsidian"
-
-  import type { LookAndFeel, TodoItem } from "src/_types"
-  import { navToFile, toggleTodoItem } from "src/utils"
-  import CheckCircle from "./CheckCircle.svelte"
-
+  import type {App} from 'obsidian'
+  import {Keymap} from 'obsidian'
+  import type {TodoItem} from 'src/_types'
+  import {navToFile} from 'src/utils'
+  import Icon from './Icon.svelte'
+  import {TASK_COMPLETION_DELAY_MS} from 'src/constants'
   export let item: TodoItem
-  export let lookAndFeel: LookAndFeel
+  export let showSource = false
+  export let useTasksPlugin = false
+  export let onTagClick: (tag: string) => void
   export let app: App
-
+  export let onToggleTask: (item: TodoItem) => Promise<void>
+  let checkbox: HTMLInputElement
   let contentDiv: HTMLDivElement
-
-  const toggleItem = async (item: TodoItem) => {
-    toggleTodoItem(item, app)
+  let busy = false
+  let expanded = true
+  // Set the negative delay once per completion, not on every metadata rerender.
+  // Updating an active animation's delay would jump its playhead forward.
+  function completionProgress(node: HTMLElement, deadline: number | undefined) {
+    let previous: number | undefined
+    const update = (value: number | undefined) => {
+      if (value === previous) return
+      previous = value
+      node.style.setProperty(
+        '--completion-duration',
+        `${TASK_COMPLETION_DELAY_MS}ms`,
+      )
+      node.style.setProperty(
+        '--completion-delay',
+        `${
+          value ? Math.min(0, value - Date.now() - TASK_COMPLETION_DELAY_MS) : 0
+        }ms`,
+      )
+    }
+    update(deadline)
+    return {update}
   }
-
-  const handleClick = (ev: MouseEvent, item?: TodoItem) => {
-    const target: HTMLElement = ev.target as any
-    if (target.tagName === "A") {
-      ev.stopPropagation()
-      if (target.dataset.type === "link") {
-        navToFile(app, target.dataset.filepath, ev, item?.line)
-      } else if (target.dataset.type === "tag") {
-        // goto tag
+  async function toggle() {
+    if (busy) return
+    busy = true
+    try {
+      await onToggleTask(item)
+    } finally {
+      busy = false
+      checkbox.checked = item.checked
+    }
+  }
+  const handleClick = (event: MouseEvent) => {
+    const target = (event.target as HTMLElement).closest('a')
+    if (target) {
+      event.stopPropagation()
+      if (target.dataset.type === 'tag') {
+        event.preventDefault()
+        onTagClick(target.textContent)
+        return
       }
+      if (target.dataset.type === 'link') {
+        event.preventDefault()
+        app.workspace.openLinkText(
+          target.dataset.filepath,
+          item.filePath,
+          !!Keymap.isModEvent(event),
+        )
+      }
+      return
     }
-    else {
-      navToFile(app, item.filePath, ev, item?.line)
-    }
+    navToFile(app, item.filePath, event, item.line)
   }
-  $: {
-    if (contentDiv) contentDiv.innerHTML = item.rawHTML
-  }
+  $: if (contentDiv) contentDiv.innerHTML = item.rawHTML
 </script>
 
-<li class={`${lookAndFeel}`}>
-  <button
-    class="toggle"
-    on:click={(ev) => {
-      toggleItem(item)
-      ev.stopPropagation()
-    }}
-  >
-    <CheckCircle checked={item.checked} />
-  </button>
-  <div bind:this={contentDiv} on:click={(ev) => handleClick(ev, item)} class="content" />
+<li class="checklist-task" class:is-completed={item.checked}>
+  <div
+    class="checklist-task-row"
+    class:is-completing={!!item.completionExpiresAt}
+    use:completionProgress={item.completionExpiresAt}>
+    <label class="checklist-task-toggle">
+      <span class="checklist-sr-only"
+        >{(item.checked ? 'Mark incomplete: ' : 'Complete: ') +
+          item.originalText}</span>
+      <input
+        type="checkbox"
+        class="task-list-item-checkbox"
+        bind:this={checkbox}
+        checked={item.checked}
+        disabled={busy}
+        on:change={toggle} />
+    </label>
+    <div class="checklist-task-body">
+      <div
+        class="checklist-task-line"
+        class:has-children={item.children.length > 0}>
+        <div
+          bind:this={contentDiv}
+          class="checklist-task-content"
+          role="link"
+          tabindex="0"
+          on:click={handleClick}
+          on:keydown={event => {
+            if (event.key === 'Enter' && event.target === event.currentTarget) {
+              event.preventDefault()
+              navToFile(app, item.filePath, event, item.line)
+            }
+          }} />
+        {#if item.children.length}
+          <button
+            class="checklist-children-toggle"
+            aria-expanded={expanded}
+            aria-label={`${expanded ? 'Collapse' : 'Expand'} ${
+              item.children.length
+            } ${item.children.length === 1 ? 'subtask' : 'subtasks'}`}
+            on:click={() => (expanded = !expanded)}
+            ><Icon
+              name="disclosure"
+              direction={expanded ? 'down' : 'right'} /></button>
+          <span class="checklist-group-count checklist-children-count"
+            >{item.children.length}</span>
+        {/if}
+      </div>
+      {#if showSource}<button
+          class="checklist-source"
+          title={item.filePath}
+          on:click={event => navToFile(app, item.filePath, event, item.line)}
+          ><Icon name="file" /><span>{item.filePath.replace(/\.md$/, '')}</span
+          ></button
+        >{/if}
+    </div>
+  </div>
+  {#if item.children.length}
+    {#if expanded}<ul class="checklist-items checklist-children">
+        {#each item.children as child (child.filePath + ':' + child.line)}<svelte:self
+            item={child}
+            {app}
+            {onToggleTask}
+            {onTagClick}
+            {useTasksPlugin} />{/each}
+      </ul>{/if}
+  {/if}
 </li>
-
-<style>
-  li {
-    display: flex;
-    align-items: center;
-    background-color: var(--checklist-listItemBackground);
-    border-radius: var(--checklist-listItemBorderRadius);
-    margin: var(--checklist-listItemMargin);
-    cursor: pointer;
-    transition: background-color 100ms ease-in-out;
-  }
-  li:hover {
-    background-color: var(--checklist-listItemBackground--hover);
-  }
-  .toggle {
-    padding: var(--checklist-togglePadding);
-    background: transparent;
-    box-shadow: var(--checklist-listItemBoxShadow);
-    flex-shrink: 1;
-    width: initial;
-  }
-  .content {
-    padding: var(--checklist-contentPadding);
-    flex: 1;
-    font-size: var(--checklist-contentFontSize);
-  }
-  .compact {
-    bottom: var(--checklist-listItemMargin--compact);
-  }
-  .compact > .content {
-    padding: var(--checklist-contentPadding--compact);
-  }
-  .compact > .toggle {
-    padding: var(--checklist-togglePadding--compact);
-  }
-  .toggle:hover {
-    opacity: 0.8;
-  }
-</style>

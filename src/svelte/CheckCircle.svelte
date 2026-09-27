@@ -2,29 +2,35 @@
   export let checked = false
 </script>
 
-<div class="checkbox">
-  <div class:checked />
-</div>
+<svg
+  class="checklist-check-circle"
+  class:checked
+  viewBox="0 0 20 20"
+  aria-hidden="true"
+  ><circle cx="10" cy="10" r="7.25" />{#if checked}<path
+      d="m6.5 10 2.25 2.25 4.75-4.75" />{/if}</svg>
 
 <style>
-  .checkbox {
-    width: var(--checklist-checkboxSize);
-    height: var(--checklist-checkboxSize);
-    min-width: var(--checklist-checkboxSize);
-    min-height: var(--checklist-checkboxSize);
-    border-radius: 50%;
-    border: var(--checklist-checkboxBorder);
-    padding: 2px;
-    position: relative;
+  .checklist-check-circle {
+    width: 18px;
+    height: 18px;
+    display: block;
+    flex: none;
   }
-
-  .checked {
-    background-color: var(--text-muted);
-    width: var(--checklist-checkboxCheckedSize);
-    height: var(--checklist-checkboxCheckedSize);
-    border-radius: 50%;
-    position: absolute;
-    top: calc(calc(var(--checklist-checkboxSize) - var(--checklist-checkboxCheckedSize)) / 4);
-    left: calc(calc(var(--checklist-checkboxSize) - var(--checklist-checkboxCheckedSize)) / 4);
+  circle {
+    fill: none;
+    stroke: var(--text-faint);
+    stroke-width: 1.5;
+  }
+  .checked circle {
+    fill: var(--interactive-accent);
+    stroke: var(--interactive-accent);
+  }
+  path {
+    fill: none;
+    stroke: var(--text-on-accent);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 </style>

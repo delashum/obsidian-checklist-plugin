@@ -1,121 +1,79 @@
 <script lang="ts">
-  import type { App } from "obsidian"
-
-  import type { LookAndFeel, TodoGroup } from "src/_types"
-  import { navToFile } from "src/utils"
-  import ChecklistItem from "./ChecklistItem.svelte"
-  import Icon from "./Icon.svelte"
-
+  import type {App} from 'obsidian'
+  import type {TodoGroup, TodoItem} from 'src/_types'
+  import {navToFile} from 'src/utils'
+  import {countTodoTree} from 'src/utils/hierarchy'
+  import ChecklistItem from './ChecklistItem.svelte'
+  import Icon from './Icon.svelte'
   export let group: TodoGroup
-  export let isCollapsed: boolean
-  export let lookAndFeel: LookAndFeel
+  export let collapsed: string[]
+  export let showGroupCounts: boolean
+  export let showSource: boolean
+  export let useTasksPlugin = false
+  export let onTagClick: (tag: string) => void
   export let app: App
   export let onToggle: (id: string) => void
-
-  function clickTitle(ev: MouseEvent) {
-    if (group.type === "page") navToFile(app, group.id, ev)
-  }
+  export let onToggleTask: (item: TodoItem) => Promise<void>
+  $: isCollapsed = collapsed.includes(group.id)
 </script>
 
-<section class="group {group.className}">
-  <header class={`group-header ${group.type}`}>
-    <div class="title" on:click={clickTitle}>
-      {#if group.type === "page"}
-        {group.pageName}
-      {:else if group.mainTag}
-        <span class="tag-base">#</span>
-        <span class={group.subTags == null ? "tag-sub" : "tag-base"}
-          >{`${group.mainTag}${group.subTags != null ? "/" : ""}`}</span
-        >
-        {#if group.subTags != null}
-          <span class="tag-sub">{group.subTags}</span>
-        {/if}
-      {:else}
-        <span class="tag-base">All Tags</span>
-      {/if}
-    </div>
-    <div class="space" />
-    <div class="count">{group.todos.length}</div>
-    <button class="collapse" on:click={() => onToggle(group.id)} title="Toggle Group">
-      <Icon name="chevron" direction={isCollapsed ? "left" : "down"} />
-    </button>
-  </header>
-  {#if !isCollapsed}
-    <ul>
-      {#each group.todos as item}
-        <ChecklistItem {item} {lookAndFeel} {app} />
-      {/each}
-    </ul>
+<section
+  class="checklist-group {group.className}"
+  class:has-subgroups={!!group.groups?.length}>
+  {#if group.type !== 'none'}
+    <header class="checklist-group-header">
+      <button
+        class="checklist-group-toggle"
+        on:click={() => onToggle(group.id)}
+        aria-expanded={!isCollapsed}
+        title={(isCollapsed ? 'Expand ' : 'Collapse ') + group.label}>
+        <span class="checklist-group-title"
+          >{#if group.type === 'tag' && group.mainTag}<span
+              class="checklist-tag-base">#{group.mainTag}</span
+            >{#if group.subTags}<span class="checklist-tag-sub"
+                >/{group.subTags}</span
+              >{/if}{:else}{group.label}{/if}</span>
+        <span class="checklist-group-marker"
+          ><Icon
+            name="disclosure"
+            direction={isCollapsed ? 'right' : 'down'} /></span>
+      </button>
+      {#if group.path}<button
+          class="checklist-icon-button checklist-open-note"
+          title={'Open ' + group.path}
+          aria-label={'Open ' + group.path}
+          on:click={event => navToFile(app, group.path, event)}
+          ><Icon name="arrow-right" /></button
+        >{/if}
+      {#if showGroupCounts}<span class="checklist-group-count"
+          >{countTodoTree(group.todos)}</span
+        >{/if}
+    </header>
+  {/if}
+  {#if group.type === 'none' || !isCollapsed}
+    {#if group.groups}
+      <div class="checklist-subgroups">
+        {#each group.groups as child (child.id)}<svelte:self
+            group={child}
+            {app}
+            {showGroupCounts}
+            {showSource}
+            {collapsed}
+            {onToggle}
+            {onToggleTask}
+            {onTagClick}
+            {useTasksPlugin} />{/each}
+      </div>
+    {:else}
+      <ul class="checklist-items">
+        {#each group.todos as item (item.filePath + ':' + item.line)}<ChecklistItem
+            {item}
+            {app}
+            {useTasksPlugin}
+            {onToggleTask}
+            {onTagClick}
+            showSource={showSource && group.type !== 'page'} />{/each}
+      </ul>
+    {/if}
   {/if}
 </section>
-
-<style>
-  .page {
-    margin: var(--checklist-pageMargin);
-    color: var(--checklist-textColor);
-    transition: opacity 150ms ease-in-out;
-    cursor: pointer;
-  }
-
-  .file-link:hover {
-    opacity: 0.8;
-  }
-
-  header {
-    font-weight: var(--checklist-headerFontWeight);
-    font-size: var(--checklist-headerFontSize);
-    margin: var(--checklist-headerMargin);
-    display: flex;
-    gap: var(--checklist-headerGap);
-    align-items: center;
-  }
-
-  .space {
-    flex: 1;
-  }
-  button,
-  .count,
-  .title {
-    flex-shrink: 1;
-  }
-  .count {
-    padding: var(--checklist-countPadding);
-    background: var(--checklist-countBackground);
-    border-radius: var(--checklist-countBorderRadius);
-    font-size: var(--checklist-countFontSize);
-  }
-  .title {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: flex;
-  }
-  button {
-    display: flex;
-    padding: var(--checklist-buttonPadding);
-    background: transparent;
-    box-shadow: var(--checklist-buttonBoxShadow);
-  }
-
-  .tag-base {
-    color: var(--checklist-tagBaseColor);
-  }
-  .tag-sub {
-    color: var(--checklist-tagSubColor);
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    padding-inline-start: initial !important;
-  }
-
-  .group {
-    margin-bottom: var(--checklist-groupMargin);
-  }
-
-  .collapse {
-    width: initial;
-  }
-</style>

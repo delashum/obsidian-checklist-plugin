@@ -28,7 +28,7 @@ export const regexPlugin = (
   const _regexp = RegExp('^' + regexp.source, flags)
   const id = 'regexp-' + counter++
 
-  return (md: MD) => {
+  return (md: MD.MarkdownIt) => {
     md.inline.ruler.push(id, (state, silent) => {
       var match = _regexp.exec(state.src.slice(state.pos))
       if (!match) return false

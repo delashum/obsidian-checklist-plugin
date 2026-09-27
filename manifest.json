@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-checklist-plugin",
-	"name": "Checklist",
-	"version": "2.2.15",
-	"minAppVersion": "0.14.5",
-	"description": "Combines checklists across pages into users sidebar",
-	"author": "delashum",
-	"isDesktopOnly": false
+  "id": "obsidian-checklist-plugin",
+  "name": "Checklist",
+  "version": "3.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Organize tasks from your notes in a fast, native sidebar.",
+  "author": "delashum",
+  "isDesktopOnly": false
 }
