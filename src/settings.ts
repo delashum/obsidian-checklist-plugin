@@ -136,7 +136,6 @@ export class TodoSettingTab extends PluginSettingTab {
       ...SORT_OPTIONS,
       configured: 'Configured tag order',
     })
-    this.select('sortDirectionSubGroups', 'Nested group order', SORT_OPTIONS)
     this.select('sortDirectionItems', 'Task order', {
       source: 'Order in note',
       ...SORT_OPTIONS,

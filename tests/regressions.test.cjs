@@ -959,3 +959,16 @@ test('metadata refresh during save does not restart the completion timeline', as
   assert.equal(f.view.groupedItems[0].todos[0].completionExpiresAt, initialDeadline)
   assert.equal(delay, 900)
 })
+
+test('Groups sort controls both grouping levels despite a legacy subgroup sort', () => {
+  const f = fixture()
+  Object.assign(f.settings, {groupBy: 'folder', subGroupBy: 'page', sortDirectionGroups: 'a->z', sortDirectionSubGroups: 'z->a'})
+  f.view.itemsByFile.set('cached', ['Z/B.md', 'A/B.md', 'Z/A.md', 'A/A.md'].map((filePath, line) => sample(line, undefined, {filePath, fileLabel: filePath.split('/')[1], filterTags: ['todo']})))
+  f.view.regroup()
+  assert.deepEqual(f.view.groupedItems.map(g => g.label), ['A', 'Z'])
+  for (const group of f.view.groupedItems) assert.deepEqual(group.groups.map(g => g.label), ['A.md', 'B.md'])
+  f.settings.sortDirectionGroups = 'z->a'
+  f.view.regroup()
+  assert.deepEqual(f.view.groupedItems.map(g => g.label), ['Z', 'A'])
+  for (const group of f.view.groupedItems) assert.deepEqual(group.groups.map(g => g.label), ['B.md', 'A.md'])
+})
