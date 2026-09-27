@@ -36,10 +36,7 @@
         ><span class="checklist-group-marker"
           ><Icon
             name="disclosure"
-            direction={isCollapsed ? 'right' : 'down'} /></span
-        >{#if showGroupCounts}<span class="checklist-group-count"
-            >{countTodoTree(group.todos)}</span
-          >{/if}
+            direction={isCollapsed ? 'right' : 'down'} /></span>
       </button>
       {#if group.path}<button
           class="checklist-icon-button checklist-open-note"
@@ -47,6 +44,11 @@
           aria-label={'Open ' + group.path}
           on:click={event => navToFile(app, group.path, event)}
           ><Icon name="arrow-right" /></button
+        >{/if}
+      {#if showGroupCounts}<span
+          class="checklist-group-count"
+          aria-label={`${countTodoTree(group.todos)} tasks`}
+          >{countTodoTree(group.todos)}</span
         >{/if}
     </header>
   {/if}

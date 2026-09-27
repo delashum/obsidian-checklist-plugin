@@ -150,7 +150,7 @@ export class TodoSettingTab extends PluginSettingTab {
     this.toggle('showOnlyActiveFile', 'Current note only')
     this.text(
       'focusFolder',
-      'Focus folder',
+      'Limit to folder',
       'Limit the view to this vault-relative folder and its subfolders. Clear to show every folder.',
       'Projects',
     )

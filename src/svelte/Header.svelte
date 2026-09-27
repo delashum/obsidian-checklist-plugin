@@ -172,7 +172,7 @@
       class="checklist-display-panel"
       role="group"
       aria-label="Display options">
-      <div class="checklist-panel-heading">Display</div>
+      <div class="checklist-panel-heading">Group</div>
       <label class="checklist-option"
         >Group by<select
           value={groupBy}
@@ -201,6 +201,7 @@
               >Folder</option>
           </select></label>
       {/if}
+      <div class="checklist-panel-heading checklist-section-heading">Sort</div>
       <label class="checklist-option"
         >Group order<select
           value={sortDirectionGroups}
@@ -220,18 +221,9 @@
               >{label}</option
             >{/each}</select
         ></label>
-      <label class="checklist-option checklist-folder-option"
-        >Focus folder<input
-          type="text"
-          placeholder="All folders"
-          aria-label="Focus folder"
-          value={focusFolder}
-          on:change={event =>
-            updateSetting({
-              focusFolder: event.currentTarget.value
-                .trim()
-                .replace(/^\/+|\/+$/g, ''),
-            })} /></label>
+      <div class="checklist-panel-heading checklist-section-heading">
+        Properties
+      </div>
       <label
         class="checklist-option"
         title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
@@ -277,6 +269,25 @@
             >{/each}
         </div>
       {/if}
+      <div class="checklist-panel-heading checklist-section-heading">
+        Filter
+      </div>
+      <label class="checklist-option checklist-folder-option"
+        >Limit to folder<input
+          type="text"
+          placeholder="All folders"
+          aria-label="Limit to folder"
+          value={focusFolder}
+          on:change={event =>
+            updateSetting({
+              focusFolder: event.currentTarget.value
+                .trim()
+                .replace(/^\/+|\/+$/g, ''),
+            })} /></label>
+      <div class="checklist-option-description">
+        Only show tasks from this folder and its subfolders. Leave empty for all
+        folders.
+      </div>
     </div>
   {/if}
 </div>
