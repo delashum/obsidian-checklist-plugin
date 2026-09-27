@@ -329,8 +329,14 @@
 .checklist-plugin-main .checklist-task-content a:not(.tag):hover {
   text-decoration: underline;
 }
-/* Keep native tag colors, but fit the pill to the task's line box. */
+/* Derive the pill tint from its native text color and fit the task line. */
 .checklist-plugin-main .checklist-task-content a.tag {
+  --tag-background: color-mix(in srgb, var(--tag-color) 10%, transparent);
+  --tag-background-hover: color-mix(
+    in srgb,
+    var(--tag-color-hover, var(--tag-color)) 15%,
+    transparent
+  );
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
