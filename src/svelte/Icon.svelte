@@ -7,7 +7,7 @@
     | 'collapse'
     | 'expand'
     | 'refresh'
-    | 'external'
+    | 'arrow-right'
     | 'file'
   export let direction: 'up' | 'down' | 'left' | 'right' = 'down'
 </script>
@@ -35,7 +35,7 @@
   {:else if name === 'close'}<path d="m6 6 12 12M6 18 18 6" />
   {:else if name === 'collapse'}<path d="M5 4h14M5 20h14m-12-10 5 4 5-4" />
   {:else if name === 'expand'}<path d="M5 4h14M5 20h14m-12-6 5-4 5 4" />
-  {:else if name === 'external'}<path d="M14 4h6v6m0-6L10 14M9 4H4v16h16v-5" />
+  {:else if name === 'arrow-right'}<path d="M5 12h14m-6-6 6 6-6 6" />
   {:else if name === 'file'}<path d="M14 3H5v18h14V8zm0 0v5h5" />{/if}
 </svg>
 

@@ -1,6 +1,7 @@
 /* Checklist uses Obsidian's colors and font so light, dark, and community themes stay coherent. */
 .checklist-plugin-main {
   --checklist-row-padding: 7px;
+  --checklist-control-width: 24px;
   --checklist-contentFontSize: var(--font-ui-small, 13px);
   --checklist-textColor: var(--text-normal);
   padding: 0 2px 16px;
@@ -56,6 +57,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   margin-bottom: 10px;
   min-height: 28px;
   gap: 8px;
@@ -75,7 +77,8 @@
 }
 .checklist-toolbar-actions {
   display: flex;
-  gap: 2px;
+  margin-left: auto;
+  gap: 0;
 }
 .checklist-search-wrap {
   display: flex;
@@ -185,14 +188,13 @@
   display: flex;
   align-items: center;
   margin-bottom: 3px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 0;
 }
 .checklist-plugin-main .checklist-group-toggle {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex: 1;
   min-width: 0;
   height: 28px;
@@ -205,6 +207,18 @@
 }
 .checklist-group-toggle:hover {
   color: var(--text-normal);
+}
+.checklist-group-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--checklist-control-width);
+}
+.checklist-tag-base {
+  color: var(--checklist-tagBaseColor, var(--text-muted));
+}
+.checklist-tag-sub {
+  color: var(--checklist-tagSubColor, var(--text-normal));
 }
 .checklist-group-title {
   overflow: hidden;
@@ -255,8 +269,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 24px;
-  width: 24px;
+  flex: 0 0 var(--checklist-control-width);
+  width: var(--checklist-control-width);
   min-height: 22px;
   height: auto;
   padding: 2px 3px;
@@ -329,6 +343,9 @@
   font-weight: 500;
 }
 @media (pointer: coarse) {
+  .checklist-plugin-main {
+    --checklist-control-width: 28px;
+  }
   .checklist-plugin-main .checklist-icon-button,
   .checklist-plugin-main .checklist-group-toggle {
     min-height: 36px;
@@ -338,22 +355,23 @@
   }
   .checklist-plugin-main .checklist-task-toggle {
     min-height: 28px;
-    flex-basis: 28px;
   }
 }
 
 /* 3.0: structure stays quiet until it is useful. */
 .checklist-scope {
   display: flex;
-  gap: 3px;
-  padding: 3px;
-  margin-bottom: 10px;
+  flex: none;
+  gap: 1px;
+  padding: 2px;
   background: var(--background-modifier-hover);
   border-radius: 6px;
 }
 .checklist-plugin-main .checklist-scope button {
   flex: 1;
-  height: 27px;
+  height: 24px;
+  padding: 0 7px;
+  white-space: nowrap;
   border: 0;
   border-radius: 4px;
   background: transparent;
@@ -376,9 +394,7 @@
   font-size: 12px;
 }
 .checklist-subgroups {
-  margin-left: 9px;
-  padding-left: 9px;
-  border-left: 1px solid var(--background-modifier-border);
+  margin-left: 18px;
 }
 .checklist-subgroups .checklist-group {
   margin-bottom: 10px;
@@ -399,8 +415,7 @@
   font-size: 11px;
 }
 .checklist-plugin-main ul.checklist-children {
-  border-left: 1px solid var(--background-modifier-border);
-  padding-left: 6px !important;
+  padding-left: 0 !important;
   margin: 0 0 3px 28px;
 }
 .checklist-plugin-main .checklist-load-more {

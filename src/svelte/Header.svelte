@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {tick} from 'svelte'
   import type {TodoSettings} from 'src/settings'
   import type {GroupByType, LookAndFeel, SortDirection} from 'src/_types'
   import Icon from './Icon.svelte'
@@ -27,6 +28,23 @@
   export let onSearch: (str: string) => void
   let showPopover = false
   export let search = ''
+  let showSearch = false
+  let searchButton: HTMLButtonElement
+  $: if (search) showSearch = true
+
+  async function toggleSearch() {
+    if (showSearch) {
+      search = ''
+      onSearch('')
+      showSearch = false
+      searchButton.focus()
+    } else {
+      showSearch = true
+      await tick()
+      searchInput.focus()
+    }
+  }
+
   let searchInput: HTMLInputElement
   let displayButton: HTMLButtonElement
 
@@ -52,7 +70,29 @@
   <div class="checklist-toolbar-heading">
     <span class="checklist-toolbar-title"
       >Tasks <span class="checklist-total">{taskCount}</span></span>
+    <div class="checklist-scope" role="group" aria-label="Task scope">
+      <button
+        class:is-selected={!showOnlyActiveFile}
+        aria-pressed={!showOnlyActiveFile}
+        on:click={() => updateSetting({showOnlyActiveFile: false})}
+        title="All notes"
+        aria-label="All notes">All</button>
+      <button
+        class:is-selected={showOnlyActiveFile}
+        aria-pressed={showOnlyActiveFile}
+        on:click={() => updateSetting({showOnlyActiveFile: true})}
+        title="This note"
+        aria-label="This note">Note</button>
+    </div>
     <div class="checklist-toolbar-actions">
+      <button
+        bind:this={searchButton}
+        class="checklist-icon-button"
+        class:is-active={showSearch}
+        title={showSearch ? 'Close search' : 'Search tasks'}
+        aria-label={showSearch ? 'Close search' : 'Search tasks'}
+        aria-expanded={showSearch}
+        on:click={toggleSearch}><Icon name="search" /></button>
       <button
         class="checklist-icon-button"
         disabled={loading}
@@ -77,41 +117,31 @@
         ><Icon name="settings" /></button>
     </div>
   </div>
-  <div class="checklist-scope" role="group" aria-label="Task scope">
-    <button
-      class:is-selected={!showOnlyActiveFile}
-      aria-pressed={!showOnlyActiveFile}
-      on:click={() => updateSetting({showOnlyActiveFile: false})}
-      >All notes</button>
-    <button
-      class:is-selected={showOnlyActiveFile}
-      aria-pressed={showOnlyActiveFile}
-      on:click={() => updateSetting({showOnlyActiveFile: true})}
-      >This note</button>
-  </div>
-  <div class="checklist-search-wrap">
-    <Icon name="search" />
-    <input
-      bind:this={searchInput}
-      class="checklist-search"
-      type="text"
-      placeholder="Search tasks, notes, tags…"
-      aria-label="Search tasks"
-      bind:value={search}
-      on:input={() => onSearch(search)}
-      on:keydown={event => {
-        if (event.key === 'Escape' && search) {
-          event.stopPropagation()
-          clearSearch()
-        }
-      }} />
-    {#if search}<button
-        class="checklist-icon-button"
-        title="Clear search"
-        aria-label="Clear search"
-        on:click={clearSearch}><Icon name="close" /></button
-      >{/if}
-  </div>
+  {#if showSearch}
+    <div class="checklist-search-wrap">
+      <Icon name="search" />
+      <input
+        bind:this={searchInput}
+        class="checklist-search"
+        type="text"
+        placeholder="Search tasks, notes, tags…"
+        aria-label="Search tasks"
+        bind:value={search}
+        on:input={() => onSearch(search)}
+        on:keydown={event => {
+          if (event.key === 'Escape') {
+            event.stopPropagation()
+            toggleSearch()
+          }
+        }} />
+      {#if search}<button
+          class="checklist-icon-button"
+          title="Clear search"
+          aria-label="Clear search"
+          on:click={clearSearch}><Icon name="close" /></button
+        >{/if}
+    </div>
+  {/if}
   {#if focusFolder}<button
       class="checklist-filter-chip"
       title="Clear folder filter"

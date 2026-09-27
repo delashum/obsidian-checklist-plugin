@@ -21,7 +21,7 @@ A standalone tag applies to the following block, through the next blank line. A 
 ## Work from the sidebar
 
 - **All notes / This note** switches scope immediately.
-- **Search** matches task text, note paths, and tags. Each word must match; use × or Escape to clear. Click an inline tag to search for it.
+- The header’s **Search** icon opens a search field that matches task text, note paths, and tags. Each word must match; use × to clear or Escape to close. Click an inline tag to search for it.
 - **Display** controls Page, Tag, or Folder grouping; nested groups; sorting; density; completed tasks; source-note labels; and folder focus.
 - **Nested groups** groups pages by tag, or tags/folders by page. Task children remain attached to their parents when sorting. A child whose parent is filtered out becomes a root task.
 - Click a group heading to collapse it. The toolbar expands or collapses all groups, including nested groups. Subtasks also have their own collapse control.

@@ -23,16 +23,24 @@
       on:click={() => onToggle(group.id)}
       aria-expanded={!isCollapsed}
       title={(isCollapsed ? 'Expand ' : 'Collapse ') + group.label}>
-      <Icon name="chevron" direction={isCollapsed ? 'right' : 'down'} />
-      <span class="checklist-group-title">{group.label}</span><span
-        class="checklist-group-count">{countTodoTree(group.todos)}</span>
+      <span class="checklist-group-marker"
+        ><Icon
+          name="chevron"
+          direction={isCollapsed ? 'right' : 'down'} /></span>
+      <span class="checklist-group-title"
+        >{#if group.type === 'tag' && group.mainTag}<span
+            class="checklist-tag-base">#{group.mainTag}</span
+          >{#if group.subTags}<span class="checklist-tag-sub"
+              >/{group.subTags}</span
+            >{/if}{:else}{group.label}{/if}</span
+      ><span class="checklist-group-count">{countTodoTree(group.todos)}</span>
     </button>
     {#if group.path}<button
         class="checklist-icon-button checklist-open-note"
         title={'Open ' + group.path}
         aria-label={'Open ' + group.path}
         on:click={event => navToFile(app, group.path, event)}
-        ><Icon name="external" /></button
+        ><Icon name="arrow-right" /></button
       >{/if}
   </header>
   {#if !isCollapsed}
