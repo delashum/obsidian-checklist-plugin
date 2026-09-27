@@ -7,6 +7,7 @@
   import Icon from './Icon.svelte'
   export let group: TodoGroup
   export let collapsed: string[]
+  export let showGroupCounts: boolean
   export let showSource: boolean
   export let useTasksPlugin = false
   export let onTagClick: (tag: string) => void
@@ -16,7 +17,9 @@
   $: isCollapsed = collapsed.includes(group.id)
 </script>
 
-<section class="checklist-group {group.className}">
+<section
+  class="checklist-group {group.className}"
+  class:has-subgroups={!!group.groups?.length}>
   {#if group.type !== 'none'}
     <header class="checklist-group-header">
       <button
@@ -34,7 +37,9 @@
           ><Icon
             name="disclosure"
             direction={isCollapsed ? 'right' : 'down'} /></span
-        ><span class="checklist-group-count">{countTodoTree(group.todos)}</span>
+        >{#if showGroupCounts}<span class="checklist-group-count"
+            >{countTodoTree(group.todos)}</span
+          >{/if}
       </button>
       {#if group.path}<button
           class="checklist-icon-button checklist-open-note"
@@ -51,6 +56,7 @@
         {#each group.groups as child (child.id)}<svelte:self
             group={child}
             {app}
+            {showGroupCounts}
             {showSource}
             {collapsed}
             {onToggle}

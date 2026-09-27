@@ -10,6 +10,7 @@
   export let groupBy: GroupByType
   export let showChecked: boolean
   export let showOnlyActiveFile: boolean
+  export let showGroupCounts: boolean
   export let showSource: boolean
   export let subGroupBy: GroupByType
   export let nestSubtasks: boolean
@@ -69,6 +70,7 @@
     {groupBy}
     {showChecked}
     {showOnlyActiveFile}
+    {showGroupCounts}
     {showSource}
     {lookAndFeel}
     taskCount={totalCount}
@@ -114,6 +116,7 @@
         {group}
         {app}
         {useTasksPlugin}
+        {showGroupCounts}
         {showSource}
         collapsed={_collapsedSections}
         onToggle={toggleGroup}

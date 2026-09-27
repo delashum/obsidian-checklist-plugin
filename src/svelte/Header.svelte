@@ -11,6 +11,7 @@
   export let groupBy: GroupByType
   export let showChecked: boolean
   export let showOnlyActiveFile: boolean
+  export let showGroupCounts: boolean
   export let showSource: boolean
   export let lookAndFeel: LookAndFeel
   export let taskCount: number
@@ -201,15 +202,6 @@
               >Folder</option>
           </select></label>
       {/if}
-      <label
-        class="checklist-option"
-        title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
-        <span>Show nested subtasks</span><input
-          type="checkbox"
-          checked={nestSubtasks}
-          on:change={event =>
-            updateSetting({nestSubtasks: event.currentTarget.checked})} />
-      </label>
       <label class="checklist-option"
         >Group order<select
           value={sortDirectionGroups}
@@ -238,6 +230,35 @@
             >Compact</option
           ></select
         ></label>
+      <label class="checklist-option checklist-folder-option"
+        >Focus folder<input
+          type="text"
+          placeholder="All folders"
+          aria-label="Focus folder"
+          value={focusFolder}
+          on:change={event =>
+            updateSetting({
+              focusFolder: event.currentTarget.value
+                .trim()
+                .replace(/^\/+|\/+$/g, ''),
+            })} /></label>
+      <label
+        class="checklist-option"
+        title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
+        <span>Show nested subtasks</span><input
+          type="checkbox"
+          checked={nestSubtasks}
+          on:change={event =>
+            updateSetting({nestSubtasks: event.currentTarget.checked})} />
+      </label>
+      <label class="checklist-option"
+        ><span>Show group counts</span><input
+          type="checkbox"
+          checked={showGroupCounts}
+          on:change={event =>
+            updateSetting({
+              showGroupCounts: event.currentTarget.checked,
+            })} /></label>
       <label class="checklist-option"
         ><span>Show completed</span><input
           type="checkbox"
@@ -253,18 +274,6 @@
           checked={showSource}
           on:change={event =>
             updateSetting({showSource: event.currentTarget.checked})} /></label>
-      <label class="checklist-option checklist-folder-option"
-        >Focus folder<input
-          type="text"
-          placeholder="All folders"
-          aria-label="Focus folder"
-          value={focusFolder}
-          on:change={event =>
-            updateSetting({
-              focusFolder: event.currentTarget.value
-                .trim()
-                .replace(/^\/+|\/+$/g, ''),
-            })} /></label>
       {#if todoTags.length}
         <div class="checklist-panel-heading checklist-tags-heading">Tags</div>
         <div class="checklist-tag-options">

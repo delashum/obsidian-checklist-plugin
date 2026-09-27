@@ -141,6 +141,7 @@ export default class TodoPlugin extends Plugin {
       'useTasksPlugin',
       'lookAndFeel',
       'showSource',
+      'showGroupCounts',
       '_collapsedSections',
     ]
     const onlyReGroupWhenChanges = [

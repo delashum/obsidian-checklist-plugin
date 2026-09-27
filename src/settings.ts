@@ -7,6 +7,7 @@ export interface TodoSettings {
   excludeTags: string
   focusFolder: string
   useTasksPlugin: boolean
+  showGroupCounts: boolean
   showSource: boolean
   showChecked: boolean
   showAllTodos: boolean
@@ -29,6 +30,7 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   useTasksPlugin: false,
   excludeTags: '',
   focusFolder: '',
+  showGroupCounts: true,
   showSource: false,
   showChecked: false,
   showAllTodos: false,
@@ -149,6 +151,7 @@ export class TodoSettingTab extends PluginSettingTab {
       'Show source notes',
       'Show each task’s note outside page groups. Off by default.',
     )
+    this.toggle('showGroupCounts', 'Show group counts')
     this.toggle('showChecked', 'Show completed tasks')
     this.toggle('showOnlyActiveFile', 'Current note only')
     this.text(

@@ -164,6 +164,7 @@ export default class TodoListView extends ItemView {
       groupBy: this.plugin.getSettingValue('groupBy'),
       showChecked: this.plugin.getSettingValue('showChecked'),
       showOnlyActiveFile: this.plugin.getSettingValue('showOnlyActiveFile'),
+      showGroupCounts: this.plugin.getSettingValue('showGroupCounts'),
       showSource: this.plugin.getSettingValue('showSource'),
       useTasksPlugin: this.plugin.getSettingValue('useTasksPlugin'),
       subGroupBy: this.plugin.getSettingValue('subGroupBy') ?? 'none',
