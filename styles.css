@@ -426,7 +426,7 @@
 }
 .checklist-plugin-main .checklist-children-toggle {
   display: inline-flex;
-  vertical-align: baseline;
+  vertical-align: middle;
   margin-left: 6px;
   white-space: nowrap;
   border-radius: 5px;
