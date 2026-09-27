@@ -93,8 +93,10 @@
         title="This note"
         aria-label="This note">Note</button>
     </div>
-    <span class="checklist-total" aria-label={`${taskCount} tasks`}
-      >{taskCount}</span>
+    {#if showGroupCounts}
+      <span class="checklist-total" aria-label={`${taskCount} tasks`}
+        >{taskCount}</span>
+    {/if}
     <div class="checklist-toolbar-actions">
       <button
         bind:this={searchButton}
@@ -227,14 +229,14 @@
       <label
         class="checklist-option"
         title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">
-        <span>Show nested subtasks</span><input
+        <span>Sub tasks</span><input
           type="checkbox"
           checked={nestSubtasks}
           on:change={event =>
             updateSetting({nestSubtasks: event.currentTarget.checked})} />
       </label>
       <label class="checklist-option"
-        ><span>Show group counts</span><input
+        ><span>Task count</span><input
           type="checkbox"
           checked={showGroupCounts}
           on:change={event =>
@@ -242,7 +244,7 @@
               showGroupCounts: event.currentTarget.checked,
             })} /></label>
       <label class="checklist-option"
-        ><span>Show completed</span><input
+        ><span>Completed</span><input
           type="checkbox"
           checked={showChecked}
           on:change={event =>
@@ -251,7 +253,10 @@
             })} /></label>
 
       <label class="checklist-option"
-        ><span>Show source notes</span><input
+        ><span
+          title="Show the originating note beneath each task, except inside page groups."
+          >Source notes</span
+        ><input
           type="checkbox"
           checked={showSource}
           on:change={event =>

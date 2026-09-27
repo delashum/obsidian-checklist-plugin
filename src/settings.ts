@@ -145,7 +145,11 @@ export class TodoSettingTab extends PluginSettingTab {
       'Show source notes',
       'Show each task’s note outside page groups. Off by default.',
     )
-    this.toggle('showGroupCounts', 'Show group counts')
+    this.toggle(
+      'showGroupCounts',
+      'Task count',
+      'Show the total task count and group counts.',
+    )
     this.toggle('showChecked', 'Show completed tasks')
     this.toggle('showOnlyActiveFile', 'Current note only')
     this.text(
