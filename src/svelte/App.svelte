@@ -11,7 +11,7 @@
   export let showChecked: boolean
   export let showOnlyActiveFile: boolean
   export let showSource: boolean
-  export let subGroups: boolean
+  export let subGroupBy: GroupByType
   export let nestSubtasks: boolean
   export let sortDirectionGroups: SortDirection
   export let sortDirectionItems: SortDirection
@@ -72,7 +72,7 @@
     {showSource}
     {lookAndFeel}
     taskCount={totalCount}
-    {subGroups}
+    {subGroupBy}
     {nestSubtasks}
     {sortDirectionGroups}
     {sortDirectionItems}

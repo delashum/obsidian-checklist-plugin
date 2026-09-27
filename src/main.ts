@@ -107,9 +107,33 @@ export default class TodoPlugin extends Plugin {
   async loadSettings() {
     const loadedData = await this.loadData()
     this.settings = {...DEFAULT_SETTINGS, ...loadedData}
+    if (loadedData?.subGroupBy == null && loadedData?.subGroups)
+      this.settings.subGroupBy =
+        this.settings.groupBy === 'page' ? 'tag' : 'page'
+    if (
+      this.settings.groupBy === 'none' ||
+      this.settings.groupBy === this.settings.subGroupBy
+    )
+      this.settings.subGroupBy = 'none'
+    this.settings.subGroups = this.settings.subGroupBy !== 'none'
   }
 
   async updateSettings(updates: Partial<TodoSettings>) {
+    updates = {...updates}
+    if (updates.groupBy === 'none') updates.subGroupBy = 'none'
+    else if (updates.groupBy && updates.groupBy === this.settings.subGroupBy)
+      updates.subGroupBy = this.settings.groupBy
+    else if (
+      updates.subGroupBy &&
+      updates.subGroupBy !== 'none' &&
+      updates.subGroupBy === this.settings.groupBy
+    ) {
+      if (this.settings.subGroupBy !== 'none')
+        updates.groupBy = this.settings.subGroupBy
+      else updates.subGroupBy = 'none'
+    }
+    if (updates.subGroupBy != null)
+      updates.subGroups = updates.subGroupBy !== 'none'
     Object.assign(this.settings, updates)
     await this.saveData(this.settings)
     const onlyRepaintWhenChanges = [
@@ -121,6 +145,7 @@ export default class TodoPlugin extends Plugin {
     ]
     const onlyReGroupWhenChanges = [
       'subGroups',
+      'subGroupBy',
       'groupBy',
       'sortDirectionGroups',
       'sortDirectionSubGroups',

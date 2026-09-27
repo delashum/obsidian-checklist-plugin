@@ -723,7 +723,7 @@ test('ungrouped tasks deduplicate tags, retain children, and honor task sorting'
 
 test('defaults preserve legacy organization and upgrades retain saved choices', async () => {
   const {DEFAULT_SETTINGS} = load('src/settings.ts')
-  assert.equal(DEFAULT_SETTINGS.groupBy, 'page')
+  assert.equal(DEFAULT_SETTINGS.groupBy, 'tag')
   assert.equal(DEFAULT_SETTINGS.subGroups, false)
   assert.equal(DEFAULT_SETTINGS.showSource, false)
   assert.equal(DEFAULT_SETTINGS.useTasksPlugin, false)
@@ -833,4 +833,31 @@ test('subtask hierarchy is opt-in for fresh installs and legacy saved settings',
       data?.nestSubtasks === true,
     )
   }
+})
+
+test('two-level grouping swaps duplicates and migrates the legacy subgroup toggle', async () => {
+  const plugin = new TodoPlugin()
+  plugin.app = {workspace: {getLeavesOfType: () => []}}
+  plugin.saveData = async () => {}
+  plugin.loadData = async () => ({groupBy: 'tag', subGroups: true})
+  await plugin.loadSettings()
+  assert.equal(plugin.getSettingValue('subGroupBy'), 'page')
+  await plugin.updateSettings({groupBy: 'page'})
+  assert.equal(plugin.getSettingValue('subGroupBy'), 'tag')
+  await plugin.updateSettings({subGroupBy: 'page'})
+  assert.equal(plugin.getSettingValue('groupBy'), 'tag')
+  assert.equal(plugin.getSettingValue('subGroupBy'), 'page')
+  await plugin.updateSettings({groupBy: 'none'})
+  assert.equal(plugin.getSettingValue('subGroupBy'), 'none')
+  await plugin.updateSettings({groupBy: 'tag'})
+  assert.equal(plugin.getSettingValue('subGroupBy'), 'none')
+  const groups = groupTodos(
+    [sample(0, undefined, {mainTag: 'todo', filePath: 'Projects/A.md'})],
+    'tag',
+    'a->z',
+    'source',
+    'folder',
+    'a->z',
+  )
+  assert.equal(groups[0].groups[0].type, 'folder')
 })

@@ -14,7 +14,7 @@
   export let showSource: boolean
   export let lookAndFeel: LookAndFeel
   export let taskCount: number
-  export let subGroups: boolean
+  export let subGroupBy: GroupByType
   export let nestSubtasks: boolean
   export let sortDirectionGroups: SortDirection
   export let sortDirectionItems: SortDirection
@@ -173,13 +173,25 @@
           ><option value="tag">Tag</option><option value="folder">Folder</option
           ></select
         ></label>
-      <label class="checklist-option"
-        ><span>Nested groups</span><input
-          type="checkbox"
-          disabled={groupBy === 'none'}
-          checked={subGroups}
-          on:change={event =>
-            updateSetting({subGroups: event.currentTarget.checked})} /></label>
+      {#if groupBy !== 'none'}
+        <label class="checklist-option"
+          >Subgroup by<select
+            value={subGroupBy}
+            on:change={event =>
+              updateSetting({subGroupBy: event.currentTarget.value})}>
+            <option value="none">None</option><option
+              value="tag"
+              disabled={groupBy === 'tag' && subGroupBy === 'none'}>Tag</option>
+            <option
+              value="page"
+              disabled={groupBy === 'page' && subGroupBy === 'none'}
+              >Page</option>
+            <option
+              value="folder"
+              disabled={groupBy === 'folder' && subGroupBy === 'none'}
+              >Folder</option>
+          </select></label>
+      {/if}
       <label
         class="checklist-option"
         title="Off keeps the previous flat list and task selection. On includes children of tagged tasks and shows their hierarchy.">

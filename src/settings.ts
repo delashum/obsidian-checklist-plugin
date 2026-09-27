@@ -14,6 +14,7 @@ export interface TodoSettings {
   autoRefresh: boolean
   groupBy: GroupByType
   subGroups: boolean
+  subGroupBy: GroupByType
   nestSubtasks: boolean
   sortDirectionItems: SortDirection
   sortDirectionGroups: SortDirection
@@ -34,8 +35,9 @@ export const DEFAULT_SETTINGS: TodoSettings = {
   showOnlyActiveFile: false,
   autoRefresh: true,
   subGroups: false,
+  subGroupBy: 'none',
   nestSubtasks: false,
-  groupBy: 'page',
+  groupBy: 'tag',
   sortDirectionItems: 'new->old',
   sortDirectionGroups: 'new->old',
   sortDirectionSubGroups: 'new->old',
@@ -116,11 +118,13 @@ export class TodoSettingTab extends PluginSettingTab {
       tag: 'Tag',
       folder: 'Folder',
     })
-    this.toggle(
-      'subGroups',
-      'Nested groups',
-      'Within pages, group by tag. Within tags or folders, group by page. Off by default; ignored with None.',
-    )
+    if (this.plugin.getSettingValue('groupBy') !== 'none')
+      this.select('subGroupBy', 'Subgroup by', {
+        none: 'None',
+        tag: 'Tag',
+        page: 'Page',
+        folder: 'Folder',
+      })
     this.toggle(
       'nestSubtasks',
       'Show nested subtasks',
@@ -204,7 +208,10 @@ export class TodoSettingTab extends PluginSettingTab {
       input
         .addOptions(options)
         .setValue(this.plugin.getSettingValue(key) as string)
-        .onChange(value => this.plugin.updateSettings({[key]: value})),
+        .onChange(async value => {
+          await this.plugin.updateSettings({[key]: value})
+          if (key === 'groupBy' || key === 'subGroupBy') this.display()
+        }),
     )
   }
 }

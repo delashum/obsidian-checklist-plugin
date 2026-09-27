@@ -30,7 +30,7 @@ export const groupTodos = (
   groupBy: GroupByType,
   sortGroups: SortDirection,
   sortItems: SortDirection,
-  subGroups: boolean,
+  subGroups: boolean | GroupByType,
   subGroupSort: SortDirection,
   configuredTags: string[] = [],
   parentId = '',
@@ -127,10 +127,14 @@ export const groupTodos = (
     return compareText(a.label, b.label)
   })
   for (const group of groups) {
-    if (subGroups)
+    if (subGroups && subGroups !== 'none' && subGroups !== groupBy)
       group.groups = groupTodos(
         group.todos,
-        groupBy === 'page' ? 'tag' : 'page',
+        typeof subGroups === 'string'
+          ? subGroups
+          : groupBy === 'page'
+          ? 'tag'
+          : 'page',
         subGroupSort,
         sortItems,
         false,
