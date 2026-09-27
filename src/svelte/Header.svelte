@@ -260,19 +260,6 @@
           checked={showSource}
           on:change={event =>
             updateSetting({showSource: event.currentTarget.checked})} /></label>
-      {#if todoTags.length}
-        <div class="checklist-panel-heading checklist-tags-heading">Tags</div>
-        <div class="checklist-tag-options">
-          {#each todoTags as tag}<label class="checklist-option"
-              ><span class="checklist-tag-label" title={'#' + tag}>#{tag}</span
-              ><input
-                type="checkbox"
-                checked={!hiddenTags.includes(tag)}
-                on:change={event =>
-                  onTagStatusChange(tag, event.currentTarget.checked)} /></label
-            >{/each}
-        </div>
-      {/if}
       <div class="checklist-panel-heading checklist-section-heading">
         Filter
       </div>
@@ -288,6 +275,19 @@
                 .trim()
                 .replace(/^\/+|\/+$/g, ''),
             })} /></label>
+      {#if todoTags.length}
+        <div class="checklist-panel-heading checklist-tags-heading">Tags</div>
+        <div class="checklist-tag-options">
+          {#each todoTags as tag}<label class="checklist-option"
+              ><span class="checklist-tag-label" title={'#' + tag}>#{tag}</span
+              ><input
+                type="checkbox"
+                checked={!hiddenTags.includes(tag)}
+                on:change={event =>
+                  onTagStatusChange(tag, event.currentTarget.checked)} /></label
+            >{/each}
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

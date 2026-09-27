@@ -250,7 +250,7 @@
   flex: 1;
   min-width: 0;
   height: 28px;
-  padding: 0 8px;
+  padding: 0 2px;
   text-align: left;
   border: 0;
   border-radius: inherit;
@@ -273,7 +273,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 16px;
+  flex: 0 0 var(--checklist-control-width);
 }
 .checklist-tag-base {
   color: var(--checklist-tagBaseColor, var(--text-muted));
@@ -289,18 +289,11 @@
   font-weight: 500;
 }
 .checklist-group-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  box-sizing: border-box;
-  border-radius: 5px;
-  background: var(--background-modifier-hover);
   flex: none;
-  font-size: 11px;
-  color: var(--text-muted);
+  margin-left: 4px;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
 .checklist-plugin-main .checklist-open-note {
@@ -596,9 +589,22 @@
   background: transparent;
   color: var(--text-normal);
 }
-.checklist-group-header > .checklist-group-count {
-  margin-left: 4px;
-}
 .checklist-section-heading {
   margin-top: 8px;
+}
+
+.checklist-group.has-subgroups > .checklist-group-header {
+  background: color-mix(
+    in srgb,
+    var(--background-modifier-hover) 96%,
+    var(--text-normal) 4%
+  );
+}
+.checklist-group.has-subgroups > .checklist-group-header:hover,
+.checklist-group.has-subgroups > .checklist-group-header:focus-within {
+  background: color-mix(
+    in srgb,
+    var(--background-modifier-hover) 92%,
+    var(--text-normal) 8%
+  );
 }
