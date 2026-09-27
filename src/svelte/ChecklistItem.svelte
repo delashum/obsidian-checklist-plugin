@@ -54,10 +54,11 @@
     <button
       class="checklist-task-toggle"
       disabled={busy}
-      aria-label={(item.checked ? 'Mark incomplete: ' : 'Complete: ') +
-        item.originalText}
       aria-pressed={item.checked}
       on:click|stopPropagation={toggle}
+      ><span class="checklist-sr-only"
+        >{(item.checked ? 'Mark incomplete: ' : 'Complete: ') +
+          item.originalText}</span
       ><CheckCircle checked={item.checked} /></button>
     <div class="checklist-task-body">
       <div class="checklist-task-line">
