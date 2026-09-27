@@ -135,7 +135,7 @@
   top: 34px;
   z-index: 30;
   box-sizing: border-box;
-  width: min(260px, 100%);
+  width: min(300px, 100%);
   padding: 8px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -159,8 +159,11 @@
   font-size: 12px;
   border-radius: 4px;
 }
-.checklist-option select {
-  max-width: 120px;
+.checklist-option select,
+.checklist-folder-option input {
+  box-sizing: border-box;
+  flex: 0 0 144px;
+  width: 144px;
   min-width: 0;
   font: inherit;
   height: 26px;
@@ -474,12 +477,6 @@
 .checklist-display-panel {
   max-height: min(620px, 70vh);
   overflow-y: auto;
-}
-.checklist-folder-option input {
-  width: 120px;
-  min-width: 0;
-  height: 26px;
-  font-size: 12px;
 }
 .checklist-subgroups {
   margin-left: 0;
