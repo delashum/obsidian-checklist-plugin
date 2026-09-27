@@ -159,9 +159,6 @@
   font-size: 12px;
   border-radius: 4px;
 }
-.checklist-option:hover {
-  background: var(--background-modifier-hover);
-}
 .checklist-option select {
   max-width: 120px;
   min-width: 0;
