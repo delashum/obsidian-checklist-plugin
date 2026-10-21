@@ -22,7 +22,7 @@
     "builtin-modules": "3.3.0",
     "esbuild": "0.28.2",
     "esbuild-svelte": "^0.7.1",
-    "markdown-it": "15.0.2",
+    "markdown-it": "15.0.3",
     "minimatch": "^5.1.0",
     "obsidian": "1.7.2",
     "prettier-plugin-svelte": "3.4.1",
